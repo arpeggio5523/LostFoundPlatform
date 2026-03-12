@@ -28,7 +28,7 @@
 
 | No. | Name | Email |
 | :-- | :--- | :---- |
-| 01 | *Open* | |
+| 01 | **Jeffrey Zhi Qiang Lam Po Yuen** | jlam0070@student.monash.edu |
 | 02 | *Open* | |
 | 03 | *Open* | |
 
@@ -72,7 +72,7 @@
 | No. | Name |
 | :-- | :--- |
 | 01 | **Ram Kamalesh Borkar (System Architect)** |
-| 02 | *Open* |
+| 02 | **Jeffrey Zhi Qiang Lam Po Yuen (Product Manager)** |
 | 03 | *Open* |
 
 ## 🏛️ Stakeholders

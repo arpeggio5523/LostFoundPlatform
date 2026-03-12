@@ -38,7 +38,7 @@
 
 | No. | Name | Email |
 | :-- | :--- | :---- |
-| 01 | *Open* | |
+| 01 | **Lee Jia Wey** | jlee0482@student.monash.edu |
 | 02 | *Open* | |
 | 03 | *Open* | |
 | 04 | *Open* | |
@@ -74,7 +74,7 @@
 | 01 | **Ram Kamalesh Borkar (System Architect)** |
 | 02 | **Jeffrey Zhi Qiang Lam Po Yuen (Product Manager)** |
 | 03 | **Joshua Ling Xian Le (System Architect)** |
-| 04 | *Open* |
+| 04 | **Lee Jia Wey (Release Train Engineering)**|
 
 ## 🏛️ Stakeholders
 

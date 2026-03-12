@@ -18,7 +18,7 @@
 | No. | Name | Email |
 | :-- | :--- | :---- |
 | 01 | **Ram Kamalesh Borkar** | rbor0012@student.monash.edu |
-| 02 | *Open* | |
+| 02 | **Joshua Ling Xian Le** | jlin0168@student.monash.edu |
 | 03 | *Open* | |
 | 04 | *Open* | |
 
@@ -73,7 +73,8 @@
 | :-- | :--- |
 | 01 | **Ram Kamalesh Borkar (System Architect)** |
 | 02 | **Jeffrey Zhi Qiang Lam Po Yuen (Product Manager)** |
-| 03 | *Open* |
+| 03 | **Joshua Ling Xian Le (System Architect)** |
+| 04 | *Open* |
 
 ## 🏛️ Stakeholders
 

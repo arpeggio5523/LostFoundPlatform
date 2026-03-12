@@ -18,7 +18,7 @@
 | No. | Name | Email |
 | :-- | :--- | :---- |
 | 01 | **Ram Kamalesh Borkar** | rbor0012@student.monash.edu |
-| 02 | **Joshua Ling Xian Le** | jlin0168@student.monash.edu |
+| 02 | **Joshua Ling XianLe** | jlin0168@student.monash.edu |
 | 03 | *Open* | |
 | 04 | *Open* | |
 

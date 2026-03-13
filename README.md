@@ -18,7 +18,7 @@
 | No. | Name | Email |
 | :-- | :--- | :---- |
 | 01 | **Ram Kamalesh Borkar** | rbor0012@student.monash.edu |
-| 02 | **Joshua Ling XianLe** | jlin0168@student.monash.edu |
+| 02 | **Joshua Ling Xian Le** | jlin0168@student.monash.edu |
 | 03 | *Open* | |
 | 04 | *Open* | |
 
@@ -49,8 +49,8 @@
 
 | No. | Name |
 | :-- | :--- |
-| 01 | **Daphne Chu Yoong Kei** |
-| 02 | *Open* |
+| 01 | **Daphne Chu Yoong Kei (Product Manager)** |
+| 02 | **Joshua Ling Xian Le (System Architect)** |
 | 03 | *Open* |
 | 04 | *Open* |
 
@@ -73,7 +73,7 @@
 | :-- | :--- |
 | 01 | **Ram Kamalesh Borkar (System Architect)** |
 | 02 | **Jeffrey Zhi Qiang Lam Po Yuen (Product Manager)** |
-| 03 | **Joshua Ling Xian Le (System Architect)** |
+| 03 |  *Open* |
 | 04 | **Lee Jia Wey (Release Train Engineering)**|
 
 ## 🏛️ Stakeholders

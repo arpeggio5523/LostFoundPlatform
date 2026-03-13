@@ -30,7 +30,7 @@
 | :-- | :--- | :---- |
 | 01 | **Jeffrey Zhi Qiang Lam Po Yuen** | jlam0070@student.monash.edu |
 | 02 | **Chan Tze Ern** | tcha0152@student.monash.edu |
-| 03 | *Open* | |
+| 03 | **Daphne Chu Yoong Kei (Product Manager)** | dchu0036@student.monash.edu |
 
 ---
 
@@ -49,10 +49,10 @@
 
 | No. | Name |
 | :-- | :--- |
-| 01 | *Open* |
-| 02 | *Open* |
-| 03 | *Open* |
-| 04 | *Open* |
+| 01 | **Daphne Chu Yoong Kei (Product Manager)** |
+| 02 | **Ram Kamalesh Borkar (System Architect)** |
+| 03 | **Jeffrey Zhi Qiang Lam Po Yuen (Product Manager)** |
+| 04 | **Joshua Ling Xian Le (System Architect)** |
 
 ---
 
@@ -71,9 +71,7 @@
 
 | No. | Name |
 | :-- | :--- |
-| 01 | **Ram Kamalesh Borkar (System Architect)** |
-| 02 | **Jeffrey Zhi Qiang Lam Po Yuen (Product Manager)** |
-| 03 | **Joshua Ling Xian Le (System Architect)** |
+
 | 04 | **Lee Jia Wey (Release Train Engineering)**|
 
 ## 🏛️ Stakeholders

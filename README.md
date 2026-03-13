@@ -29,7 +29,7 @@
 | No. | Name | Email |
 | :-- | :--- | :---- |
 | 01 | **Jeffrey Zhi Qiang Lam Po Yuen** | jlam0070@student.monash.edu |
-| 02 | *Open* | |
+| 02 | **Chan Tze Ern** | tcha0152@student.monash.edu |
 | 03 | *Open* | |
 
 ---
@@ -60,7 +60,7 @@
 
 | No. | Name |
 | :-- | :--- |
-| 01 | *Open* |
+| 01 | **Chan Tze Ern (Product Manager)** |
 | 02 | *Open* |
 | 03 | *Open* |
 | 04 | *Open* |

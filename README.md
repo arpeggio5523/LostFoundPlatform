@@ -51,7 +51,7 @@
 | :-- | :--- |
 | 01 | **Daphne Chu Yoong Kei (Product Manager)** |
 | 02 | **Joshua Ling Xian Le (System Architect)** |
-| 03 | *Open* |
+| 03 | **Sham Ganesh Thamarai Kannan (System Architect)** |
 | 04 | *Open* |
 
 ---

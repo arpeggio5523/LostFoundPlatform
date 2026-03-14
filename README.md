@@ -39,7 +39,7 @@
 | No. | Name | Email |
 | :-- | :--- | :---- |
 | 01 | **Lee Jia Wey** | jlee0482@student.monash.edu |
-| 02 | *Open* | |
+| 02 | **Chew Min Xuan** | mche0225@student.monash.edu |
 | 03 | *Open* | |
 | 04 | *Open* | |
 
@@ -62,7 +62,7 @@
 | :-- | :--- |
 | 01 | **Chan Tze Ern (Product Manager)** |
 | 02 | **Jaslyn Chan Mun Kuan (System Architect)** |
-| 03 | *Open* |
+| 03 | **Chew Min Xuan (Release Train Engineering)** |
 | 04 | *Open* |
 
 ---

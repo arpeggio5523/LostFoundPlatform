@@ -20,7 +20,7 @@
 | 01 | **Ram Kamalesh Borkar** | rbor0012@student.monash.edu |
 | 02 | **Joshua Ling Xian Le** | jlin0168@student.monash.edu |
 | 03 | **Sham Ganesh Thamarai Kannan** | stha0083@student.monash.edu |
-| 04 | *Open* | |
+| 04 | **Jaslyn Chan Mun Kuan** | jcha0270@student.monash.edu |
 
 ---
 
@@ -61,7 +61,7 @@
 | No. | Name |
 | :-- | :--- |
 | 01 | **Chan Tze Ern (Product Manager)** |
-| 02 | *Open* |
+| 02 | **Jaslyn Chan Mun Kuan (System Architect)** |
 | 03 | *Open* |
 | 04 | *Open* |
 

@@ -19,7 +19,7 @@
 | :-- | :--- | :---- |
 | 01 | **Ram Kamalesh Borkar** | rbor0012@student.monash.edu |
 | 02 | **Joshua Ling Xian Le** | jlin0168@student.monash.edu |
-| 03 | *Open* | |
+| 03 | **Sham Ganesh Thamarai Kannan** | stha0083@student.monash.edu |
 | 04 | *Open* | |
 
 ---

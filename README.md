@@ -41,7 +41,7 @@
 | 01 | **Lee Jia Wey** | jlee0482@student.monash.edu |
 | 02 | **Chew Min Xuan** | mche0225@student.monash.edu |
 | 03 | **Ruchith Kumal Sathkorala** | rsat0014@student.monash.edu |
-| 04 | *Open* | |
+| 04 | **Melanie Lok Huey Xin** | mlok0007@student.monash.edu |
 
 ## 👥 Agile Team Composition
 
@@ -63,7 +63,7 @@
 | 01 | **Chan Tze Ern (Product Manager)** |
 | 02 | **Jaslyn Chan Mun Kuan (System Architect)** |
 | 03 | **Chew Min Xuan (Release Train Engineering)** |
-| 04 | *Open* |
+| 04 | **Melanie Lok Huey Xin (Release Train Engineering)** |
 
 ---
 

@@ -40,7 +40,7 @@
 | :-- | :--- | :---- |
 | 01 | **Lee Jia Wey** | jlee0482@student.monash.edu |
 | 02 | **Chew Min Xuan** | mche0225@student.monash.edu |
-| 03 | *Open* | |
+| 03 | **Ruchith Kumal Sathkorala** | rsat0014@student.monash.edu |
 | 04 | *Open* | |
 
 ## 👥 Agile Team Composition
@@ -52,7 +52,7 @@
 | 01 | **Daphne Chu Yoong Kei (Product Manager)** |
 | 02 | **Joshua Ling Xian Le (System Architect)** |
 | 03 | **Sham Ganesh Thamarai Kannan (System Architect)** |
-| 04 | *Open* |
+| 04 | **Ruchith Kumal Sathkorala (Release Train Engineering)** |
 
 ---
 

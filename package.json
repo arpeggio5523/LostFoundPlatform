@@ -1,0 +1,31 @@
+{
+  "name": "fit3170-project1",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config config/vite.config.js",
+    "build": "vite build --config config/vite.config.js",
+    "preview": "vite preview --config config/vite.config.js",
+    "server": "node server.js",
+    "start": "node server.js",
+    "dev:full": "concurrently \"npm run dev\" \"nodemon server.js\""
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "mongodb": "^7.2.0",
+    "mongoose": "^9.6.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.14",
+    "postcss": "^8.4.40",
+    "tailwindcss": "^3.4.10",
+    "vite": "^5.4.1"
+  }
+}

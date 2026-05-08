@@ -6,8 +6,8 @@ function Navbar(){
             <div className = "mx-auto flex max-w-7xl items-center justify-between px-8 py-5">
             {/* left logo*/}
             <Link to = "/login" className = "flex items-center gap-3">
-                <div className = "flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
-                    <div className="flex h-15 w-12 items-center justify-center rounded-xl bg-blue-600 text-white">
+                <div className = "flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700 text-white">
+                    <div className="flex h-15 w-12 items-center justify-center rounded-xl bg-teal-700 text-white">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 24 24"

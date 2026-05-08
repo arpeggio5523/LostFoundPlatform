@@ -11,12 +11,7 @@ function LoginPage(){
     function handleLogin(event){
         event.preventDefault(); // prevent refresh
 
-        console.log("Login data:", {
-            email,
-            password,
-        }); //for testing
-
-        alert("Login button clicked"); //for testing
+        alert("Signup button clicked"); //for testing
     }
 
     return(
@@ -36,6 +31,7 @@ function LoginPage(){
                                 placeholder="your.email@university.edu"
                                 value = {email}
                                 onChange = {(event) => setEmail(event.target.value)}
+                                required
                             />
                             <AuthInput
                                 label = "Password"
@@ -43,6 +39,7 @@ function LoginPage(){
                                 placeholder={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
                                 value = {password}
                                 onChange = {(event) => setPassword(event.target.value)}
+                                required
                             />
                             <div className = "flex items-center text-sm">
                                 <label className = "flex items-center gap-2 text-black">

@@ -11,7 +11,7 @@ function LoginPage(){
     function handleLogin(event){
         event.preventDefault(); // prevent refresh
 
-        alert("Signup button clicked"); //for testing
+        alert("Login button clicked"); //for testing
     }
 
     return(

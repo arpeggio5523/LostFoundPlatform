@@ -4,7 +4,7 @@ import { Bell, LogOut } from "lucide-react";
 function Navbar2(){
     return(
         <header className = " sticky top-0  z-50 w-full border-b border-gray-200 bg-white">
-            <div className = "mx-auto flex max-w-7xl items-center justify-between px-8 py-5">
+            <div className = "flex w-full items-center justify-between px-8 py-5">
             {/* left logo*/}
             <Link to = "/login" className = "flex items-center gap-3">
                 <div className = "flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700 text-white">
@@ -31,14 +31,14 @@ function Navbar2(){
 
             {/* right logo*/}
             <nav className = "flex items-center gap-6">
-                <button className = "flex h-16 w-16 items-center justify-center rounded-2xl text-gray-900 hover: bg-gray-100"> 
-                    <Bell size = {28} strokeWidth={2} />
+                <button className = "flex h-10 w-10 items-center justify-center rounded-2xl text-gray-900 hover:bg-gray-100"> 
+                    <Bell size = {20} strokeWidth={2} />
                 </button>
                 <Link
                     to = "/login"
-                    className = "flex h-16 w-16 items-center justify-center rounded-2xl text-gray-900 hover: bg-gray-100"
+                    className = "flex h-10 w-10 items-center justify-center rounded-2xl text-gray-900 hover:bg-gray-100"
                 > 
-                    <Logout size = {28} strokeWidth={2} />
+                    <LogOut size = {20} strokeWidth={2} />
                 </Link>
             </nav>
             </div>

@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
 
 function SignupPage(){
+    const navigate = useNavigate();
+
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
@@ -12,7 +14,7 @@ function SignupPage(){
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
-    function handleSignup(event){
+    async function handleSignup(event){
         event.preventDefault(); // prevent refresh
 
         if (password.length < 8){
@@ -49,7 +51,35 @@ function SignupPage(){
             confirmPassword
         }); //for testing
 
-        alert("Signup button clicked"); //for testing
+        // alert("Signup button clicked"); //for testing
+
+        const signupData = {
+            fullName,
+            email,
+            phoneNumber,
+            occupation,
+            password,
+        };
+        
+        try {
+            const response = await fetch("http://localhost:3000/api/users/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(signupData),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert("Account created successfully! Please log in.");
+                navigate("/login");
+            } else {
+                alert("Signup failed: " + result.message);
+            }
+        } catch (err) {
+            console.error("Connection error:", err);
+            alert("Could not connect to the server.");
+        }
     }
 
     return(
@@ -115,12 +145,18 @@ function SignupPage(){
                             </form>
                             <p className = "mt-6 text-center text-sm text-gray-600">
                                 Already have an account?{" "}
-                                <Link
+                                <span
+                                    onClick={() => navigate("/login")}
+                                    className = "font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
+                                >
+                                    Sign In
+                                </span>
+                                {/* <Link
                                     to ="/login"
                                     className = "font-semibold text-blue-600 hover:text-blue-700"
                                 >
                                     Sign In
-                                </Link>
+                                </Link> */}
                             </p>
                         </div>
                     </div>

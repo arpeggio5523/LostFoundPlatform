@@ -1,21 +1,27 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
 
 function LoginPage(){
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
             email: "",
             password: ""
         });
+
+    // A helper to update the state object dynamically
+    const handleChange = (e, field) => {
+        setFormData({ ...formData, [field]: e.target.value });
+    };
 
     const handleLogin = async (e) => {
             e.preventDefault();
             console.log("Attempting Login with:", formData);
 
             try {
-                const response = await fetch("http://localhost:3000/api/users", {
+                const response = await fetch("http://localhost:3000/api/users/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(formData),
@@ -24,14 +30,16 @@ function LoginPage(){
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert("Success! User saved to MongoDB");
-                    console.log("Saved:", result);
+                    localStorage.setItem("token", result.token);
+                    alert("Login successful!");
+                    navigate("/found-items");
+                    // console.log("Saved:", result);
                 } else {
-                    alert("Error: " + result.error);
+                    alert("Error: " + (result.error || "Invalid credentials"));
                 }
             } catch (err) {
                 console.error("Failed to connect to server:", err);
-                alert("Is your backend server running on port 3000?");
+                alert("Server connection failed");
             }
         };
 
@@ -51,16 +59,16 @@ function LoginPage(){
                                 label = "Email"
                                 type = "email"
                                 placeholder="your.email@university.edu"
-                                value = {email}
-                                onChange = {(event) => setEmail(event.target.value)}
+                                value = {formData.email}
+                                onChange={(e) => handleChange(e, "email")}
                                 required
                             />
                             <AuthInput
                                 label = "Password"
                                 type = "password"
                                 placeholder={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
-                                value = {password}
-                                onChange = {(event) => setPassword(event.target.value)}
+                                value = {formData.password}
+                                onChange = {(e) => handleChange(e, "password")}
                                 required
                             />
                             <div className = "flex items-center text-sm">

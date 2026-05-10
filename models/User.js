@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -38,6 +39,7 @@ const userSchema = new mongoose.Schema({
     trim: true,
     validate: {
       validator: function(phoneValue) {
+        if (!phoneValue) return true;
         return /^(\+?\d{8,15})$/.test(phoneValue);
       },
         message: 
@@ -51,11 +53,28 @@ const userSchema = new mongoose.Schema({
     maxlength: [50, "Occupation cannot exceed 50 characters"],
     validate: {
       validator: function(occupationValue) {
+        if (!occupationValue) return true;
         return /^[A-Za-z\s'-]+$/.test(occupationValue);
       },
         message: 
           'Occupation can only contain letters'
     }
+  }
+});
+
+// Hash password before saving user document
+userSchema.pre("save", async function(next) {
+
+  if (!this.isModified("password")) {
+    return next();
+  }
+
+  try {
+    this.password = await bcrypt.hash(this.password, 12);
+    next();
+
+  } catch (error) {
+    next(error);
   }
 });
 

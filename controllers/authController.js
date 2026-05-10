@@ -1,19 +1,28 @@
-const bcrypt = require("bcrypt");
-const User = require("../models/User");
+import bcrypt from "bcrypt";
+import User from "../models/User.js";
 
-const signup = async (req, res) => {
+// Register a new user into the system
+export const signup = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { name, email, password, phoneNumber, occupation } = req.body;
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const existingUser = await User.findOne({ email });
 
-    const user = new User({
-      username,
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Email already exists",
+      });
+    }
+
+    const newUser = new User({
+      name,
       email,
-      password: hashedPassword,
+      password,
+      ...(phoneNumber && { phoneNumber }),
+      ...(occupation && { occupation }),
     });
 
-    await user.save();
+    await newUser.save();
 
     res.status(201).json({
       message: "User registered successfully",
@@ -26,7 +35,8 @@ const signup = async (req, res) => {
   }
 };
 
-const login = async (req, res) => {
+// Authenticate existing user credentials and log in
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -38,6 +48,7 @@ const login = async (req, res) => {
       });
     }
 
+    // Compare provided password with hashed password in database
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -46,7 +57,7 @@ const login = async (req, res) => {
       });
     }
 
-    res.json({
+    res.status(200).json({
       message: "Login successful",
     });
 
@@ -55,9 +66,4 @@ const login = async (req, res) => {
       message: error.message,
     });
   }
-};
-
-module.exports = {
-  signup,
-  login,
 };

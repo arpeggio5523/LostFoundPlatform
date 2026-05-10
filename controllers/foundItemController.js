@@ -87,3 +87,18 @@ export async function createFoundItem(req, res) {
     });
   }
 }
+
+export async function listFoundItems(req, res) {
+  try {
+    const foundItems = await FoundItem.find().sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      foundItems
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch found items.",
+      error: error.message
+    });
+  }
+}

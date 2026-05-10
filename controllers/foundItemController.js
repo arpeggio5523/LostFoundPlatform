@@ -102,3 +102,26 @@ export async function listFoundItems(req, res) {
     });
   }
 }
+
+export async function getFoundItem(req, res) {
+  try {
+    const { id } = req.params;
+
+    const foundItem = await FoundItem.findById(id);
+
+    if (!foundItem) {
+      return res.status(404).json({
+        message: "Found item not found."
+      });
+    }
+
+    return res.status(200).json({
+      foundItem
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch found item.",
+      error: error.message
+    });
+  }
+}

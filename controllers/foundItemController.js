@@ -44,7 +44,6 @@ export async function createFoundItem(req, res) {
       location,
       dateFound,
       images,
-      status
     } = req.body;
 
     const normalizedImages = normalizeImages(images);
@@ -73,7 +72,7 @@ export async function createFoundItem(req, res) {
       location: String(location).trim(),
       dateFound,
       images: normalizedImages,
-      status: status || undefined
+      status: "pending"
     });
 
     return res.status(201).json({
@@ -125,3 +124,4 @@ export async function getFoundItem(req, res) {
     });
   }
 }
+

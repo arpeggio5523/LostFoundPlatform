@@ -26,13 +26,37 @@ const userSchema = new mongoose.Schema({
     trim: true,
     minlength: [8, 'Password must be at least 8 characters'],
     validate: {
-            validator: function (passwordValue) {
-                return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/.test(passwordValue);
-            },
-            message: 
-                'Password must consist of at least one uppercase letter, one lowercase letter, one number, and one special character'
-        }
+      validator: function (passwordValue) {
+        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/.test(passwordValue);
+      },
+        message: 
+          'Password must consist of at least one uppercase letter, one lowercase letter, one number, and one special character'
     }
+  },
+  phoneNumber: {
+    type: String,
+    trim: true,
+    validate: {
+      validator: function(phoneValue) {
+        return /^(\+?\d{8,15})$/.test(phoneValue);
+      },
+        message: 
+          'Please enter a valid phone number'
+    }
+  },
+  occupation: {
+    type: String,
+    trim: true,
+    minlength: [2, "Occupation must be at least 2 characters"],
+    maxlength: [50, "Occupation cannot exceed 50 characters"],
+    validate: {
+      validator: function(occupationValue) {
+        return /^[A-Za-z\s'-]+$/.test(occupationValue);
+      },
+        message: 
+          'Occupation can only contain letters'
+    }
+  }
 });
 
 const User = mongoose.model('User', userSchema);

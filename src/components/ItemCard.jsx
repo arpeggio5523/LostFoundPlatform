@@ -1,6 +1,6 @@
 import StatusBadge from "./StatusBadge";
 import QRIcon from "./QRIcon";
-import NoImagePlaceholder from "./NoImagePlaceholder";
+import NoImagePlaceholder from "./NoImagePlaceHolder";
 
 export default function ItemCard({ item }) {
   return (

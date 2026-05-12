@@ -237,7 +237,7 @@ export default function FoundItemsPage() {
             </div>
           ) : (
             <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
-              {filtered.map(item => <ItemCard key={item.id} item={item} />)}
+              {filtered.map(item => <ItemCard key={item.id} item={item} dateLabel="Found on" />)}
             </div>
           )}
         </main>

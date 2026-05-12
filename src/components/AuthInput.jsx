@@ -1,4 +1,4 @@
-function AuthInput({ label, type, placeholder, value, onChange, minLength }) {
+function AuthInput({ label, type, placeholder, value, onChange, required = false, minLength }) {
   return (
     <div className="flex flex-col gap-2">
       <label className="text-sm font-medium text-black">
@@ -10,6 +10,7 @@ function AuthInput({ label, type, placeholder, value, onChange, minLength }) {
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        required = {required}
         minLength = {minLength}  
         className="rounded-lg border border-white bg-gray-100 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
       />

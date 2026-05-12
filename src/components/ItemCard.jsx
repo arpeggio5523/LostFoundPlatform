@@ -3,7 +3,7 @@ import QRIcon from "./QRIcon";
 import NoImagePlaceholder from "./NoImagePlaceHolder";
 import {Calendar, MapPinIcon} from "lucide-react";
 
-export default function ItemCard({ item }) {
+export default function ItemCard({ item, dateLabel }) {
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
         {/* Image */}
@@ -31,7 +31,7 @@ export default function ItemCard({ item }) {
 
             <div className="mb-2 flex items-center gap-2 text-xs text-gray-500">
                 <Calendar size={16} strokeWidth={2} className='shrink-0'/>
-                <span>Found on {item.date}</span>
+                <span>{dateLabel} {item.date}</span>
             </div>
 
             <div className="mb-4 border-t border-gray-200"></div>

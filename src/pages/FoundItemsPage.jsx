@@ -11,76 +11,118 @@ const MOCK_ITEMS = [
     id: 1,
     title: "Set of Keys with Blue Keychain",
     description: "Found a set of keys with a blue keychain near the cafeteria.",
+    distMark: "",
+    color: "Blue",
     location: "Universiti Malaya (UM)",
-    date: "2025-05-01",
+    date: "Apr 2, 2026",
     category: "Accessories",
-    status: "approved",
+    status: "Approved",
+    user: "Jane Smith",
     image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop",
   },
   {
     id: 2,
     title: "iPhone 15 Pro",
     description: "Found a black iPhone 15 Pro in the lecture hall. Has a cracked screen protector.",
+    distMark: "Cracked screen protector",
+    color: "Black",
     location: "Universiti Kebangsaan Malaysia (UKM)",
-    date: "2025-05-03",
+    date: "Apr 3, 2026",
     category: "Electronics",
-    status: "approved",
+    status: "Approved",
+    user: "Sarah Lee",
     image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop",
   },
   {
     id: 3,
     title: "Student ID Card",
     description: "Found a student ID card for Emily Watson.",
+    distMark: "",
+    color: "",
     location: "Universiti Putra Malaysia (UPM) Central Library",
-    date: "2025-05-04",
+    date: "Apr 4, 2026",
     category: "Documents",
-    status: "pending",
+    status: "Pending",
+    user: "John Doe",
     image: null,
   },
   {
     id: 4,
     title: "Blue Umbrella",
     description: "Left behind near the main entrance after the rain.",
+    distMark: "",
+    color: "Blue",
     location: "Universiti Sains Malaysia (USM)",
-    date: "2025-05-05",
+    date: "Apr 5, 2026",
     category: "Accessories",
-    status: "approved",
+    status: "Approved",
+    user: "Zhan Lim",
     image: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400&h=300&fit=crop",
   },
   {
     id: 5,
     title: "Leather Wallet",
     description: "Brown leather wallet found at the parking lot. Contains some cards.",
+    distMark: "",
+    color: "Brown",
     location: "Taylor's University",
-    date: "2025-05-06",
+    date: "May 6, 2026",
     category: "Accessories",
-    status: "returned",
+    status: "Returned",
+    user: "Yao Looi",
     image: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=400&h=300&fit=crop",
   },
   {
     id: 6,
     title: "Scientific Calculator",
     description: "Casio fx-570EX found in Engineering lab room 3.",
+    distMark: "Has a small scratch on the front.",
+    color: "Black",
     location: "Universiti Teknologi Malaysia (UTM)",
-    date: "2025-05-07",
+    date: "Mar 7, 2026",
     category: "Electronics",
-    status: "pending",
+    status: "Pending",
+    user: "Yu Liew",
     image: null,
   },
 ];
 
-const CATEGORIES = ["All Categories", "Electronics", "Accessories", "Documents", "Clothing", "Others"];
+const CATEGORIES = [
+    "All Categories",
+    "Electronics",
+    "Accessories",
+    "Bag & Backpacks",
+    "Documents",
+    "Keys",
+    "Clothing",
+    "Books",
+    "Sports Equipment",
+    "Jewelry",
+    "Other"];
+
 const LOCATIONS = [
   "All Locations",
   "Universiti Malaya (UM)",
   "Universiti Kebangsaan Malaysia (UKM)",
   "Universiti Sains Malaysia (USM)",
-  "Universiti Putra Malaysia (UPM) Central Library",
+  "Universiti Putra Malaysia (UPM)",
   "Universiti Teknologi Malaysia (UTM)",
+  "Universiti Teknologi MARA (UiTM)",
+  "Universiti Islam Antarabangsa Malaysia (UIAM)",
+  "Universiti Utara Malaysia (UUM)",
+  "Multimedia University (MMU)",
   "Taylor's University",
   "Sunway University",
+  "INTI International University",
+  "Other"
 ];
-const STATUSES = ["All Status", "approved", "pending", "returned"];
+
+const STATUSES = [
+    "All Status",
+    "Approved",
+    "Pending",
+    "Matched",
+    "Returned"];
 
 export default function FoundItemsPage() {
   const navigate = useNavigate();
@@ -93,7 +135,7 @@ export default function FoundItemsPage() {
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
                         item.description.toLowerCase().includes(search.toLowerCase());
     const matchCat    = category === "All Categories" || item.category === category;
-    const matchLoc    = location === "All Locations"  || item.location === location;
+    const matchLoc    = location === "All Locations"  || item.location.toLowerCase().includes(location.toLowerCase());
     const matchStatus = status   === "All Status"     || item.status === status;
     return matchSearch && matchCat && matchLoc && matchStatus;
   });

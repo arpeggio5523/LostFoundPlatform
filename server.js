@@ -1,10 +1,12 @@
-import "dotenv/config";
 import express from "express";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import User from "./models/User.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,7 +17,7 @@ const distPath = path.join(__dirname, "dist");
 const distIndexPath = path.join(distPath, "index.html");
 
 // MongoDB connection
-const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/fit3170db";
+const mongoURI = process.env.MONGO_URI;
 mongoose.connect(mongoURI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error("MongoDB connection error:", err));

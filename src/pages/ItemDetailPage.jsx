@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { MOCK_ITEMS } from "../data/itemsData";
-import { MapPin, Calendar, Tag, Palette } from "lucide-react";
+import { MapPin, Calendar, Tag, Palette, ArrowLeft } from "lucide-react"; 
 
 export default function ItemDetailPage() {
   const { id } = useParams();
@@ -11,27 +11,24 @@ export default function ItemDetailPage() {
   if (!item) return <div style={{ padding: 40 }}>Item not found!</div>;
 
   const isApproved = item.status === "approved";
+  const isLost = item.type === 'lost'; // Helper boolean
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
 
       <main style={{ marginLeft: 220, flex: 1, padding: "30px" }}>
-        {/* Back Button */}
+        {/* Dynamic Back Button */}
         <button 
           onClick={() => navigate(-1)} 
-          style={{ 
-            marginBottom: 20, cursor: "pointer", border: "none", 
-            background: "none", color: "#888", fontSize: 13, fontWeight: 600 
-          }}
+          className="flex items-center gap-2 mb-6 text-gray-400 hover:text-gray-700 text-sm font-semibold transition-colors"
         >
-          ← Back
+          <ArrowLeft size={16} />
+          Back to {isLost ? 'Lost' : 'Found'} Items
         </button>
         
-        {/* Centered Compact Card */}
         <div style={{ 
-          maxWidth: "550px", // Reduced width to make it feel less "big"
-          margin: "0", // Centers the card on the page
+          maxWidth: "550px", 
           background: "#fff", 
           borderRadius: 20, 
           boxShadow: "0 4px 20px rgba(0,0,0,0.04)", 
@@ -39,8 +36,7 @@ export default function ItemDetailPage() {
           overflow: "hidden" 
         }}>
           
-          {/* Shorter Image Section */}
-          <div style={{ width: "100%", height: "280px" }}> {/* Reduced from 450px */}
+          <div style={{ width: "100%", height: "280px" }}>
             <img 
               src={item.image || "https://via.placeholder.com/550x280"} 
               alt={item.title}
@@ -48,8 +44,8 @@ export default function ItemDetailPage() {
             />
           </div>
 
-          {/* Details Section with tighter padding */}
           <div style={{ padding: "30px" }}>
+            {/* Dynamic Header Tags */}
             <div style={{ 
               display: "flex", 
               justifyContent: "space-between", 
@@ -59,13 +55,13 @@ export default function ItemDetailPage() {
               <div style={{
                 padding: "4px 10px",
                 borderRadius: 6,
-                background: "#ecfdf5",
-                color: "#059669",
+                background: item.type === 'lost' ? "#eff6ff" : "#ecfdf5", // Blue for lost, Green for found
+                color: isLost ? "#2563eb" : "#059669",
                 fontSize: 11,
                 fontWeight: 800,
                 textTransform: "uppercase",
               }}>
-                Found
+                {item.type === 'lost' ? 'Lost' : 'Found'}
               </div>
 
               <div style={{
@@ -76,133 +72,65 @@ export default function ItemDetailPage() {
                 fontSize: 11, 
                 fontWeight: 800, 
                 textTransform: "uppercase", 
-            }}>
-              {item.status}
+              }}>
+                {item.status}
+              </div>
             </div>
-          </div>
 
-          {/* Item Title */}    
-          <h1 style={{ 
-            fontSize: 24, 
-            fontWeight: 800, 
-            color: "#111", 
-            margin: "0 0 8px 0" }}>
+            <h1 style={{ fontSize: 24, fontWeight: 800, color: "#111", margin: "0 0 16px 0" }}>
               {item.title}
-          </h1>
+            </h1>
 
-          {/* Description */}   
-          <div style={{marginBottom: 24 }}>
-            <div style={{
-              fontSize: 18,
-              fontWeight: 700,
-              color: "#111",
-              marginBotton: 4
-            }}>
-              Description 
-            </div>
-            <p style={{ 
-              fontSize: 15, 
-              color: "#666", 
-              lineHeight: 1.5, 
-              marginBottom: 24 }}>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#111", textTransform: "uppercase", marginBottom: 4 }}>
+                Description 
+              </div>
+              <p style={{ fontSize: 15, color: "#666", lineHeight: 1.5, margin: 0 }}>
                 {item.description}
-            </p>
-          </div> 
+              </p>
+            </div> 
 
-            {/* Tighter Info Grid */}
+            {/* Info Grid */}
             <div style={{ 
-              display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", 
+              display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", 
               borderTop: "1px solid #f0f0f0", paddingTop: 24 
             }}>
-              <div>
-                <div style={{ 
-                  fontSize: 18, 
-                  fontWeight: 700, 
-                  color: "#111",
-                  marginBottom: "6px" 
-                }}>
-                  Category
-                </div>
-                <div style={{ 
-                  display: "inline-flex",
-                  alignItems: "center",
-                  padding: "6px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid #e5e7eb",
-                  background: "#f3f4f6", 
-                  fontSize: 14, 
-                  fontWeight: 600, 
-                  color: "#333",
-                  lineHeight: "1" 
-                }}>
-                  {item.category}
-                </div>
-              </div>
+              
+              <InfoBlock label="Category" icon={<Tag size={14}/>} value={item.category} />
+              <InfoBlock label="Colour" icon={<Palette size={14}/>} value={item.color} />
+              <InfoBlock label="Location" icon={<MapPin size={14}/>} value={item.location} />
+              <InfoBlock label="Date" icon={<Calendar size={14}/>} value={item.date} />
 
-              <div>
-                <div style={{ 
-                  fontSize: 18, 
-                  fontWeight: 700, 
-                  color: "#111", 
-                  marginBottom: "6px" 
-                }}>
-                  Colour
-                </div>
-                
-                <div style={{ 
-                  display: "inline-flex",
-                  alignItems: "center",
-                  fontSize: 14, 
-                  fontWeight: 600, 
-                  color: "#333" 
-                }}>
-                  {item.color}
-                </div>
-              </div>
-
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#111" }}>Location</div>
-                <div style={{ 
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "6px 12px",
-                  borderRadius: "8px",
-                  fontSize: 14, 
-                  fontWeight: 600, 
-                  color: "#333",
-                  marginLeft: "-12px"
-                }}>
-                  <MapPin size={14} color='#666' strokeWidth={2.5} />
-                  <span>{item.location}</span>
-                </div>
-              </div>
-
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#111" }}>Date</div>
-                <div style={{ 
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "6px 12px",
-                  borderRadius: "8px",
-                  fontSize: 14, 
-                  fontWeight: 600, 
-                  color: "#333",
-                  marginLeft: "-12px"
-                }}>
-                  <Calendar size={14} />
-                  <span>{item.date}</span>
-                </div>
-              </div>
             </div>
 
-            <button className="mt-8 w-full py-3.5 bg-black text-white rounded-xl font-bold text-base hover:bg-gray-800 transition-colors">
-              Claim Item
+            <button className="mt-10 w-full py-4 bg-black text-white rounded-xl font-bold text-base hover:bg-gray-800 transition-all active:scale-[0.98]">
+              {isLost ? "I found this item" : "Claim Item"}
             </button>
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+// Reusable Helper for the Grid items to ensure perfect alignment
+function InfoBlock({ label, icon, value }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10, fontWeight: 700, color: "#aaa", textTransform: "uppercase", marginBottom: 6 }}>
+        {label}
+      </div>
+      <div style={{ 
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
+        fontSize: 14, 
+        fontWeight: 600, 
+        color: "#333",
+      }}>
+        <span style={{ color: "#9ca3af" }}>{icon}</span>
+        {value || "N/A"}
+      </div>
     </div>
   );
 }

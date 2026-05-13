@@ -72,7 +72,7 @@ export async function createFoundItem(req, res) {
       location: String(location).trim(),
       dateFound,
       images: normalizedImages,
-      status: "pending"
+      // status: "pending"
     });
 
     return res.status(201).json({

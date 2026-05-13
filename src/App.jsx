@@ -4,6 +4,7 @@ import SignupPage from "./pages/SignupPage";
 import FoundItemsPage from "./pages/FoundItemsPage";
 import ReportFoundItemPage from "./pages/ReportFoundItemPage";
 import LostItemsPage from "./pages/LostItemsPage";
+import ItemDetailPage from "./pages/ItemDetailPage";
 
 function App() {
   return (

@@ -41,6 +41,11 @@ const lostItemSchema = new mongoose.Schema({
         validate: [arr => arr.length <= 5, 'Maximum of 5 images are allowed.']
     },
 
+    status:{
+        type: String,
+        enum: ['pending', 'approved']
+    },
+
     reportedBy: {
         type: mongoose.Schema.Types.ObjectId,
         // To match the name in the schema "User"

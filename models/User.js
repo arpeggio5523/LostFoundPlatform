@@ -4,9 +4,16 @@ import bcrypt from "bcrypt";
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'User ID is required'],
+    required: [true, 'Name is required'],
     trim: true,
-    uppercase: true
+    minlength: [2, "Name must be at least 2 characters"],
+    validate: {
+      validator: function (nameValue) {
+        return /^[A-Za-z\s'-]+$/.test(nameValue);
+      },
+        message:
+          'Name can only contain letters, spaces, apostrophes, and hyphens',
+    },
   },
   email: { 
     type: String,
@@ -15,10 +22,10 @@ const userSchema = new mongoose.Schema({
     trim: true,
     validate: {
       validator: function (emailValue) {
-                return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(emailValue);
-            },
-            message:
-                'Please enter a valid email'
+        return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(emailValue);
+      },
+        message:
+          'Please enter a valid email'
     }
   },
   password: { 
@@ -26,12 +33,13 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Password is required'],
     trim: true,
     minlength: [8, 'Password must be at least 8 characters'],
+    maxlength: [64, "Password cannot exceed 64 characters"],
     validate: {
       validator: function (passwordValue) {
-        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/.test(passwordValue);
+        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])(?!.*\s).+$/.test(passwordValue);
       },
         message: 
-          'Password must consist of at least one uppercase letter, one lowercase letter, one number, and one special character'
+          'Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and no spaces'
     }
   },
   phoneNumber: {
@@ -57,7 +65,7 @@ const userSchema = new mongoose.Schema({
         return /^[A-Za-z\s'-]+$/.test(occupationValue);
       },
         message: 
-          'Occupation can only contain letters'
+          'Occupation can only contain letters, spaces, apostrophes, and hyphens'
     }
   }
 });

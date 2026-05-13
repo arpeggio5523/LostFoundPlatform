@@ -1,0 +1,1 @@
+// This file is used by Subteam1 to create the LostItem model for MongoDB using Mongoose

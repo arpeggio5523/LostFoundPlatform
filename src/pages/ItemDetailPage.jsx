@@ -140,13 +140,22 @@ export default function ItemDetailPage() {
               </div>
 
               <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#111" }}>Colour</div>
                 <div style={{ 
+                  fontSize: 18, 
+                  fontWeight: 700, 
+                  color: "#111", 
+                  marginBottom: "6px" 
+                }}>
+                  Colour
+                </div>
+                
+                <div style={{ 
+                  display: "inline-flex",
+                  alignItems: "center",
                   fontSize: 14, 
                   fontWeight: 600, 
                   color: "#333" 
                 }}>
-                  {/* <Palette size={14} /> */}
                   {item.color}
                 </div>
               </div>

@@ -1,18 +1,48 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
 
 function LoginPage(){
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+            email: "",
+            password: ""
+        });
 
-    function handleLogin(event){
-        event.preventDefault(); // prevent refresh
+    // A helper to update the state object dynamically
+    const handleChange = (e, field) => {
+        setFormData({ ...formData, [field]: e.target.value });
+    };
 
-        alert("Login button clicked"); //for testing
-    }
+    const handleLogin = async (e) => {
+            e.preventDefault();
+            console.log("Attempting Login with:", formData);
+
+            try {
+                const response = await fetch("http://localhost:3000/api/users/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem("token", result.token);
+                    alert("Login successful!");
+                    navigate("/found-items");
+                    // console.log("Saved:", result);
+                } else {
+                    alert("Error: " + (result.error || "Invalid credentials"));
+                }
+            } catch (err) {
+                console.error("Failed to connect to server:", err);
+                alert("Server connection failed");
+            }
+        };
+
 
     return(
         <div className = "min-h-screen bg-gray-50">
@@ -29,16 +59,16 @@ function LoginPage(){
                                 label = "Email"
                                 type = "email"
                                 placeholder="your.email@university.edu"
-                                value = {email}
-                                onChange = {(event) => setEmail(event.target.value)}
+                                value = {formData.email}
+                                onChange={(e) => handleChange(e, "email")}
                                 required
                             />
                             <AuthInput
                                 label = "Password"
                                 type = "password"
                                 placeholder={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
-                                value = {password}
-                                onChange = {(event) => setPassword(event.target.value)}
+                                value = {formData.password}
+                                onChange = {(e) => handleChange(e, "password")}
                                 required
                             />
                             <div className = "flex items-center text-sm">
@@ -50,7 +80,7 @@ function LoginPage(){
                             <AuthButton type = "submit">Sign In</AuthButton>
                             </form>
                             <p className = "mt-6 text-center text-sm text-gray-600">
-                                Don&apos;t have an account?{" "}
+                                Don't have an account?{" "}
                                 <Link
                                     to ="/signup"
                                     className = "font-semibold text-blue-600 hover:text-blue-700"

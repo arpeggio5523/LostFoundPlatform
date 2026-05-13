@@ -4,49 +4,49 @@ import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
 import Navbar2 from "../components/NavBar2";
 import {Search, ChevronDown, Funnel} from "lucide-react";
+import { MOCK_ITEMS } from "../data/itemsData";
 
-
-const MOCK_ITEMS = [
-  {
-    id: 1,
-    title: "Black Leather Wallet",
-    description: "Lost my black leather wallet with several cards inside.",
-    distMark: "Has a small scratch on the front.",
-    color: "Black",
-    location: "Universiti Malaya (UM)",
-    date: "Apr 1, 2026",
-    category: "Accessories",
-    status: "Matched",
-    user: "John Doe",
-    image: null,
-  },
-  {
-    id: 2,
-    title: "Blue Backpack",
-    description: "Lost my blue backpack containing textbooks and a laptop. Has a Nike logo on it.",
-    distMark: "Nike logo, worn straps",
-    color: "Blue",
-    location: "Sunway University Campus",
-    date: "Mar 30, 2026",
-    category: "Bag & Backpacks",
-    status: "Approved",
-    user: "Mike Johnson",
-    image: null,
-  },
-  {
-    id: 3,
-    title: "Silver Laptop - Macbook Pro",
-    description: "Lost my MacBook Pro 16 inch with stickers on the lid. Contains important work files.",
-    distMark: "Multiple stickers on lid (React, Node.js logos)",
-    color: "Silver",
-    location: "Multimedia University (MMU) Library",
-    date: "Mar 28, 2026",
-    category: "Electronics",
-    status: "Pending",
-    user: "David Chen",
-    image: null,
-  },
-];
+// const MOCK_ITEMS = [
+//   {
+//     id: 1,
+//     title: "Black Leather Wallet",
+//     description: "Lost my black leather wallet with several cards inside.",
+//     distMark: "Has a small scratch on the front.",
+//     color: "Black",
+//     location: "Universiti Malaya (UM)",
+//     date: "Apr 1, 2026",
+//     category: "Accessories",
+//     status: "Matched",
+//     user: "John Doe",
+//     image: null,
+//   },
+//   {
+//     id: 2,
+//     title: "Blue Backpack",
+//     description: "Lost my blue backpack containing textbooks and a laptop. Has a Nike logo on it.",
+//     distMark: "Nike logo, worn straps",
+//     color: "Blue",
+//     location: "Sunway University Campus",
+//     date: "Mar 30, 2026",
+//     category: "Bag & Backpacks",
+//     status: "Approved",
+//     user: "Mike Johnson",
+//     image: null,
+//   },
+//   {
+//     id: 3,
+//     title: "Silver Laptop - Macbook Pro",
+//     description: "Lost my MacBook Pro 16 inch with stickers on the lid. Contains important work files.",
+//     distMark: "Multiple stickers on lid (React, Node.js logos)",
+//     color: "Silver",
+//     location: "Multimedia University (MMU) Library",
+//     date: "Mar 28, 2026",
+//     category: "Electronics",
+//     status: "Pending",
+//     user: "David Chen",
+//     image: null,
+//   },
+// ];
 
 const CATEGORIES = [
     "All Categories",
@@ -86,13 +86,15 @@ const STATUSES = [
     "Returned"];
 
 export default function LostItemsPage() {
+  const lostItems = MOCK_ITEMS.filter(item => item.type === "lost");
+
   const navigate = useNavigate();
   const [search, setSearch]     = useState("");
   const [category, setCategory] = useState("All Categories");
   const [location, setLocation] = useState("All Locations");
   const [status, setStatus]     = useState("All Status");
 
-  const filtered = MOCK_ITEMS.filter(item => {
+  const filtered = lostItems.filter(item => {
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
                         item.description.toLowerCase().includes(search.toLowerCase());
     const matchCat    = category === "All Categories" || item.category === category;

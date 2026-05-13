@@ -11,11 +11,11 @@ const userSchema = new mongoose.Schema({
       validator: function (nameValue) {
         return /^[A-Za-z\s'-]+$/.test(nameValue);
       },
-        message:
-          'Name can only contain letters, spaces, apostrophes, and hyphens',
+      message:
+        'Name can only contain letters, spaces, apostrophes, and hyphens',
     },
   },
-  email: { 
+  email: {
     type: String,
     required: [true, 'Email is required'],
     unique: true,
@@ -24,11 +24,11 @@ const userSchema = new mongoose.Schema({
       validator: function (emailValue) {
         return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(emailValue);
       },
-        message:
-          'Please enter a valid email'
+      message:
+        'Please enter a valid email'
     }
   },
-  password: { 
+  password: {
     type: String,
     required: [true, 'Password is required'],
     trim: true,
@@ -38,20 +38,20 @@ const userSchema = new mongoose.Schema({
       validator: function (passwordValue) {
         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])(?!.*\s).+$/.test(passwordValue);
       },
-        message: 
-          'Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and no spaces'
+      message:
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and no spaces'
     }
   },
   phoneNumber: {
     type: String,
     trim: true,
     validate: {
-      validator: function(phoneValue) {
+      validator: function (phoneValue) {
         if (!phoneValue) return true;
         return /^(\+?\d{8,15})$/.test(phoneValue);
       },
-        message: 
-          'Please enter a valid phone number'
+      message:
+        'Please enter a valid phone number'
     }
   },
   occupation: {
@@ -60,18 +60,18 @@ const userSchema = new mongoose.Schema({
     minlength: [2, "Occupation must be at least 2 characters"],
     maxlength: [50, "Occupation cannot exceed 50 characters"],
     validate: {
-      validator: function(occupationValue) {
+      validator: function (occupationValue) {
         if (!occupationValue) return true;
         return /^[A-Za-z\s'-]+$/.test(occupationValue);
       },
-        message: 
-          'Occupation can only contain letters, spaces, apostrophes, and hyphens'
+      message:
+        'Occupation can only contain letters, spaces, apostrophes, and hyphens'
     }
   }
 });
 
 // Hash password before saving user document
-userSchema.pre("save", async function(next) {
+userSchema.pre("save", async function (next) {
 
   if (!this.isModified("password")) {
     return next();

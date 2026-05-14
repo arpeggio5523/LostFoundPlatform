@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import User from "./models/User.js";
-import userRoutes from "./routes/userRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 import connectDB from "./config/db.js"; 
 
 const app = express();
@@ -12,10 +12,10 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-    res.send("Server is up and running! Visit /api/users for data.");
+    res.send("Server is up and running! Visit /api/auth for authentication.");
 });
 
-app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
 
 const startServer = async () => {
     try {

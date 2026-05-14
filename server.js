@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import cors from "cors";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -22,6 +23,17 @@ mongoose.connect(mongoURI)
   .catch(err => console.error("MongoDB connection error:", err));
 
 app.use(express.json());
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests from localhost on any port during development
+    if (!origin || origin.startsWith('http://localhost:')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.static(distPath));
 app.use("/api/found-items", foundItemsRouter);
 

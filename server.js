@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import User from "./models/User.js";
 import dotenv from 'dotenv';
-import ItemRoutes from "routes/ItemRoutes.js"
+import ItemRoutes from "./routes/ItemRoutes.js"
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,6 +16,8 @@ const port = process.env.PORT || 3000;
 const distPath = path.join(__dirname, "dist");
 const distIndexPath = path.join(distPath, "index.html");
 
+app.use(express.json());
+
 // MongoDB connection
 const mongoURI = process.env.MONGO_URI;
 mongoose.connect(mongoURI)
@@ -25,7 +27,7 @@ mongoose.connect(mongoURI)
 app.use(express.static(distPath));
 
 // api route mount to port
-app.use("/api", itemRoutes);
+app.use("/api/items", ItemRoutes);
 
 // Test route to create and fetch a user
 app.get("/api/test-mongo", async (req, res) => {

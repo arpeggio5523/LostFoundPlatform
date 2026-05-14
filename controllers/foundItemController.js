@@ -54,7 +54,6 @@ export async function createFoundItem(req, res) {
     if (!category || !String(category).trim()) missingFields.push("category");
     if (!location || !String(location).trim()) missingFields.push("location");
     if (!dateFound || !String(dateFound).trim()) missingFields.push("dateFound");
-    if (normalizedImages.length === 0) missingFields.push("images");
 
     if (missingFields.length > 0) {
       return res.status(400).json({
@@ -63,6 +62,9 @@ export async function createFoundItem(req, res) {
       });
     }
 
+    // If no images provided, use empty array
+    const imagesToSave = normalizedImages.length > 0 ? normalizedImages : [];
+
     const foundItem = await FoundItem.create({
       title: String(title).trim(),
       description: String(description).trim(),
@@ -70,8 +72,8 @@ export async function createFoundItem(req, res) {
       color: color ? String(color).trim() : "",
       marks: marks ? String(marks).trim() : "",
       location: String(location).trim(),
-      dateFound,
-      images: normalizedImages,
+      dateFound: new Date(dateFound),
+      images: imagesToSave,
       // status: "pending"
     });
 

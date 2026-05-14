@@ -1,91 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
-import Navbar2 from "../components/NavBar2";
-import {Search, ChevronDown, Funnel} from "lucide-react";
-
-
-const MOCK_ITEMS = [
-  {
-    id: 1,
-    title: "Set of Keys with Blue Keychain",
-    description: "Found a set of keys with a blue keychain near the cafeteria.",
-    distMark: "",
-    color: "Blue",
-    location: "Universiti Malaya (UM)",
-    date: "Apr 2, 2026",
-    category: "Accessories",
-    status: "Approved",
-    user: "Jane Smith",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop",
-  },
-  {
-    id: 2,
-    title: "iPhone 15 Pro",
-    description: "Found a black iPhone 15 Pro in the lecture hall. Has a cracked screen protector.",
-    distMark: "Cracked screen protector",
-    color: "Black",
-    location: "Universiti Kebangsaan Malaysia (UKM)",
-    date: "Apr 3, 2026",
-    category: "Electronics",
-    status: "Approved",
-    user: "Sarah Lee",
-    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop",
-  },
-  {
-    id: 3,
-    title: "Student ID Card",
-    description: "Found a student ID card for Emily Watson.",
-    distMark: "",
-    color: "",
-    location: "Universiti Putra Malaysia (UPM) Central Library",
-    date: "Apr 4, 2026",
-    category: "Documents",
-    status: "Pending",
-    user: "John Doe",
-    image: null,
-  },
-  {
-    id: 4,
-    title: "Blue Umbrella",
-    description: "Left behind near the main entrance after the rain.",
-    distMark: "",
-    color: "Blue",
-    location: "Universiti Sains Malaysia (USM)",
-    date: "Apr 5, 2026",
-    category: "Accessories",
-    status: "Approved",
-    user: "Zhan Lim",
-    image: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400&h=300&fit=crop",
-  },
-  {
-    id: 5,
-    title: "Leather Wallet",
-    description: "Brown leather wallet found at the parking lot. Contains some cards.",
-    distMark: "",
-    color: "Brown",
-    location: "Taylor's University",
-    date: "May 6, 2026",
-    category: "Accessories",
-    status: "Returned",
-    user: "Yao Looi",
-    image: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=400&h=300&fit=crop",
-  },
-  {
-    id: 6,
-    title: "Scientific Calculator",
-    description: "Casio fx-570EX found in Engineering lab room 3.",
-    distMark: "Has a small scratch on the front.",
-    color: "Black",
-    location: "Universiti Teknologi Malaysia (UTM)",
-    date: "Mar 7, 2026",
-    category: "Electronics",
-    status: "Pending",
-    user: "Yu Liew",
-    image: null,
-  },
-];
 
 const CATEGORIES = [
     "All Categories",
@@ -126,12 +42,48 @@ const STATUSES = [
 
 export default function FoundItemsPage() {
   const navigate = useNavigate();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch]     = useState("");
   const [category, setCategory] = useState("All Categories");
   const [location, setLocation] = useState("All Locations");
   const [status, setStatus]     = useState("All Status");
 
-  const filtered = MOCK_ITEMS.filter(item => {
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("http://localhost:3000/api/found-items");
+        if (!response.ok) throw new Error("Failed to fetch items");
+        const data = await response.json();
+        
+        // Transform the API response to match the ItemCard component expectations
+        const transformedItems = (data.foundItems || []).map(item => ({
+          id: item._id,
+          title: item.title,
+          description: item.description,
+          location: item.location,
+          date: item.dateFound,
+          category: item.category,
+          status: item.status,
+          image: item.images && item.images.length > 0 ? item.images[0].url : null,
+        }));
+        
+        setItems(transformedItems);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, []);
+
+  const filtered = items.filter(item => {
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
                         item.description.toLowerCase().includes(search.toLowerCase());
     const matchCat    = category === "All Categories" || item.category === category;
@@ -146,20 +98,20 @@ export default function FoundItemsPage() {
       <div className="flex">
         <Sidebar />
 
-        <main className="ml-72 mr-5 flex-1 px-3 py-10">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-7">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 tracking-tight m-0">Found Items</h1>
-              <p className="text-sm text-gray-600 mt-1">Browse items that have been found by the community</p>
-            </div>
-            <button
-              onClick={() => navigate("/report-found")}
-              className="flex items-center gap-2 bg-gray-900 text-white border-none rounded-xl px-5 py-3 font-bold text-sm cursor-pointer hover:bg-gray-800 transition-colors"
-            >
-              <span className="text-lg leading-none">+</span> Report Found Item
-            </button>
+      <main className="ml-[220px] flex-1 p-10">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-7">
+          <div>
+            <h1 className="text-3xl font-extrabold text-[#006058] tracking-tight m-0">Found Items</h1>
+            <p className="text-sm text-gray-400 mt-1">Browse items that have been found by the community</p>
           </div>
+          <button
+            onClick={() => navigate("/report-found")}
+            className="flex items-center gap-2 bg-gray-900 text-white border-none rounded-xl px-5 py-3 font-bold text-sm cursor-pointer hover:bg-gray-800 transition-colors"
+          >
+            <span className="text-lg leading-none">+</span> Report Found Item
+          </button>
+        </div>
 
           {/* Filter bar */}
           <div className="bg-white rounded-xl border border-gray-100 p-4 mb-7 shadow-sm">
@@ -226,22 +178,28 @@ export default function FoundItemsPage() {
             </div>
           </div>
 
-          {/* Cards grid */}
-          {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center text-center py-16 text-gray-300">
-              <Search 
-                size={20} 
-                strokeWidth={2} 
-                className="mb-3" />
-              <p className="text-sm m-0">No items match your filters.</p>
-            </div>
-          ) : (
-            <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
-              {filtered.map(item => <ItemCard key={item.id} item={item} dateLabel="Found on" />)}
-            </div>
-          )}
-        </main>
-      </div>
+        {/* Cards grid */}
+        {loading ? (
+          <div className="text-center py-16 text-gray-400">
+            <p className="text-sm m-0">Loading items...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-16 text-red-400">
+            <p className="text-sm m-0">Error: {error}</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16 text-gray-300">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <p className="text-sm m-0">No items match your filters.</p>
+          </div>
+        ) : (
+          <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
+            {filtered.map(item => <ItemCard key={item.id} item={item} />)}
+          </div>
+        )}
+      </main>
     </div>
   );
 }

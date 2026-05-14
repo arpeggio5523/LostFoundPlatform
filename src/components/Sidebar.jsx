@@ -1,11 +1,12 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import {Home, Search, FileText, MessageSquare, User} from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Home",        path: "/",            icon: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" },
-  { label: "Lost Items",  path: "/lost-items",  icon: "M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" },
-  { label: "Found Items", path: "/found-items", icon: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" },
-  { label: "Messages",    path: "/messages",    icon: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" },
-  { label: "Profile",     path: "/profile",     icon: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" },
+  { label: "Home",        path: "/",            icon: Home },
+  { label: "Lost Items",  path: "/lost-items",  icon: Search },
+  { label: "Found Items", path: "/found-items", icon: FileText },
+  { label: "Messages",    path: "/messages",    icon: MessageSquare },
+  { label: "Profile",     path: "/profile",     icon: User },
 ];
 
 export default function Sidebar() {
@@ -55,10 +56,10 @@ export default function Sidebar() {
                 <path d={icon} />
               </svg>
               {label}
-            </button>
-          );
-        })}
-      </nav>
+          </button>
+        );
+      })}
+    </nav>
 
       {/* Bottom actions */}
       <div style={{ padding: "0 10px", borderTop: "1px solid #f0f0f0", paddingTop: 16 }}>

@@ -3,18 +3,42 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
 
-const CATEGORIES = ["All Categories", "Electronics", "Accessories", "Documents", "Clothing", "Others"];
+const CATEGORIES = [
+    "All Categories",
+    "Electronics",
+    "Accessories",
+    "Bag & Backpacks",
+    "Documents",
+    "Keys",
+    "Clothing",
+    "Books",
+    "Sports Equipment",
+    "Jewelry",
+    "Other"];
+
 const LOCATIONS = [
   "All Locations",
   "Universiti Malaya (UM)",
   "Universiti Kebangsaan Malaysia (UKM)",
   "Universiti Sains Malaysia (USM)",
-  "Universiti Putra Malaysia (UPM) Central Library",
+  "Universiti Putra Malaysia (UPM)",
   "Universiti Teknologi Malaysia (UTM)",
+  "Universiti Teknologi MARA (UiTM)",
+  "Universiti Islam Antarabangsa Malaysia (UIAM)",
+  "Universiti Utara Malaysia (UUM)",
+  "Multimedia University (MMU)",
   "Taylor's University",
   "Sunway University",
+  "INTI International University",
+  "Other"
 ];
-const STATUSES = ["All Status", "approved", "pending", "returned"];
+
+const STATUSES = [
+    "All Status",
+    "Approved",
+    "Pending",
+    "Matched",
+    "Returned"];
 
 export default function FoundItemsPage() {
   const navigate = useNavigate();

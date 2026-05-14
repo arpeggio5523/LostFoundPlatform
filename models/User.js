@@ -2,17 +2,17 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
-  name: {
+  fullName: {
     type: String,
-    required: [true, 'Name is required'],
+    required: [true, 'Full name is required'],
     trim: true,
-    minlength: [2, "Name must be at least 2 characters"],
+    minlength: [2, "Full name must be at least 2 characters"],
     validate: {
       validator: function (nameValue) {
         return /^[A-Za-z\s'-]+$/.test(nameValue);
       },
       message:
-        'Name can only contain letters, spaces, apostrophes, and hyphens',
+        'Full name can only contain letters, spaces, apostrophes, and hyphens',
     },
   },
   email: {
@@ -71,19 +71,13 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hash password before saving user document
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
 
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
 
-  try {
-    this.password = await bcrypt.hash(this.password, 12);
-    next();
-
-  } catch (error) {
-    next(error);
-  }
+  this.password = await bcrypt.hash(this.password, 12);
 });
 
 const User = mongoose.model('User', userSchema);

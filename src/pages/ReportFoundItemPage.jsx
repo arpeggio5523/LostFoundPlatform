@@ -73,13 +73,51 @@ export default function ReportFoundItemPage() {
     return e;
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
-    console.log("Submitting:", form, images);
-    // TODO: POST to /api/found-items
-    alert("Report submitted successfully!");
-    navigate("/found-items");
+    
+    try {
+      // Convert images to base64
+      const imageData = await Promise.all(
+        images.map(img => new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve({
+            url: reader.result,
+            filename: img.file.name,
+            mimetype: img.file.type,
+            size: img.file.size
+          });
+          reader.onerror = () => reject(new Error("Failed to read file"));
+          reader.readAsDataURL(img.file);
+        }))
+      );
+
+      const response = await fetch("http://localhost:3000/api/found-items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title,
+          description: form.description,
+          category: form.category,
+          color: form.color,
+          marks: form.marks,
+          location: form.location,
+          dateFound: form.date,
+          images: imageData
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to submit report");
+      }
+
+      alert("Report submitted successfully!");
+      navigate("/found-items");
+    } catch (error) {
+      alert("Error: " + error.message);
+    }
   }
 
   return (

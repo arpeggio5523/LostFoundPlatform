@@ -109,39 +109,47 @@ export default function LostItemsPage() {
       <div className="flex">
         <Sidebar />
 
-        <main className="ml-72 mr-5 flex-1 px-3 py-10">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-7">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 tracking-tight m-0">Lost Items</h1>
-              <p className="text-sm text-gray-600 mt-1">Browse items that community members have lost</p>
-            </div>
-            <button
-              onClick={() => navigate("/report-lost")}
-              className="flex items-center gap-2 bg-gray-900 text-white border-none rounded-xl px-5 py-3 font-bold text-sm cursor-pointer hover:bg-gray-800 transition-colors"
-            >
-              <span className="text-lg leading-none">+</span> Report Lost Item
-            </button>
+        <main style={{ marginLeft: 220, flex: 1, padding: "36px 40px" }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28 }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: "#111", letterSpacing: "-0.02em" }}>Lost Items</h1>
+            <p style={{ margin: "4px 0 0", fontSize: 14, color: "#888" }}>Browse items that have been lost by the community</p>
           </div>
+          <button
+            onClick={() => navigate("/report-lost")}
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              background: "#111", color: "#fff", border: "none", borderRadius: 10,
+              padding: "11px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer",
+            }}
+          >
+            <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Report Lost Item
+          </button>
+        </div>
 
-          {/* Filter bar */}
-          <div className="bg-white rounded-xl border border-gray-100 p-4 mb-7 shadow-sm">
-            <div className="flex gap-3 flex-wrap items-center">
-              {/* Search */}
-              <div className="relative flex-1 min-w-[180px]">
-                <Search
-                  size={16}
-                  strokeWidth={2}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-                <input
-                  type="text"
-                  placeholder="Search items..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 outline-none focus:border-gray-400 transition-colors bg-white"
-                />
-              </div>
+        {/* Filter bar */}
+        <div style={{
+          background: "#fff", borderRadius: 12, border: "1px solid #f0f0f0",
+          padding: "16px 20px", marginBottom: 28, boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+        }}>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            {/* Search */}
+            <div style={{ position: "relative", flex: 1, minWidth: 180 }}>
+              <svg style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#aaa" }}
+                width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                type="text" placeholder="Search items..." value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{
+                  width: "100%", padding: "9px 14px 9px 36px",
+                  borderRadius: 8, border: "1px solid #e5e7eb",
+                  fontSize: 14, color: "#333", outline: "none", boxSizing: "border-box",
+                }}
+              />
+            </div>
 
               <div className="relative min-w-[150px]">
                 <select 

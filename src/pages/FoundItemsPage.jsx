@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
 import { MOCK_ITEMS } from "../data/itemsData"; 
+import Navbar2 from "../components/NavBar2";
 
 const CATEGORIES = ["All Categories", "Electronics", "Accessories", "Documents", "Clothing", "Others"];
 const LOCATIONS = [
@@ -45,8 +46,10 @@ export default function FoundItemsPage() {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f9fafb", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
-      <Sidebar />
+    <div className="min-h-screen bg-gray-50 font-sans">
+      <Navbar2 />
+      <div className="flex">
+        <Sidebar />
 
       <main style={{ marginLeft: 220, flex: 1, padding: "36px 40px" }}>
         {/* Header */}
@@ -124,6 +127,7 @@ export default function FoundItemsPage() {
           </div>
         )}
       </main>
+    </div>
     </div>
   );
 }

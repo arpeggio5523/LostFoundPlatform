@@ -57,9 +57,9 @@ export default function LostItemsPage() {
 
       const normalizedItems = data.map((item) => ({
         ...item,
-        title: item.item_name || item.title || "",
-        description: item.item_description || item.description || "",
-        status: item.item_status || item.status || "",
+        title: item.title || item.item_name || "",
+        description: item.description || item.item_description || "",
+        status: item.status || item.item_status || "",
         category: item.category || "Other",
         location: item.location || "",
         date: item.date || "",
@@ -79,30 +79,31 @@ export default function LostItemsPage() {
   };
 
   const updateStatus = async (itemId, newStatus) => {
-  try {
-    const response = await fetch(`/api/items/${itemId}/status`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
+    try {
+      const response = await fetch(`/api/items/${itemId}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
 
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error || "Failed to update status");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update status");
+      }
+
+      setItems((prev) =>
+        prev.map((item) =>
+          item._id === itemId ? { ...item, status: newStatus } : item
+        )
+      );
+
+      alert("Status updated successfully!");
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert(error.message);
     }
-
-    setItems((prev) =>
-      prev.map((item) =>
-        item._id === itemId ? { ...item, status: newStatus } : item
-      )
-    );
-
-    alert("Status updated successfully!");
-  } catch (error) {
-    console.error("Error updating status:", error);
-    alert(error.message);
-  }
-};
+  };
 
   const filtered = items.filter((item) => {
     const text = search.toLowerCase();
@@ -215,37 +216,53 @@ export default function LostItemsPage() {
           ) : (
             <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
               {filtered.map((item) => (
-                <div key={item._id}>
+                <div key={item._id} className="flex flex-col">
                   <ItemCard
-                    item={item}   
+                    item={item}
                     dateLabel="Lost On"
                   />
 
                   <div className="mt-3 flex gap-2">
                     <button
                       onClick={() => updateStatus(item._id, "Pending")}
-                      className="flex-1 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm"
+                      className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
+                        item.status === "Pending"
+                        ? "bg-gray-200 text-gray-800 font-bold"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
                     >
                       Pending
                     </button>
 
                     <button
                       onClick={() => updateStatus(item._id, "Approved")}
-                      className="flex-1 py-2 rounded-lg bg-blue-100 text-blue-700 text-sm"
+                      className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
+                        item.status === "Approved"
+                        ? "bg-blue-200 text-blue-800 font-bold"
+                        : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                      }`}
                     >
                       Approved
                     </button>
 
                     <button
                       onClick={() => updateStatus(item._id, "Matched")}
-                      className="flex-1 py-2 rounded-lg bg-yellow-100 text-yellow-700 text-sm"
+                      className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
+                        item.status === "Matched"
+                        ? "bg-yellow-200 text-yellow-800 font-bold"
+                        : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                      }`}
                     >
                       Matched
                     </button>
 
                     <button
                       onClick={() => updateStatus(item._id, "Returned")}
-                      className="flex-1 py-2 rounded-lg bg-green-100 text-green-700 text-sm"
+                      className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
+                        item.status === "Returned"
+                        ? "bg-green-200 text-green-800 font-bold"
+                        : "bg-green-100 text-green-700 hover:bg-green-200"
+                      }`}
                     >
                       Returned
                     </button>

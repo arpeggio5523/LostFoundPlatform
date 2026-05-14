@@ -76,7 +76,7 @@ export default function FoundItemsPage() {
         {/* Header */}
         <div className="flex items-start justify-between mb-7">
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight m-0">Found Items</h1>
+            <h1 className="text-3xl font-extrabold text-[#006058] tracking-tight m-0">Found Items</h1>
             <p className="text-sm text-gray-400 mt-1">Browse items that have been found by the community</p>
           </div>
           <button

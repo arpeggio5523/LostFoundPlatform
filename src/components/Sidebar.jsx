@@ -21,14 +21,14 @@ export default function Sidebar() {
       {/* Logo */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 20px 24px" }}>
         <div style={{
-          background: "#111", borderRadius: 10, width: 36, height: 36,
+          background: "#006058", borderRadius: 10, width: 36, height: 36,
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
         </div>
-        <span style={{ fontWeight: 800, fontSize: 18, color: "#111", letterSpacing: "-0.02em" }}>FindIt</span>
+        <span style={{ fontWeight: 800, fontSize: 18, color: "#006058", letterSpacing: "-0.02em" }}>FindIt</span>
       </div>
 
       {/* Nav links */}
@@ -43,7 +43,7 @@ export default function Sidebar() {
                 display: "flex", alignItems: "center", gap: 10,
                 width: "100%", padding: "10px 12px", borderRadius: 8, border: "none",
                 background: isActive ? "#f3f4f6" : "transparent",
-                color: isActive ? "#111" : "#666",
+                color: isActive ? "#006058" : "#666",
                 fontWeight: isActive ? 600 : 400,
                 fontSize: 14, cursor: "pointer", marginBottom: 2, textAlign: "left",
                 transition: "background 0.15s",
@@ -67,7 +67,7 @@ export default function Sidebar() {
           style={{
             display: "flex", alignItems: "center", gap: 8, width: "100%",
             padding: "10px 12px", borderRadius: 8, border: "none",
-            background: "#111", color: "#fff",
+            background: "#006058", color: "#fff",
             fontWeight: 600, fontSize: 13.5, cursor: "pointer", marginBottom: 4, textAlign: "left",
           }}
         >

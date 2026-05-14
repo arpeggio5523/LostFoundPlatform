@@ -1,70 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
-
-const MOCK_ITEMS = [
-  {
-    id: 1,
-    title: "Set of Keys with Blue Keychain",
-    description: "Found a set of keys with a blue keychain near the cafeteria.",
-    location: "Universiti Malaya (UM)",
-    date: "2025-05-01",
-    category: "Accessories",
-    status: "approved",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop",
-  },
-  {
-    id: 2,
-    title: "iPhone 15 Pro",
-    description: "Found a black iPhone 15 Pro in the lecture hall. Has a cracked screen protector.",
-    location: "Universiti Kebangsaan Malaysia (UKM)",
-    date: "2025-05-03",
-    category: "Electronics",
-    status: "approved",
-    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop",
-  },
-  {
-    id: 3,
-    title: "Student ID Card",
-    description: "Found a student ID card for Emily Watson.",
-    location: "Universiti Putra Malaysia (UPM) Central Library",
-    date: "2025-05-04",
-    category: "Documents",
-    status: "pending",
-    image: null,
-  },
-  {
-    id: 4,
-    title: "Blue Umbrella",
-    description: "Left behind near the main entrance after the rain.",
-    location: "Universiti Sains Malaysia (USM)",
-    date: "2025-05-05",
-    category: "Accessories",
-    status: "approved",
-    image: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400&h=300&fit=crop",
-  },
-  {
-    id: 5,
-    title: "Leather Wallet",
-    description: "Brown leather wallet found at the parking lot. Contains some cards.",
-    location: "Taylor's University",
-    date: "2025-05-06",
-    category: "Accessories",
-    status: "returned",
-    image: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=400&h=300&fit=crop",
-  },
-  {
-    id: 6,
-    title: "Scientific Calculator",
-    description: "Casio fx-570EX found in Engineering lab room 3.",
-    location: "Universiti Teknologi Malaysia (UTM)",
-    date: "2025-05-07",
-    category: "Electronics",
-    status: "pending",
-    image: null,
-  },
-];
 
 const CATEGORIES = ["All Categories", "Electronics", "Accessories", "Documents", "Clothing", "Others"];
 const LOCATIONS = [
@@ -81,12 +18,48 @@ const STATUSES = ["All Status", "approved", "pending", "returned"];
 
 export default function FoundItemsPage() {
   const navigate = useNavigate();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch]     = useState("");
   const [category, setCategory] = useState("All Categories");
   const [location, setLocation] = useState("All Locations");
   const [status, setStatus]     = useState("All Status");
 
-  const filtered = MOCK_ITEMS.filter(item => {
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("http://localhost:3000/api/found-items");
+        if (!response.ok) throw new Error("Failed to fetch items");
+        const data = await response.json();
+        
+        // Transform the API response to match the ItemCard component expectations
+        const transformedItems = (data.foundItems || []).map(item => ({
+          id: item._id,
+          title: item.title,
+          description: item.description,
+          location: item.location,
+          date: item.dateFound,
+          category: item.category,
+          status: item.status,
+          image: item.images && item.images.length > 0 ? item.images[0].url : null,
+        }));
+        
+        setItems(transformedItems);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, []);
+
+  const filtered = items.filter(item => {
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
                         item.description.toLowerCase().includes(search.toLowerCase());
     const matchCat    = category === "All Categories" || item.category === category;
@@ -157,7 +130,15 @@ export default function FoundItemsPage() {
         </div>
 
         {/* Cards grid */}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-16 text-gray-400">
+            <p className="text-sm m-0">Loading items...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-16 text-red-400">
+            <p className="text-sm m-0">Error: {error}</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-gray-300">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>

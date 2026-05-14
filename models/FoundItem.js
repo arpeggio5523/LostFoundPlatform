@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const foundItemImageSchema = new mongoose.Schema(
   {
-    url: { type: String, required: true },
+    url: { type: String, required: false },
     filename: { type: String },
     mimetype: { type: String },
     size: { type: Number }
@@ -21,10 +21,7 @@ const foundItemSchema = new mongoose.Schema(
     dateFound: { type: Date, required: true },
     images: {
       type: [foundItemImageSchema],
-      validate: {
-        validator: value => Array.isArray(value) && value.length > 0,
-        message: "At least one image is required."
-      }
+      default: []
     },
     status: {
       type: String,

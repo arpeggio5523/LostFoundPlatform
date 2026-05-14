@@ -5,6 +5,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import User from "./models/User.js";
+import foundItemsRouter from "./routes/foundItems.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,7 +21,9 @@ mongoose.connect(mongoURI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error("MongoDB connection error:", err));
 
+app.use(express.json());
 app.use(express.static(distPath));
+app.use("/api/found-items", foundItemsRouter);
 
 // Test route to create and fetch a user
 app.get("/api/test-mongo", async (req, res) => {

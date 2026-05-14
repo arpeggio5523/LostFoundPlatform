@@ -4,7 +4,7 @@ import User from "../models/User.js";
 // Register a new user into the system
 export const signup = async (req, res) => {
   try {
-    const { name, email, password, phoneNumber, occupation } = req.body;
+    const { fullName, email, phoneNumber, occupation, password} = req.body;
 
     const existingUser = await User.findOne({ email });
 
@@ -15,7 +15,7 @@ export const signup = async (req, res) => {
     }
 
     const newUser = new User({
-      name,
+      fullName,
       email,
       password,
       ...(phoneNumber && { phoneNumber }),

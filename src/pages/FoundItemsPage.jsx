@@ -87,16 +87,14 @@ export default function FoundItemsPage() {
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
                         item.description.toLowerCase().includes(search.toLowerCase());
     const matchCat    = category === "All Categories" || item.category === category;
-    const matchLoc    = location === "All Locations"  || item.location.toLowerCase().includes(location.toLowerCase());
+    const matchLoc    = location === "All Locations"  || item.location === location;
     const matchStatus = status   === "All Status"     || item.status === status;
     return matchSearch && matchCat && matchLoc && matchStatus;
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <Navbar2 />
-      <div className="flex">
-        <Sidebar />
+    <div className="flex min-h-screen bg-gray-50 font-sans">
+      <Sidebar />
 
       <main className="ml-[220px] flex-1 p-10">
         {/* Header */}
@@ -113,70 +111,47 @@ export default function FoundItemsPage() {
           </button>
         </div>
 
-          {/* Filter bar */}
-          <div className="bg-white rounded-xl border border-gray-100 p-4 mb-7 shadow-sm">
-            <div className="flex gap-3 flex-wrap items-center">
-              {/* Search */}
-              <div className="relative flex-1 min-w-[180px]">
-                <Search
-                  size={16}
-                  strokeWidth={2}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-                <input
-                  type="text"
-                  placeholder="Search items..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 outline-none focus:border-gray-400 transition-colors bg-white"
-                />
-              </div>
-
-              <div className="relative min-w-[150px]">
-                <select 
-                  value={category} 
-                  onChange={e => setCategory(e.target.value)}
-                  className="py-2 pl-3 pr-9 rounded-lg border border-gray-200 text-sm text-black bg-white cursor-pointer outline-none focus:border-gray-400 min-w-[150px] appearance-none"
-                >{CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                </select>
-                <ChevronDown
-                  size={16}
-                  strokeWidth={2}
-                  className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-              </div>
-
-              <div className="relative min-w-[150px]">
-                <select value={location} onChange={e => setLocation(e.target.value)}
-                  className="py-2 pl-3 pr-9 rounded-lg border border-gray-200 text-sm text-black bg-white cursor-pointer outline-none focus:border-gray-400 min-w-[150px] appearance-none">
-                  {LOCATIONS.map(l => <option key={l}>{l}</option>)}
-                </select>
-                <ChevronDown
-                    size={16}
-                    strokeWidth={2}
-                    className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                  />
-              </div>
-
-              <div className="relative min-w-[150px]">
-                <select value={status} onChange={e => setStatus(e.target.value)}
-                  className="py-2 pl-3 pr-9 rounded-lg border border-gray-200 text-sm text-black bg-white cursor-pointer outline-none focus:border-gray-400 min-w-[150px] appearance-none">
-                  {STATUSES.map(s => <option key={s}>{s}</option>)}
-                </select>
-                <ChevronDown
-                    size={16}
-                    strokeWidth={2}
-                    className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                  />
-              </div>
+        {/* Filter bar */}
+        <div className="bg-white rounded-xl border border-gray-100 p-4 mb-7 shadow-sm">
+          <div className="flex gap-3 flex-wrap items-center">
+            {/* Search */}
+            <div className="relative flex-1 min-w-[180px]">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                type="text"
+                placeholder="Search items..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 outline-none focus:border-gray-400 transition-colors bg-white"
+              />
             </div>
 
-            {/* Result count */}
-            <div className="mt-3 flex items-center gap-1.5 text-gray-600 text-xs">
-              <Funnel size={17} strokeWidth={1.5}/>
-              {filtered.length} item{filtered.length !== 1 ? "s" : ""} found
-            </div>
+            <select value={category} onChange={e => setCategory(e.target.value)}
+              className="py-2 pl-3 pr-9 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white cursor-pointer outline-none focus:border-gray-400 min-w-[150px] appearance-none">
+              {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+            </select>
+
+            <select value={location} onChange={e => setLocation(e.target.value)}
+              className="py-2 pl-3 pr-9 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white cursor-pointer outline-none focus:border-gray-400 min-w-[150px] appearance-none">
+              {LOCATIONS.map(l => <option key={l}>{l}</option>)}
+            </select>
+
+            <select value={status} onChange={e => setStatus(e.target.value)}
+              className="py-2 pl-3 pr-9 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white cursor-pointer outline-none focus:border-gray-400 min-w-[150px] appearance-none">
+              {STATUSES.map(s => <option key={s}>{s}</option>)}
+            </select>
           </div>
+
+          {/* Result count */}
+          <div className="mt-3 flex items-center gap-1.5 text-gray-400 text-xs">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            {filtered.length} item{filtered.length !== 1 ? "s" : ""} found
+          </div>
+        </div>
 
         {/* Cards grid */}
         {loading ? (

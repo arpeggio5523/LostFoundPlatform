@@ -8,17 +8,13 @@ export const updateItemStatus = async (req, res) => {
     const { itemId } = req.params;
     const { status } = req.body;
 
-    // Status validation
-    if (!status) {
-      return res.status(400).json({ error: "Please provide a status update."});
-    }
-
     const item = await Item.findOneAndUpdate(
-      { $or: [{ _id: itemId }, { item_id: itemId }] },
-      { status: status },
+      { _id: itemId },
+      { $set: { status: status } },
       {
         new: true,
-        runValidators: false 
+        runValidators: true,
+        context: 'query'
       }
     );
 

@@ -1,7 +1,19 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-const CATEGORIES = ["Electronics", "Accessories", "Documents", "Clothing", "Others"];
+const CATEGORIES = [
+    "All Categories",
+    "Electronics",
+    "Accessories",
+    "Bag & Backpacks",
+    "Documents",
+    "Keys",
+    "Clothing",
+    "Books",
+    "Sports Equipment",
+    "Jewelry",
+    "Other"];
+    
 const LOCATIONS = [
   "Universiti Malaya (UM)",
   "Universiti Kebangsaan Malaysia (UKM)",

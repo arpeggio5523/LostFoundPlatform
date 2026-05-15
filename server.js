@@ -22,7 +22,7 @@ mongoose.connect(mongoURI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error("MongoDB connection error:", err));
 
-app.use(express.json());
+app.use(express.json({limit: '10mb'}));
 app.use(cors({
   origin: function(origin, callback) {
     // Allow requests from localhost on any port during development

@@ -6,7 +6,7 @@ export default function StatusBadge({ status }) {
     Matched: "bg-purple-100 text-purple-800",
   };
   return (
-    <span className={`${styles[status] || styles.pending} text-xs font-semibold px-3 py-0.5 rounded-full whitespace-nowrap`}>
+    <span className={`${styles[status] || styles.Pending} text-xs font-semibold px-3 py-0.5 rounded-full whitespace-nowrap`}>
       {status}
     </span>
   );

@@ -2,10 +2,21 @@ import StatusBadge from "./StatusBadge";
 import QRIcon from "./QRIcon";
 import NoImagePlaceholder from "./NoImagePlaceHolder";
 import {Calendar, MapPinIcon} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function ItemCard({ item, dateLabel }) {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/item/${item._id || item.id}`);
+  }
+
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
+    <div
+      onClick={handleCardClick} 
+      className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
+    >
+
         {/* Image */}
         <div className="relative">
             {item.image

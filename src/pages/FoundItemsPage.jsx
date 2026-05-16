@@ -21,26 +21,15 @@ const LOCATIONS = [
   "Universiti Malaya (UM)",
   "Universiti Kebangsaan Malaysia (UKM)",
   "Universiti Sains Malaysia (USM)",
-  "Universiti Putra Malaysia (UPM)",
+  "Universiti Putra Malaysia (UPM) Central Library",
   "Universiti Teknologi Malaysia (UTM)",
-  "Universiti Teknologi MARA (UiTM)",
-  "Universiti Islam Antarabangsa Malaysia (UIAM)",
-  "Universiti Utara Malaysia (UUM)",
-  "Multimedia University (MMU)",
   "Taylor's University",
   "Sunway University",
-  "INTI International University",
-  "Other"
 ];
-
-const STATUSES = [
-    "All Status",
-    "Approved",
-    "Pending",
-    "Matched",
-    "Returned"];
+const STATUSES = ["All Status", "approved", "pending", "returned"];
 
 export default function FoundItemsPage() {
+
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,14 +72,27 @@ export default function FoundItemsPage() {
     fetchItems();
   }, []);
 
+
   const filtered = items.filter(item => {
-    const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
-                        item.description.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = 
+      item.title.toLowerCase().includes(search.toLowerCase()) ||
+      item.description.toLowerCase().includes(search.toLowerCase());
+
     const matchCat    = category === "All Categories" || item.category === category;
     const matchLoc    = location === "All Locations"  || item.location === location;
     const matchStatus = status   === "All Status"     || item.status === status;
+    
     return matchSearch && matchCat && matchLoc && matchStatus;
   });
+
+  const selectStyle = {
+    padding: "9px 36px 9px 14px", borderRadius: 8,
+    border: "1px solid #e5e7eb", background: "#fff",
+    fontSize: 14, color: "#333", appearance: "none", cursor: "pointer",
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+    backgroundRepeat: "no-repeat", backgroundPosition: "calc(100% - 10px) center",
+    minWidth: 150,
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans">

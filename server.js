@@ -1,21 +1,22 @@
 import express from "express";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
+import cors from "cors";
 import mongoose from "mongoose";
 import User from "./models/User.js";
+import authRoutes from "./routes/authRoutes.js";
+import connectDB from "./config/db.js"; 
 import dotenv from 'dotenv';
-import ItemRoutes from "./routes/ItemRoutes.js"
+import { fileURLToPath } from "url";
+import path from "path";
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = process.env.PORT || 3000;
-const distPath = path.join(__dirname, "dist");
-const distIndexPath = path.join(distPath, "index.html");
+const PORT = 3000;
 
+app.use(cors());
 app.use(express.json());
 
 // MongoDB connection
@@ -23,9 +24,24 @@ const mongoURI = process.env.MONGO_URI;
 mongoose.connect(mongoURI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error("MongoDB connection error:", err));
+>>>>>>> server.js
 
-app.use(express.static(distPath));
+app.get("/", (req, res) => {
+    res.send("Server is up and running! Visit /api/auth for authentication.");
+});
 
+<<<<<<< server.js
+app.use("/api/auth", authRoutes);
+
+const startServer = async () => {
+    try {
+        await connectDB(); 
+        app.listen(PORT, () => {
+            console.log("Server running and DB connected!");
+        });
+    } catch (err) {
+        console.error("Failed to start server:", err);
+=======
 // api route mount to port
 app.use("/api/items", ItemRoutes);
 
@@ -36,24 +52,8 @@ app.get("/api/test-mongo", async (req, res) => {
       return res.status(503).json({
         error: "MongoDB is not connected. Start MongoDB or set MONGO_URI."
       });
+>>>>>>> server.js
     }
-    let user = await User.findOne({ email: "test@example.com" });
-    if (!user) {
-      user = await User.create({ name: "Test User", email: "test@example.com" });
-    }
-    res.json({ message: "MongoDB connected and working!", user });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+};
 
-app.get("*", (req, res) => {
-  if (!fs.existsSync(distIndexPath)) {
-    return res.status(200).send("Set up done (backend). Run npm run build to serve the Vite app here.");
-  }
-  res.sendFile(distIndexPath);
-});
-
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+startServer();

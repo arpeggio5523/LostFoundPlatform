@@ -8,7 +8,6 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from "url";
 import path from "path";
 
-
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,10 +19,18 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
+// MongoDB connection
+const mongoURI = process.env.MONGO_URI;
+mongoose.connect(mongoURI)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error("MongoDB connection error:", err));
+>>>>>>> server.js
+
 app.get("/", (req, res) => {
     res.send("Server is up and running! Visit /api/auth for authentication.");
 });
 
+<<<<<<< server.js
 app.use("/api/auth", authRoutes);
 
 const startServer = async () => {
@@ -34,6 +41,18 @@ const startServer = async () => {
         });
     } catch (err) {
         console.error("Failed to start server:", err);
+=======
+// api route mount to port
+app.use("/api/items", ItemRoutes);
+
+// Test route to create and fetch a user
+app.get("/api/test-mongo", async (req, res) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        error: "MongoDB is not connected. Start MongoDB or set MONGO_URI."
+      });
+>>>>>>> server.js
     }
 };
 

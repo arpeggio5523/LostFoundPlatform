@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
@@ -49,50 +49,25 @@ import { MOCK_ITEMS } from "../data/itemsData";
 // ];
 
 const CATEGORIES = [
-    "All Categories",
-    "Electronics",
-    "Accessories",
-    "Bag & Backpacks",
-    "Documents",
-    "Keys",
-    "Clothing",
-    "Books",
-    "Sports Equipment",
-    "Jewelry",
-    "Other"];
-
-const LOCATIONS = [
-  "All Locations",
-  "Universiti Malaya (UM)",
-  "Universiti Kebangsaan Malaysia (UKM)",
-  "Universiti Sains Malaysia (USM)",
-  "Universiti Putra Malaysia (UPM)",
-  "Universiti Teknologi Malaysia (UTM)",
-  "Universiti Teknologi MARA (UiTM)",
-  "Universiti Islam Antarabangsa Malaysia (UIAM)",
-  "Universiti Utara Malaysia (UUM)",
-  "Multimedia University (MMU)",
-  "Taylor's University",
-  "Sunway University",
-  "INTI International University",
-  "Other"
+  "All Categories",
+  "Electronics",
+  "Accessories",
+  "Bag & Backpacks",
+  "Documents",
+  "Keys",
+  "Clothing",
+  "Books",
+  "Sports Equipment",
+  "Jewelry",
+  "Other",
 ];
 
-const STATUSES = [
-    "All Status",
-    "Approved",
-    "Pending",
-    "Matched",
-    "Returned"];
+const STATUSES = ["All Status", "Pending", "Approved", "Matched", "Returned"];
 
 export default function LostItemsPage() {
   const lostItems = MOCK_ITEMS.filter(item => item.type === "lost");
 
   const navigate = useNavigate();
-  const [search, setSearch]     = useState("");
-  const [category, setCategory] = useState("All Categories");
-  const [location, setLocation] = useState("All Locations");
-  const [status, setStatus]     = useState("All Status");
 
   const filtered = lostItems.filter(item => {
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -106,6 +81,7 @@ export default function LostItemsPage() {
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <Navbar2 />
+
       <div className="flex">
         <Sidebar />
 
@@ -151,64 +127,104 @@ export default function LostItemsPage() {
               />
             </div>
 
-              <div className="relative min-w-[150px]">
-                <select 
-                  value={category} 
-                  onChange={e => setCategory(e.target.value)}
-                  className="py-2 pl-3 pr-9 rounded-lg border border-gray-200 text-sm text-black bg-white cursor-pointer outline-none focus:border-gray-400 min-w-[150px] appearance-none"
-                >{CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                </select>
-                <ChevronDown
-                  size={16}
-                  strokeWidth={2}
-                  className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-              </div>
+              {/* CATEGORY */}
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="py-2 px-3 rounded-lg border text-sm"
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
 
-              <div className="relative min-w-[150px]">
-                <select value={location} onChange={e => setLocation(e.target.value)}
-                  className="py-2 pl-3 pr-9 rounded-lg border border-gray-200 text-sm text-black bg-white cursor-pointer outline-none focus:border-gray-400 min-w-[150px] appearance-none">
-                  {LOCATIONS.map(l => <option key={l}>{l}</option>)}
-                </select>
-                <ChevronDown
-                    size={16}
-                    strokeWidth={2}
-                    className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                  />
-              </div>
-
-              <div className="relative min-w-[150px]">
-                <select value={status} onChange={e => setStatus(e.target.value)}
-                  className="py-2 pl-3 pr-9 rounded-lg border border-gray-200 text-sm text-black bg-white cursor-pointer outline-none focus:border-gray-400 min-w-[150px] appearance-none">
-                  {STATUSES.map(s => <option key={s}>{s}</option>)}
-                </select>
-                <ChevronDown
-                    size={16}
-                    strokeWidth={2}
-                    className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                  />
-              </div>
+              {/* STATUS */}
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="py-2 px-3 rounded-lg border text-sm"
+              >
+                {STATUSES.map((s) => (
+                  <option key={s}>{s}</option>
+                ))}
+              </select>
             </div>
 
-            {/* Result count */}
-            <div className="mt-3 flex items-center gap-1.5 text-gray-600 text-xs">
-              <Funnel size={17} strokeWidth={1.5}/>
-              {filtered.length} item{filtered.length !== 1 ? "s" : ""} found
+            <div className="mt-3 text-xs text-gray-600">
+              <Funnel size={14} /> {filtered.length} items found
             </div>
           </div>
 
-          {/* Cards grid */}
-          {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center text-center py-16 text-gray-300">
-              <Search 
-                size={20} 
-                strokeWidth={2} 
-                className="mb-3" />
-              <p className="text-sm m-0">No items match your filters.</p>
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="text-center py-16 text-gray-500">
+              Loading items...
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-16 text-gray-400">
+              No items match your filters.
             </div>
           ) : (
-            <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
-              {filtered.map(item => <ItemCard key={item.id} item={item} dateLabel="Lost On" />)}
+            <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
+              {filtered.map((item) => (
+                <div key={item._id} className="flex flex-col">
+                  <ItemCard
+                    item={item}
+                    dateLabel="Lost On"
+                  />
+
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => updateStatus(item._id, "Pending")}
+                      className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
+                        item.status === "Pending"
+                        ? "bg-gray-200 text-gray-800 font-bold"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      Pending
+                    </button>
+
+                    <button
+                      onClick={() => updateStatus(item._id, "Approved")}
+                      className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
+                        item.status === "Approved"
+                        ? "bg-blue-200 text-blue-800 font-bold"
+                        : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                      }`}
+                    >
+                      Approved
+                    </button>
+
+                    <button
+                      onClick={() => updateStatus(item._id, "Matched")}
+                      className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
+                        item.status === "Matched"
+                        ? "bg-yellow-200 text-yellow-800 font-bold"
+                        : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                      }`}
+                    >
+                      Matched
+                    </button>
+
+                    <button
+                      onClick={() => updateStatus(item._id, "Returned")}
+                      className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
+                        item.status === "Returned"
+                        ? "bg-green-200 text-green-800 font-bold"
+                        : "bg-green-100 text-green-700 hover:bg-green-200"
+                      }`}
+                    >
+                      Returned
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </main>

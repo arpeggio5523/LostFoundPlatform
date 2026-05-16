@@ -4,6 +4,15 @@ import mongoose from "mongoose";
 import User from "./models/User.js";
 import authRoutes from "./routes/authRoutes.js";
 import connectDB from "./config/db.js"; 
+import dotenv from 'dotenv';
+import { fileURLToPath } from "url";
+import path from "path";
+
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3000;
@@ -19,7 +28,7 @@ app.use("/api/auth", authRoutes);
 
 const startServer = async () => {
     try {
-        await connectDB(); // Ensure this finishes before starting the app
+        await connectDB(); 
         app.listen(PORT, () => {
             console.log("Server running and DB connected!");
         });

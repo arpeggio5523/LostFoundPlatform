@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
+import { buildApiUrl } from "../config/api";
 
 function SignupPage(){
     const navigate = useNavigate();
@@ -62,7 +63,7 @@ function SignupPage(){
         };
         
         try {
-            const response = await fetch("http://localhost:3000/api/auth/signup", {
+            const response = await fetch(buildApiUrl("/api/auth/signup"), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(signupData),
@@ -71,8 +72,8 @@ function SignupPage(){
             const result = await response.json();
 
             if (response.ok) {
-                alert("Account created successfully! Please log in.");
-                navigate("/login");
+                alert(result.message || "Registration successful. Please check your email to verify your account.");
+                navigate(`/login?email=${encodeURIComponent(email)}&verificationPending=1`);
             } else {
                 alert("Signup failed: " + result.message);
             }

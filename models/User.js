@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Email is required'],
     unique: true,
     trim: true,
+    lowercase: true,
     validate: {
       validator: function (emailValue) {
         return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(emailValue);
@@ -67,6 +68,23 @@ const userSchema = new mongoose.Schema({
       message:
         'Occupation can only contain letters, spaces, apostrophes, and hyphens'
     }
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  emailVerificationTokenHash: {
+    type: String,
+    select: false,
+  },
+  emailVerificationExpires: {
+    type: Date,
+  },
+  emailVerifiedAt: {
+    type: Date,
+  },
+  lastVerificationEmailSentAt: {
+    type: Date,
   }
 });
 

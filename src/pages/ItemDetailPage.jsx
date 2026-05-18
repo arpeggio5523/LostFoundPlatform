@@ -109,17 +109,6 @@ export default function ItemDetailPage() {
                     >
                       Edit
                     </button>
-                    <button
-                      onClick={async () => {
-                        if (confirm("Are you sure you want to delete this item?")) {
-                          await fetch(`http://localhost:3000/api/found-items/${item._id}`, { method: "DELETE" });
-                          navigate("/found-items");
-                        }
-                      }}
-                      className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-all"
-                    >
-                      Delete
-                    </button>
                   </div>
                 </div>
               </div>

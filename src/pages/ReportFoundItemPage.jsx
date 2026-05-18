@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const CATEGORIES = [
     "All Categories",
@@ -43,6 +43,8 @@ const inputErrorClass = "w-full px-3.5 py-2.5 rounded-lg border border-red-400 b
 
 export default function ReportFoundItemPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("edit"); // gets the ID if editing
   const fileInputRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -52,6 +54,41 @@ export default function ReportFoundItemPage() {
   const [images, setImages] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [errors, setErrors] = useState({});
+
+
+ // Pre-fill form if editing
+  useEffect(() => {
+    if (!editId) return;
+    fetch(`http://localhost:3000/api/found-items/${editId}`)
+      .then(res => res.json())
+      .then(data => {
+        const item = data.foundItem;
+        setForm({
+          title: item.title || "",
+          description: item.description || "",
+          category: item.category || "",
+          color: item.color || "",
+          marks: item.marks || "",
+          location: item.location || "",
+          date: item.dateFound ? item.dateFound.split("T")[0] : "",
+        });
+        // Load existing images as previews
+        if (item.images?.length > 0) {
+          setImages(item.images.map(img => ({
+            preview: img.url,
+            name: img.filename || "image",
+            existing: true, // flag to know it's from DB
+            url: img.url,
+            filename: img.filename,
+            mimetype: img.mimetype,
+            size: img.size,
+          })));
+        }
+      })
+      .catch(err => console.error("Failed to load item:", err));
+  }, [editId]);
+
+
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -85,28 +122,45 @@ export default function ReportFoundItemPage() {
     return e;
   }
 
-  async function handleSubmit() {
+    async function handleSubmit() {
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
-    
+
     try {
-      // Convert images to base64
       const imageData = await Promise.all(
-        images.map(img => new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve({
-            url: reader.result,
-            filename: img.file.name,
-            mimetype: img.file.type,
-            size: img.file.size
+        images.map(img => {
+          // If existing image from DB, just pass it as-is
+          if (img.existing) {
+            return Promise.resolve({
+              url: img.url,
+              filename: img.filename,
+              mimetype: img.mimetype,
+              size: img.size,
+            });
+          }
+          // New image — convert to base64
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve({
+              url: reader.result,
+              filename: img.file.name,
+              mimetype: img.file.type,
+              size: img.file.size,
+            });
+            reader.onerror = () => reject(new Error("Failed to read file"));
+            reader.readAsDataURL(img.file);
           });
-          reader.onerror = () => reject(new Error("Failed to read file"));
-          reader.readAsDataURL(img.file);
-        }))
+        })
       );
 
-      const response = await fetch("http://localhost:3000/api/found-items", {
-        method: "POST",
+      const url = editId
+        ? `http://localhost:3000/api/found-items/${editId}`
+        : "http://localhost:3000/api/found-items";
+
+      const method = editId ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: form.title,
@@ -116,8 +170,8 @@ export default function ReportFoundItemPage() {
           marks: form.marks,
           location: form.location,
           dateFound: form.date,
-          images: imageData
-        })
+          images: imageData,
+        }),
       });
 
       if (!response.ok) {
@@ -125,7 +179,7 @@ export default function ReportFoundItemPage() {
         throw new Error(error.message || "Failed to submit report");
       }
 
-      alert("Report submitted successfully!");
+      alert(editId ? "Item updated successfully!" : "Report submitted successfully!");
       navigate("/found-items");
     } catch (error) {
       alert("Error: " + error.message);
@@ -149,8 +203,14 @@ export default function ReportFoundItemPage() {
 
       {/* Card */}
       <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm p-10">
-        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">Report Found Item</h1>
-        <p className="text-sm text-gray-400 mb-8">Help someone reunite with their belongings.</p>
+        {/* <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">Report Found Item</h1>
+        <p className="text-sm text-gray-400 mb-8">Help someone reunite with their belongings.</p> */}
+        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">
+        {editId ? "Edit Found Item" : "Report Found Item"}
+        </h1>
+        <p className="text-sm text-gray-400 mb-8">
+          {editId ? "Update the details below and save." : "Help someone reunite with their belongings."}
+        </p>
 
         {/* Item Title */}
         <Field label="Item Title" required error={errors.title}>
@@ -290,11 +350,14 @@ export default function ReportFoundItemPage() {
 
         {/* Actions */}
         <div className="flex gap-3">
-          <button
+          {/* <button
             onClick={handleSubmit}
             className="flex-1 py-3 bg-gray-900 text-white border-none rounded-xl text-sm font-bold cursor-pointer hover:bg-gray-800 transition-colors"
           >
             Submit Report
+          </button> */}
+          <button onClick={handleSubmit} className="flex-1 py-3 bg-gray-900 text-white border-none rounded-xl text-sm font-bold cursor-pointer hover:bg-gray-800 transition-colors">
+          {editId ? "Save Changes" : "Submit Report"}
           </button>
           <button
             onClick={() => navigate(-1)}

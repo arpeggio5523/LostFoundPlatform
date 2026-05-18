@@ -53,7 +53,7 @@ export default function FoundItemsPage() {
           title: item.title,
           description: item.description,
           location: item.location,
-          date: item.dateFound,
+          date: new Date(item.dateFound).toLocaleDateString(),
           category: item.category,
           status: item.status,
           image: item.images && item.images.length > 0 ? item.images[0].url : null,

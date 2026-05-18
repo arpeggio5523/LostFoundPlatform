@@ -127,3 +127,23 @@ export async function getFoundItem(req, res) {
   }
 }
 
+export async function updateFoundItem(req, res) {
+  try {
+    const { id } = req.params;
+    const { title, description, category, color, marks, location, dateFound, images } = req.body;
+
+    const normalizedImages = normalizeImages(images);
+
+    const updatedItem = await FoundItem.findByIdAndUpdate(
+      id,
+      { title, description, category, color, marks, location, dateFound: new Date(dateFound), images: normalizedImages },
+      { new: true }
+    );
+
+    if (!updatedItem) return res.status(404).json({ message: "Item not found." });
+
+    res.status(200).json({ message: "Item updated successfully.", foundItem: updatedItem });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update item.", error: error.message });
+  }
+}

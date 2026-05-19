@@ -94,10 +94,6 @@ export default function ItemDetailPage() {
                   <InfoBlock label="Date" icon={<Calendar size={16} />} value={item.dateFound ? new Date(item.dateFound).toLocaleDateString() : "N/A"} />
                 </div>
 
-                {/* CTA Button */}
-                <button className="w-full py-4 bg-black text-white rounded-xl font-bold text-base hover:bg-gray-800 transition-all active:scale-[0.98]">
-                  {isLost ? "I found this item" : "Claim Item"}
-                </button>
 
                 {/* Actions */}
                 <div className="mt-6 border border-gray-200 rounded-2xl p-6">
@@ -108,6 +104,12 @@ export default function ItemDetailPage() {
                       className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all"
                     >
                       Edit
+                    </button>
+                    <button
+                      className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-all"
+                      // onClick handler can be added later
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>

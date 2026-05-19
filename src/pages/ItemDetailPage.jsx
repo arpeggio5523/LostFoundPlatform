@@ -5,6 +5,7 @@ import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode } from "lucide-react"
 import { useEffect, useState } from "react";
 import { isOwner } from "../services/authState";
 import { buildApiUrl } from "../services/apiClient";
+import { authHeaders } from "../services/apiClient";
 
 
 export default function ItemDetailPage() {
@@ -29,6 +30,31 @@ export default function ItemDetailPage() {
     };
     fetchItem();
   }, [id]);
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm("Delete this item? This action cannot be undone.");
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(buildApiUrl(`/api/found-items/${item._id}`), {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.message || "Failed to delete item");
+      }
+
+      alert("Item deleted successfully.");
+      navigate("/found-items");
+    } catch (err) {
+      alert(err.message || "Failed to delete item.");
+    }
+  };
 
   if (loading) return <div className="p-10 text-gray-400">Loading...</div>;
   if (error || !item) return <div className="p-10 text-red-400">Item not found.</div>;
@@ -109,6 +135,7 @@ export default function ItemDetailPage() {
                         Edit
                       </button>
                       <button
+                        onClick={handleDelete}
                         className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-all"
                       >
                         Delete

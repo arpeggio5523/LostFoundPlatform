@@ -154,6 +154,20 @@ export async function updateFoundItem(req, res) {
 
     const normalizedImages = normalizeImages(images);
 
+    const missingFields = [];
+    if (!title || !String(title).trim()) missingFields.push("title");
+    if (!description || !String(description).trim()) missingFields.push("description");
+    if (!category || !String(category).trim()) missingFields.push("category");
+    if (!location || !String(location).trim()) missingFields.push("location");
+    if (!dateFound || !String(dateFound).trim()) missingFields.push("dateFound");
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        message: "Missing required fields.",
+        missingFields
+      });
+    }
+
     const existingItem = await FoundItem.findById(id);
 
     if (!existingItem) {
@@ -166,7 +180,16 @@ export async function updateFoundItem(req, res) {
 
     const updatedItem = await FoundItem.findByIdAndUpdate(
       id,
-      { title, description, category, color, marks, location, dateFound: new Date(dateFound), images: normalizedImages },
+      {
+        title: String(title).trim(),
+        description: String(description).trim(),
+        category: String(category).trim(),
+        color: color ? String(color).trim() : "",
+        marks: marks ? String(marks).trim() : "",
+        location: String(location).trim(),
+        dateFound: new Date(dateFound),
+        images: normalizedImages
+      },
       { new: true }
     );
 

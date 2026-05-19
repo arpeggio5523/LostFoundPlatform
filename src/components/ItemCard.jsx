@@ -3,6 +3,7 @@ import QRIcon from "./QRIcon";
 import NoImagePlaceholder from "./NoImagePlaceHolder";
 import {Calendar, MapPinIcon} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { isOwner } from "../services/authState";
 
 export default function ItemCard({ item, dateLabel }) {
   const navigate = useNavigate();
@@ -10,6 +11,13 @@ export default function ItemCard({ item, dateLabel }) {
   const handleCardClick = () => {
     navigate(`/item/${item._id || item.id}`);
   }
+
+    const showActions = isOwner(item);
+
+    const handleEdit = (e) => {
+        e.stopPropagation();
+        navigate(`/report-found?edit=${item._id || item.id}`);
+    };
 
   return (
     <div
@@ -55,6 +63,16 @@ export default function ItemCard({ item, dateLabel }) {
                     By {item.user}
                 </span>
             </div>
+                        {showActions && (
+                            <div className="mt-4 pt-4 border-t border-gray-200 flex gap-2">
+                                <button
+                                    onClick={handleEdit}
+                                    className="flex-1 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all"
+                                >
+                                    Edit
+                                </button>
+                            </div>
+                        )}
         </div>
 
 

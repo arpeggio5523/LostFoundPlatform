@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
+import { buildApiUrl } from "../services/apiClient";
 
 const CATEGORIES = [
     "All Categories",
@@ -43,7 +44,7 @@ export default function FoundItemsPage() {
     const fetchItems = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:3000/api/found-items");
+        const response = await fetch(buildApiUrl("/api/found-items"));
         if (!response.ok) throw new Error("Failed to fetch items");
         const data = await response.json();
         

@@ -3,6 +3,8 @@ import Sidebar from "../components/Sidebar";
 import { MOCK_ITEMS } from "../data/itemsData";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode } from "lucide-react";
 import { useEffect, useState } from "react";
+import { isOwner } from "../services/authState";
+import { buildApiUrl } from "../services/apiClient";
 
 
 export default function ItemDetailPage() {
@@ -15,7 +17,7 @@ export default function ItemDetailPage() {
   useEffect(() => {
     const fetchItem = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/found-items/${id}`);
+        const response = await fetch(buildApiUrl(`/api/found-items/${id}`));
         if (!response.ok) throw new Error("Item not found");
         const data = await response.json();
         setItem(data.foundItem);
@@ -96,23 +98,24 @@ export default function ItemDetailPage() {
 
 
                 {/* Actions */}
-                <div className="mt-6 border border-gray-200 rounded-2xl p-6">
-                  <h3 className="text-base font-bold text-gray-900 mb-4">Actions</h3>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => navigate(`/report-found?edit=${item._id}`)}
-                      className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-all"
-                      // onClick handler can be added later
-                    >
-                      Delete
-                    </button>
+                {isOwner(item) && (
+                  <div className="mt-6 border border-gray-200 rounded-2xl p-6">
+                    <h3 className="text-base font-bold text-gray-900 mb-4">Actions</h3>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => navigate(`/report-found?edit=${item._id}`)}
+                        className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-all"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

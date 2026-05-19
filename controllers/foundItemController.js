@@ -127,6 +127,15 @@ export async function getFoundItem(req, res) {
   }
 }
 
+export async function deleteFoundItem(req, res) {
+  try {
+    await FoundItem.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Item deleted successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete item.", error: error.message });
+  }
+}
+
 export async function updateFoundItem(req, res) {
   try {
     const { id } = req.params;

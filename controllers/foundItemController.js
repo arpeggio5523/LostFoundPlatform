@@ -130,10 +130,20 @@ export async function getFoundItem(req, res) {
 
 export async function deleteFoundItem(req, res) {
   try {
-    await FoundItem.findByIdAndDelete(req.params.id);
-    res.status(200).json({ message: "Item deleted successfully." });
+    const foundItem = await FoundItem.findById(req.params.id);
+
+    if (!foundItem) {
+      return res.status(404).json({ message: "Item not found." });
+    }
+
+    if (String(foundItem.owner) !== String(req.user.id)) {
+      return res.status(403).json({ message: "You do not have permission to delete this item." });
+    }
+
+    await foundItem.deleteOne();
+    return res.status(200).json({ message: "Item deleted successfully." });
   } catch (error) {
-    res.status(500).json({ message: "Failed to delete item.", error: error.message });
+    return res.status(500).json({ message: "Failed to delete item.", error: error.message });
   }
 }
 
@@ -143,6 +153,16 @@ export async function updateFoundItem(req, res) {
     const { title, description, category, color, marks, location, dateFound, images } = req.body;
 
     const normalizedImages = normalizeImages(images);
+
+    const existingItem = await FoundItem.findById(id);
+
+    if (!existingItem) {
+      return res.status(404).json({ message: "Item not found." });
+    }
+
+    if (String(existingItem.owner) !== String(req.user.id)) {
+      return res.status(403).json({ message: "You do not have permission to update this item." });
+    }
 
     const updatedItem = await FoundItem.findByIdAndUpdate(
       id,

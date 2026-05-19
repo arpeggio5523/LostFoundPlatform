@@ -66,6 +66,7 @@ export async function createFoundItem(req, res) {
     const imagesToSave = normalizedImages.length > 0 ? normalizedImages : [];
 
     const foundItem = await FoundItem.create({
+      owner: req.user.id,
       title: String(title).trim(),
       description: String(description).trim(),
       category: String(category).trim(),

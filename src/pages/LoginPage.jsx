@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
+import { setAuthUser } from "../services/authState";
 
 function LoginPage(){
     const navigate = useNavigate();
@@ -30,7 +31,7 @@ function LoginPage(){
                 const result = await response.json();
 
                 if (response.ok) {
-                    localStorage.setItem("token", result.token);
+                    setAuthUser(result.user, result.token);
                     alert("Login successful!");
                     navigate("/found-items");
                     // console.log("Saved:", result);

@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
+import { signToken } from "../utils/jwt.js";
 
 // Register a new user into the system
 export const signup = async (req, res) => {
@@ -57,8 +58,16 @@ export const login = async (req, res) => {
       });
     }
 
+    const token = signToken({ id: user._id.toString() });
+
     res.status(200).json({
       message: "Login successful",
+      token,
+      user: {
+        id: user._id.toString(),
+        fullName: user.fullName,
+        email: user.email,
+      },
     });
 
   } catch (error) {

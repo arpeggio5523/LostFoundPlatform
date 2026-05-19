@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { authHeaders, buildApiUrl } from "../services/apiClient";
 
 const CATEGORIES = [
     "All Categories",
@@ -59,7 +60,7 @@ export default function ReportFoundItemPage() {
  // Pre-fill form if editing
   useEffect(() => {
     if (!editId) return;
-    fetch(`http://localhost:3000/api/found-items/${editId}`)
+    fetch(buildApiUrl(`/api/found-items/${editId}`))
       .then(res => res.json())
       .then(data => {
         const item = data.foundItem;
@@ -154,14 +155,14 @@ export default function ReportFoundItemPage() {
       );
 
       const url = editId
-        ? `http://localhost:3000/api/found-items/${editId}`
-        : "http://localhost:3000/api/found-items";
+        ? buildApiUrl(`/api/found-items/${editId}`)
+        : buildApiUrl("/api/found-items");
 
       const method = editId ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           title: form.title,
           description: form.description,

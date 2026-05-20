@@ -1,6 +1,9 @@
 import express from "express";
 import Item from "../models/Item.js";
-import { updateItemStatus } from "../controllers/itemController.js";
+import { 
+  updateItemStatus,
+  getApprovedFoundItems
+} from "../controllers/itemController.js";
 
 const router = express.Router();
 
@@ -12,6 +15,9 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+router.get("/found-items", getApprovedFoundItems);
+
 router.post("/", async (req, res) => {
   try {
     const newItem = new Item({
@@ -23,6 +29,7 @@ router.post("/", async (req, res) => {
       date: req.body.date,
       category: req.body.category,
       status: req.body.status, // optional (defaults to Pending)
+      itemType: req.body.itemType, // required (Lost or Found)
       user: req.body.user,
       images: req.body.images,
     });

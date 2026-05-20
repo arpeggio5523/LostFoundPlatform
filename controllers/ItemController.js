@@ -30,3 +30,18 @@ export const updateItemStatus = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const getApprovedFoundItems = async (req, res) => {
+  try {
+    const items = await Item.find({
+      itemType: "Found",
+      status: "Approved",
+    });
+
+    res.status(200).json(items);
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+};

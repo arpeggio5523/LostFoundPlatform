@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import User from "./models/User.js";
 import authRoutes from "./routes/authRoutes.js";
+import itemRoutes from "./routes/ItemRoutes.js";
 import connectDB from "./config/db.js"; 
 import dotenv from 'dotenv';
 import { fileURLToPath } from "url";
@@ -39,6 +40,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/items", itemRoutes);
 
 const startServer = async () => {
     try {

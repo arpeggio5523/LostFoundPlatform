@@ -34,7 +34,7 @@ const itemSchema = new mongoose.Schema(
       type: String,
       trim: true,
       maxlength: [200, "Distinctive mark max length is 200 characters"],
-      defautlt: "",
+      default: "",
     },
 
     color: {
@@ -73,7 +73,7 @@ const itemSchema = new mongoose.Schema(
         values: [
           "Electronics",
           "Accessories",
-          "Bag & Backpacks",
+          "Bags & Backpacks",
           "Documents",
           "Keys",
           "Clothing",

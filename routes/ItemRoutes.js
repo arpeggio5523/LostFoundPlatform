@@ -2,7 +2,8 @@ import express from "express";
 import Item from "../models/Item.js";
 import { 
   updateItemStatus,
-  getApprovedFoundItems
+  getApprovedFoundItems,
+  getItemById,
 } from "../controllers/itemController.js";
 
 const router = express.Router();
@@ -17,6 +18,8 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/found-items", getApprovedFoundItems);
+
+router.get("/:itemId", getItemById);
 
 router.post("/", async (req, res) => {
   try {

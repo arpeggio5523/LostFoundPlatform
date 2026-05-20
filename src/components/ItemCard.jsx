@@ -8,7 +8,7 @@ export default function ItemCard({ item, dateLabel }) {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    navigate(`/item/${item.id}`);
+    navigate(`/item/${item._id}`);
   }
 
   return (

@@ -1,17 +1,53 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
-import { MOCK_ITEMS } from "../data/itemsData";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode } from "lucide-react"; 
 
 export default function ItemDetailPage() {
-  const { id } = useParams();
+  const { itemId } = useParams();
   const navigate = useNavigate();
-  const item = MOCK_ITEMS.find((i) => i.id === Number(id));
 
-  if (!item) return <div style={{ padding: 40 }}>Item not found!</div>;
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const isApproved = item.status === "approved";
-  const isLost = item.type === 'lost'; 
+  useEffect(() => {
+    const fetchItem = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/items/${itemId}`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch item");
+        }
+
+        const data = await response.json();
+        setItem(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItem();
+  }, [itemId]);
+
+  if (loading) {
+    return <div style={{ padding: 40 }}>Loading item...</div>;
+  }
+
+  if (error) {
+    return <div style={{ padding: 40 }}>{error}</div>;
+  }
+
+  if (!item) {
+    return <div style={{ padding: 40 }}>Item not found!</div>;
+  }
+
+  const isApproved = item.status === "Approved";
+  const isLost = item.itemType === 'Lost'; 
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -48,7 +84,7 @@ export default function ItemDetailPage() {
             }}>
               <div style={{ width: "100%", height: "400px" }}>
                 <img 
-                  src={item.image || "https://via.placeholder.com/800x400"} 
+                  src={item.images && item.images.length > 0 ? item.images[0] : "https://via.placeholder.com/800x400"} 
                   alt={item.title}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }} 
                 />
@@ -61,7 +97,7 @@ export default function ItemDetailPage() {
                   alignItems: "center",
                   marginBottom: 16
                 }}>
-                    <Badge type={item.type} label={item.type} />
+                    <Badge type={item.itemType} label={item.itemType} />
                     <Badge type={item.status} label={item.status} isStatus />
                 </div>
 
@@ -117,12 +153,12 @@ export default function ItemDetailPage() {
                   background: "#eff6ff", display: "flex", alignItems: "center",
                   justifyContent: "center", fontSize: "22px", fontWeight: "700", color: "#2563eb"
                 }}>
-                  {item.user ? item.user.charAt(0) : "U"}
+                  {item.user ? item.user?.fullName?.charAt(0) : "U"}
                 </div> 
 
                 <div>
                   <div style={{ fontSize: "18px", fontWeight: "700", color: "#111" }}>
-                    {item.user || "Anonymous User"}
+                    {item.user?.fullName || "Anonymous User"}
                   </div>
                   <div style={{ fontSize: "14px", color: "#6b7280" }}>
                     Posted {item.date}

@@ -55,6 +55,7 @@ export default function ReportFoundItemPage() {
   const [images, setImages] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
 
 
  // Pre-fill form if editing
@@ -95,6 +96,7 @@ export default function ReportFoundItemPage() {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
+    if (submitError) setSubmitError("");
   }
 
   function handleFiles(files) {
@@ -124,6 +126,7 @@ export default function ReportFoundItemPage() {
   }
 
     async function handleSubmit() {
+    setSubmitError("");
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
@@ -176,14 +179,23 @@ export default function ReportFoundItemPage() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = await response.json().catch(() => ({}));
+
+        if (Array.isArray(error.missingFields)) {
+          const serverErrors = {};
+          for (const field of error.missingFields) {
+            serverErrors[field === "dateFound" ? "date" : field] = "This field is required.";
+          }
+          setErrors(prev => ({ ...prev, ...serverErrors }));
+        }
+
         throw new Error(error.message || "Failed to submit report");
       }
 
       alert(editId ? "Item updated successfully!" : "Report submitted successfully!");
       navigate("/found-items");
     } catch (error) {
-      alert("Error: " + error.message);
+      setSubmitError(error.message || "Failed to submit report");
     }
   }
 
@@ -212,6 +224,12 @@ export default function ReportFoundItemPage() {
         <p className="text-sm text-gray-400 mb-8">
           {editId ? "Update the details below and save." : "Help someone reunite with their belongings."}
         </p>
+
+        {submitError && (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {submitError}
+          </div>
+        )}
 
         {/* Item Title */}
         <Field label="Item Title" required error={errors.title}>

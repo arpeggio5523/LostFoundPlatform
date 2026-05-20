@@ -45,3 +45,17 @@ export const getApprovedFoundItems = async (req, res) => {
     });
   }
 };
+
+export const getItemById = async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.itemId).populate("user", "fullName email");
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+
+    res.status(200).json(item);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

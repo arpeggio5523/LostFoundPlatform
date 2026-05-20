@@ -16,7 +16,7 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/found-items" element={<FoundItemsPage />} />
         <Route path="/lost-items" element={<LostItemsPage />} />
-        <Route path="/item/:id" element={<ItemDetailPage />} />
+        <Route path="/item/:itemId" element={<ItemDetailPage />} />
         <Route path="/report-found" element={<ReportFoundItemPage />} />
       </Routes>
   );

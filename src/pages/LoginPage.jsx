@@ -15,6 +15,8 @@ function LoginPage(){
     const [feedbackMessage, setFeedbackMessage] = useState("");
     const [resendMessage, setResendMessage] = useState("");
     const [isResending, setIsResending] = useState(false);
+    const [popupMessage, setPopupMessage] = useState("");
+    const [showPopup, setShowPopup] = useState(false);
 
     useEffect(() => {
         const email = searchParams.get("email") || "";
@@ -28,7 +30,17 @@ function LoginPage(){
         }
 
         if (verificationPending) {
-            setFeedbackMessage("Registration successful. Please check your email to verify your account before logging in.");
+            setFeedbackMessage(
+                "Registration successful. Please check your email to verify your account before logging in."
+            );
+
+            // Remove the query parameter after showing the message once
+            searchParams.delete("verificationPending");
+
+            navigate(
+                `/login${email ? `?email=${encodeURIComponent(email)}` : ""}`,
+                { replace: true }
+            );
         }
     }, [searchParams]);
 
@@ -55,18 +67,17 @@ function LoginPage(){
                         localStorage.setItem("token", result.token);
                     }
                     setFeedbackMessage("");
-                    alert("Login successful!");
                     navigate("/found-items");
                     // console.log("Saved:", result);
                 } else {
                     const nextMessage = result.message || result.error || "Invalid credentials";
                     setFeedbackMessage(nextMessage);
-                    alert("Error: " + nextMessage);
+                    setPopupMessage(result.message || "Login failed.");
+                    setShowPopup(true);
                 }
             } catch (err) {
                 console.error("Failed to connect to server:", err);
                 setFeedbackMessage("Server connection failed");
-                alert("Server connection failed");
             }
         };
 
@@ -102,6 +113,26 @@ function LoginPage(){
     return(
         <div className = "min-h-screen bg-gray-50">
             <NavBar />
+            {showPopup && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+                <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+                    <h3 className="text-lg font-semibold text-black">
+                        Login Failed
+                    </h3>
+
+                    <p className="mt-3 text-sm text-gray-600">
+                        {popupMessage}
+                    </p>
+
+                    <button
+                        onClick={() => setShowPopup(false)}
+                        className="mt-6 w-full rounded-lg bg-black px-4 py-3 font-semibold text-white transition hover:bg-gray-900"
+                    >
+                        OK
+                    </button>
+                </div>
+            </div>
+            )}
             <div className = "mx-auto flex min-h-[80vh] max-w-lg items-center justify-center">
                 <div className = "grid w-full overflow-hidden rounded-3xl bg-white shadow-xl">
                         <div className = "p-8 md:p-10">

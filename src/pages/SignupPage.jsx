@@ -14,32 +14,40 @@ function SignupPage(){
     const [occupation, setOccupation] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [popupTitle, setPopupTitle] = useState("");
+    const [popupMessage, setPopupMessage] = useState("");
+    const [showPopup, setShowPopup] = useState(false);
 
+    const openPopup = (title, message) => {
+    setPopupTitle(title);
+    setPopupMessage(message);
+    setShowPopup(true);
+    };
     async function handleSignup(event){
         event.preventDefault(); // prevent refresh
 
         if (password.length < 8){
-            alert("Password must be at least 8 characters long.");
+            openPopup("Invalid Password", "Password must be at least 8 characters long.");
             return
         }
 
         if (password != confirmPassword){
-            alert("Confirm password is not same with password.");
+            openPopup("Invalid Password", "Confirm password is not same with password.");
             return
         }
 
         if (!/[A-Z]/.test(password)){
-            alert("Password must contain at least 1 capital letter.")
+            openPopup("Invalid Password", "Password must contain at least 1 capital letter.")
             return
         }
 
         if (!/[a-z]/.test(password)){
-            alert("Password must contain at least 1 small letter.")
+            openPopup("Invalid Password", "Password must contain at least 1 small letter.")
             return
         }
 
         if(!/[^A-Za-z0-9]/.test(password)){
-            alert("Password must contain at least 1 special character.")
+            openPopup("Invalid Password", "Password must contain at least 1 special character.")
             return
         }
 
@@ -72,20 +80,48 @@ function SignupPage(){
             const result = await response.json();
 
             if (response.ok) {
-                alert(result.message || "Registration successful. Please check your email to verify your account.");
-                navigate(`/login?email=${encodeURIComponent(email)}&verificationPending=1`);
+                openPopup(
+                    "Registration Successful",
+                    result.message || "Registration successful. Please check your email to verify your account."
+                );
             } else {
-                alert("Signup failed: " + result.message);
+                openPopup("Signup failed", result.message);
             }
         } catch (err) {
             console.error("Connection error:", err);
-            alert("Could not connect to the server.");
+            openPopup("Signup failed", "Could not connect to the server.");
         }
     }
 
     return(
         <div className = "min-h-screen bg-gray-50">
           <NavBar />
+          {showPopup && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+                <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+                    <h3 className="text-lg font-semibold text-black">
+                        {popupTitle}
+                    </h3>
+
+                    <p className="mt-3 text-sm text-gray-600">
+                        {popupMessage}
+                    </p>
+
+                    <button
+                        onClick={() => {
+                            setShowPopup(false);
+
+                            if (popupTitle === "Registration Successful") {
+                                navigate(`/login?email=${encodeURIComponent(email)}&verificationPending=1`);
+                            }
+                        }}
+                        className="mt-6 w-full rounded-lg bg-black px-4 py-3 font-semibold text-white transition hover:bg-gray-900"
+                    >
+                        OK
+                    </button>
+                </div>
+            </div>
+          )}
             <div className = "mx-auto flex min-h-[80vh] max-w-lg items-center justify-center px-4 pt-12 pb-10">
                 <div className = "grid w-full overflow-hidden rounded-3xl bg-white shadow-xl">
                         <div className = "p-8 md:p-10">

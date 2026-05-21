@@ -1,15 +1,15 @@
 import { Sun, Moon } from "lucide-react";
-import NavBar from "../components/NavBar";
+import Sidebar from "../components/Sidebar";
 import { useTheme } from "../context/ThemeContext";
 
 function SettingsPage() {
   const { isDark, toggleTheme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)]">
-      <NavBar />
+    <div className="flex min-h-screen bg-[var(--color-bg-base)]">
+      <Sidebar />
 
-      <main className="mx-auto max-w-4xl px-6 py-10">
+      <main style={{ marginLeft: 220, flex: 1, padding: "36px 40px" }}>
         <h1 className="mb-2 text-2xl font-semibold text-[var(--color-text-primary)]">
           Settings
         </h1>

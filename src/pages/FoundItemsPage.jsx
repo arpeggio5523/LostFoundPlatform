@@ -108,7 +108,7 @@ export default function FoundItemsPage() {
           </div>
           <button
             onClick={() => navigate("/report-found")}
-            className="flex items-center gap-2 bg-gray-900 text-white border-none rounded-xl px-5 py-3 font-bold text-sm cursor-pointer hover:bg-gray-800 transition-colors"
+            className="flex items-center gap-2 bg-[#006058] text-white border-none rounded-xl px-5 py-3 font-bold text-sm cursor-pointer hover:bg-gray-800 transition-colors"
           >
             <span className="text-lg leading-none">+</span> Report Found Item
           </button>

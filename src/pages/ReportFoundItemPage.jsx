@@ -30,7 +30,7 @@ const LOCATIONS = [
 function Field({ label, required, error, children }) {
   return (
     <div className="mb-5">
-      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+      <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       {children}
@@ -39,8 +39,8 @@ function Field({ label, required, error, children }) {
   );
 }
 
-const inputClass = "w-full px-3.5 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-800 outline-none focus:border-gray-400 focus:bg-white transition-colors font-sans";
-const inputErrorClass = "w-full px-3.5 py-2.5 rounded-lg border border-red-400 bg-gray-50 text-sm text-gray-800 outline-none focus:border-red-400 focus:bg-white transition-colors font-sans";
+const inputClass      = "w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-raised)] text-sm text-[var(--color-text-primary)] outline-none focus:border-gray-400 dark:focus:border-[var(--color-brand)] focus:bg-[var(--color-bg-surface)] transition-colors font-sans";
+const inputErrorClass = "w-full px-3.5 py-2.5 rounded-lg border border-red-400 bg-[var(--color-bg-raised)]  text-sm text-[var(--color-text-primary)] outline-none focus:border-red-400 focus:bg-[var(--color-bg-surface)] transition-colors font-sans";
 
 export default function ReportFoundItemPage() {
   const navigate = useNavigate();
@@ -200,12 +200,12 @@ export default function ReportFoundItemPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans py-8 px-4">
+    <div className="min-h-screen bg-[var(--color-bg-base)] font-sans py-8 px-4 transition-colors duration-200">
       {/* Back */}
       <div className="max-w-2xl mx-auto mb-4">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 bg-transparent border-none text-sm text-gray-500 cursor-pointer p-0 font-medium hover:text-gray-800 transition-colors"
+          className="flex items-center gap-1.5 bg-transparent border-none text-sm text-[var(--color-text-secondary)] cursor-pointer p-0 font-medium hover:text-[var(--color-text-primary)] transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
@@ -215,13 +215,13 @@ export default function ReportFoundItemPage() {
       </div>
 
       {/* Card */}
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm p-10">
+      <div className="max-w-2xl mx-auto bg-[var(--color-bg-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-10 transition-colors duration-200">
         {/* <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">Report Found Item</h1>
         <p className="text-sm text-gray-400 mb-8">Help someone reunite with their belongings.</p> */}
-        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">
+        <h1 className="text-2xl font-extrabold text-[var(--color-text-primary)] tracking-tight mb-1">
         {editId ? "Edit Found Item" : "Report Found Item"}
         </h1>
-        <p className="text-sm text-gray-400 mb-8">
+        <p className="text-sm text-[var(--color-text-muted)] mb-8">
           {editId ? "Update the details below and save." : "Help someone reunite with their belongings."}
         </p>
 
@@ -256,7 +256,7 @@ export default function ReportFoundItemPage() {
         {/* Category + Color */}
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
               Category <span className="text-red-500">*</span>
             </label>
             <select
@@ -269,7 +269,7 @@ export default function ReportFoundItemPage() {
             {errors.category && <p className="mt-1 text-xs text-red-500">{errors.category}</p>}
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Color</label>
+            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">Color</label>
             <input
               name="color" value={form.color} onChange={handleChange}
               placeholder="e.g., Black, Blue"
@@ -309,8 +309,8 @@ export default function ReportFoundItemPage() {
 
         {/* Image Upload */}
         <div className="mb-3">
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Images <span className="text-gray-400 font-normal">(Recommended, max 3)</span>
+          <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
+            Images <span className="text-[var(--color-text-muted)] font-normal">(Recommended, max 3)</span>
           </label>
 
           {/* Dropzone */}
@@ -320,14 +320,14 @@ export default function ReportFoundItemPage() {
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded-xl p-9 text-center transition-colors
-              ${dragOver ? "border-indigo-400 bg-indigo-50" : "border-gray-200 bg-gray-50"}
+              ${dragOver ? "border-[var(--color-brand)] bg-[var(--color-brand-active-bg)]" : "border-[var(--color-border)] bg-[var(--color-bg-raised)]"}
               ${images.length < 3 ? "cursor-pointer hover:border-gray-400" : "cursor-default opacity-60"}`}
           >
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2.5">
               <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
               <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
             </svg>
-            <p className="text-sm text-gray-600 mb-1">
+            <p className="text-sm text-[var(--color-text-secondary)] mb-1">
               <span
                 className="text-blue-500 font-semibold cursor-pointer hover:underline"
                 onClick={e => { e.stopPropagation(); fileInputRef.current.click(); }}
@@ -336,7 +336,7 @@ export default function ReportFoundItemPage() {
               </span>
               {" "}or drag and drop
             </p>
-            <p className="text-xs text-gray-400">PNG, JPG, GIF up to 10MB</p>
+            <p className="text-xs text-[var(--color-text-muted)]">PNG, JPG, GIF up to 10MB</p>
           </div>
 
           <input
@@ -363,7 +363,7 @@ export default function ReportFoundItemPage() {
           )}
         </div>
 
-        <p className="text-xs text-gray-400 mb-7">
+        <p className="text-xs text-[var(--color-text-muted)] mb-7">
           Photos help owners identify their items faster. A QR code will be automatically generated for this item.
         </p>
 
@@ -375,12 +375,12 @@ export default function ReportFoundItemPage() {
           >
             Submit Report
           </button> */}
-          <button onClick={handleSubmit} className="flex-1 py-3 bg-gray-900 text-white border-none rounded-xl text-sm font-bold cursor-pointer hover:bg-gray-800 transition-colors">
+          <button onClick={handleSubmit} className="flex-1 py-3 bg-[var(--color-text-primary)] text-[var(--color-bg-base)] border-none rounded-xl text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity">
           {editId ? "Save Changes" : "Submit Report"}
           </button>
           <button
             onClick={() => navigate(-1)}
-            className="px-6 py-3 bg-white text-gray-600 border border-gray-200 rounded-xl text-sm font-semibold cursor-pointer hover:bg-gray-50 transition-colors"
+            className="px-6 py-3 bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-xl text-sm font-semibold cursor-pointer hover:bg-[var(--color-bg-raised)] transition-colors"
           >
             Cancel
           </button>

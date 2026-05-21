@@ -47,8 +47,7 @@ export default function FoundItemsPage() {
         const response = await fetch(buildApiUrl("/api/found-items"));
         if (!response.ok) throw new Error("Failed to fetch items");
         const data = await response.json();
-        
-        // Transform the API response to match the ItemCard component expectations
+
         const transformedItems = (data.foundItems || []).map(item => ({
           id: item._id,
           title: item.title,
@@ -59,7 +58,7 @@ export default function FoundItemsPage() {
           status: item.status,
           image: item.images && item.images.length > 0 ? item.images[0].url : null,
         }));
-        
+
         setItems(transformedItems);
         setError(null);
       } catch (err) {
@@ -75,80 +74,98 @@ export default function FoundItemsPage() {
 
 
   const filtered = items.filter(item => {
-    const matchSearch = 
+    const matchSearch =
       item.title.toLowerCase().includes(search.toLowerCase()) ||
       item.description.toLowerCase().includes(search.toLowerCase());
-
     const matchCat    = category === "All Categories" || item.category === category;
     const matchLoc    = location === "All Locations"  || item.location === location;
     const matchStatus = status   === "All Status"     || item.status === status;
-    
     return matchSearch && matchCat && matchLoc && matchStatus;
   });
 
-  const selectStyle = {
-    padding: "9px 36px 9px 14px", borderRadius: 8,
-    border: "1px solid #e5e7eb", background: "#fff",
-    fontSize: 14, color: "#333", appearance: "none", cursor: "pointer",
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
-    backgroundRepeat: "no-repeat", backgroundPosition: "calc(100% - 10px) center",
-    minWidth: 150,
-  };
-
   return (
-    <div className="flex min-h-screen bg-gray-50 font-sans">
+    <div style={{ display: "flex", minHeight: "100vh", background: "var(--color-bg-base)", fontFamily: "system-ui, sans-serif", transition: "background 0.2s ease" }}>
       <Sidebar />
 
-      <main className="ml-[220px] flex-1 p-10">
+      <main style={{ marginLeft: 220, flex: 1, padding: "36px 40px" }}>
         {/* Header */}
-        <div className="flex items-start justify-between mb-7">
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28 }}>
           <div>
-            <h1 className="text-3xl font-extrabold text-[#006058] tracking-tight m-0">Found Items</h1>
-            <p className="text-sm text-gray-400 mt-1">Browse items that have been found by the community</p>
+            <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: "var(--color-brand)", letterSpacing: "-0.02em" }}>
+              Found Items
+            </h1>
+            <p style={{ margin: "4px 0 0", fontSize: 14, color: "var(--color-text-secondary)" }}>
+              Browse items that have been found by the community
+            </p>
           </div>
           <button
             onClick={() => navigate("/report-found")}
-            className="flex items-center gap-2 bg-[#006058] text-white border-none rounded-xl px-5 py-3 font-bold text-sm cursor-pointer hover:bg-gray-800 transition-colors"
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              background: "var(--color-brand)", color: "var(--color-brand-text)",
+              border: "none", borderRadius: 10,
+              padding: "11px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer",
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = "var(--color-brand-hover)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "var(--color-brand)"; }}
           >
-            <span className="text-lg leading-none">+</span> Report Found Item
+            <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Report Found Item
           </button>
         </div>
 
         {/* Filter bar */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 mb-7 shadow-sm">
-          <div className="flex gap-3 flex-wrap items-center">
+        <div style={{
+          background: "var(--color-bg-surface)", borderRadius: 12,
+          border: "1px solid var(--color-border)",
+          padding: "16px 20px", marginBottom: 28,
+          boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+          transition: "background 0.2s ease, border-color 0.2s ease",
+        }}>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             {/* Search */}
-            <div className="relative flex-1 min-w-[180px]">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div style={{ position: "relative", flex: 1, minWidth: 180 }}>
+              <svg style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--color-text-muted)" }}
+                width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
               <input
-                type="text"
-                placeholder="Search items..."
-                value={search}
+                type="text" placeholder="Search items..." value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 outline-none focus:border-gray-400 transition-colors bg-white"
+                style={{
+                  width: "100%", padding: "9px 14px 9px 36px",
+                  borderRadius: 8, border: "1px solid var(--color-border)",
+                  background: "var(--color-bg-raised)",
+                  fontSize: 14, color: "var(--color-text-primary)", outline: "none", boxSizing: "border-box",
+                  transition: "background 0.2s ease, border-color 0.2s ease",
+                }}
               />
             </div>
 
-            <select value={category} onChange={e => setCategory(e.target.value)}
-              className="py-2 pl-3 pr-9 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white cursor-pointer outline-none focus:border-gray-400 min-w-[150px] appearance-none">
-              {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-            </select>
-
-            <select value={location} onChange={e => setLocation(e.target.value)}
-              className="py-2 pl-3 pr-9 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white cursor-pointer outline-none focus:border-gray-400 min-w-[150px] appearance-none">
-              {LOCATIONS.map(l => <option key={l}>{l}</option>)}
-            </select>
-
-            <select value={status} onChange={e => setStatus(e.target.value)}
-              className="py-2 pl-3 pr-9 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white cursor-pointer outline-none focus:border-gray-400 min-w-[150px] appearance-none">
-              {STATUSES.map(s => <option key={s}>{s}</option>)}
-            </select>
+            {[
+              { value: category, onChange: setCategory, options: CATEGORIES },
+              { value: location, onChange: setLocation, options: LOCATIONS },
+              { value: status,   onChange: setStatus,   options: STATUSES },
+            ].map(({ value, onChange, options }, i) => (
+              <select key={i} value={value} onChange={e => onChange(e.target.value)}
+                style={{
+                  padding: "9px 36px 9px 14px", borderRadius: 8,
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-bg-raised)",
+                  fontSize: 14, color: "var(--color-text-primary)",
+                  appearance: "none", cursor: "pointer",
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: "no-repeat", backgroundPosition: "calc(100% - 10px) center",
+                  minWidth: 150, outline: "none",
+                  transition: "background 0.2s ease, border-color 0.2s ease",
+                }}>
+                {options.map(o => <option key={o}>{o}</option>)}
+              </select>
+            ))}
           </div>
 
           {/* Result count */}
-          <div className="mt-3 flex items-center gap-1.5 text-gray-400 text-xs">
+          <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--color-text-muted)" }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
             </svg>
@@ -158,22 +175,22 @@ export default function FoundItemsPage() {
 
         {/* Cards grid */}
         {loading ? (
-          <div className="text-center py-16 text-gray-400">
-            <p className="text-sm m-0">Loading items...</p>
+          <div style={{ textAlign: "center", padding: "64px 0", color: "var(--color-text-muted)" }}>
+            <p style={{ margin: 0, fontSize: 14 }}>Loading items...</p>
           </div>
         ) : error ? (
-          <div className="text-center py-16 text-red-400">
-            <p className="text-sm m-0">Error: {error}</p>
+          <div style={{ textAlign: "center", padding: "64px 0", color: "#f87171" }}>
+            <p style={{ margin: 0, fontSize: 14 }}>Error: {error}</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-gray-300">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3">
+          <div style={{ textAlign: "center", padding: "64px 0", color: "var(--color-text-muted)" }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 12px", display: "block" }}>
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
-            <p className="text-sm m-0">No items match your filters.</p>
+            <p style={{ margin: 0, fontSize: 14 }}>No items match your filters.</p>
           </div>
         ) : (
-          <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
+          <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
             {filtered.map(item => <ItemCard key={item.id} item={item} />)}
           </div>
         )}

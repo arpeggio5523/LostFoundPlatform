@@ -56,13 +56,13 @@ export default function ItemDetailPage() {
     }
   };
 
-  if (loading) return <div className="p-10 text-gray-400">Loading...</div>;
+  if (loading) return <div className="p-10 text-[var(--color-text-muted)]">Loading...</div>;
   if (error || !item) return <div className="p-10 text-red-400">Item not found.</div>;
 
   const isLost = item.type === "lost";
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-[var(--color-bg-base)]">
       <Sidebar />
 
       <main className="ml-[280px] flex-1 p-10">
@@ -70,7 +70,7 @@ export default function ItemDetailPage() {
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 mb-8 text-gray-400 hover:text-gray-700 text-sm font-semibold transition-colors"
+          className="flex items-center gap-2 mb-8 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-sm font-semibold transition-colors"
         >
           <ArrowLeft size={16} />
           Back to {isLost ? "Lost" : "Found"} Items
@@ -81,7 +81,7 @@ export default function ItemDetailPage() {
 
           {/* LEFT COLUMN */}
           <div>
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-[var(--color-bg-surface)] rounded-3xl shadow-sm border border-[var(--color-border)] overflow-hidden">
 
               {/* Image */}
               <div className="w-full h-[400px]">
@@ -100,22 +100,22 @@ export default function ItemDetailPage() {
                 </div>
 
                 {/* Title */}
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-5">
+                <h1 className="text-3xl font-extrabold text-[var(--color-text-primary)] mb-5">
                   {item.title}
                 </h1>
 
                 {/* Description */}
                 <div className="mb-8">
-                  <div className="text-[11px] font-bold text-gray-900 uppercase tracking-wider mb-2">
+                  <div className="text-[11px] font-bold text-[var(--color-text-primary)] uppercase tracking-wider mb-2">
                     Description
                   </div>
-                  <p className="text-base text-gray-500 leading-relaxed">
+                  <p className="text-base text-[var(--color-text-secondary)] leading-relaxed">
                     {item.description}
                   </p>
                 </div>
 
                 {/* Info Grid */}
-                <div className="grid grid-cols-2 gap-8 border-t border-gray-100 pt-8 mb-12">
+                <div className="grid grid-cols-2 gap-8 border-t border-[var(--color-border)] pt-8 mb-12">
                   <InfoBlock label="Category" icon={<Tag size={16} />} value={item.category} />
                   <InfoBlock label="Colour"   icon={<Palette size={16} />} value={item.color} />
                   <InfoBlock label="Location" icon={<MapPin size={16} />} value={item.location} />
@@ -125,8 +125,8 @@ export default function ItemDetailPage() {
 
                 {/* Actions */}
                 {isOwner(item) && (
-                  <div className="mt-6 border border-gray-200 rounded-2xl p-6">
-                    <h3 className="text-base font-bold text-gray-900 mb-4">Actions</h3>
+                  <div className="mt-6 border border-[var(--color-border)] rounded-2xl p-6">
+                    <h3 className="text-base font-bold text-[var(--color-text-primary)] mb-4">Actions</h3>
                     <div className="flex gap-3">
                       <button
                         onClick={() => navigate(`/report-found?edit=${item._id}`)}
@@ -151,8 +151,8 @@ export default function ItemDetailPage() {
 
           {/* RIGHT COLUMN */}
           <aside className="sticky top-10 self-start">
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-md">
-              <h3 className="text-lg font-extrabold text-gray-900 mb-5">Posted By</h3>
+            <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-6 shadow-md">
+              <h3 className="text-lg font-extrabold text-[var(--color-text-primary)] mb-5">Posted By</h3>
 
               {/* User Info */}
               <div className="flex items-center gap-4 mb-6">
@@ -160,17 +160,17 @@ export default function ItemDetailPage() {
                   {item.user ? item.user.charAt(0) : "U"}
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-gray-900">
+                  <div className="text-lg font-bold text-[var(--color-text-primary)]">
                     {item.user || "Anonymous User"}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-[var(--color-text-secondary)]">
                     Posted {item.date}
                   </div>
                 </div>
               </div>
 
               {/* QR Button */}
-              <button className="w-full flex items-center justify-center gap-2.5 py-3.5 bg-white border border-gray-200 rounded-xl text-[15px] font-bold text-gray-900 hover:bg-gray-50 transition-colors">
+              <button className="w-full flex items-center justify-center gap-2.5 py-3.5 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-xl text-[15px] font-bold text-[var(--color-text-primary)] hover:bg-[var(--color-bg-raised)] transition-colors">
                 <QrCode size={20} />
                 View QR Code
               </button>
@@ -190,8 +190,8 @@ function Badge({ type, label, isStatus }) {
   return (
     <div className={`px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wide border
       ${isGreen
-        ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-        : "bg-blue-50 text-blue-600 border-blue-100"
+        ? "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800"
+        : "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
       }`}>
       {label}
     </div>
@@ -202,11 +202,11 @@ function Badge({ type, label, isStatus }) {
 function InfoBlock({ label, icon, value }) {
   return (
     <div>
-      <div className="text-[10px] font-bold text-gray-900 uppercase tracking-wider mb-2">
+      <div className="text-[10px] font-bold text-[var(--color-text-primary)] uppercase tracking-wider mb-2">
         {label}
       </div>
-      <div className="flex items-center gap-2.5 text-[15px] font-semibold text-gray-800">
-        <span className="text-gray-400">{icon}</span>
+      <div className="flex items-center gap-2.5 text-[15px] font-semibold text-[var(--color-text-primary)]">
+        <span className="text-[var(--color-text-muted)]">{icon}</span>
         {value || "N/A"}
       </div>
     </div>

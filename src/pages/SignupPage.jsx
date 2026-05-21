@@ -83,13 +83,13 @@ function SignupPage(){
     }
 
     return(
-        <div className = "min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-[var(--color-bg-base)]">
           <NavBar />
             <div className = "mx-auto flex min-h-[80vh] max-w-lg items-center justify-center px-4 pt-12 pb-10">
-                <div className = "grid w-full overflow-hidden rounded-3xl bg-white shadow-xl">
+                <div className="grid w-full overflow-hidden rounded-3xl bg-[var(--color-bg-surface)] dark:shadow-black/40 shadow-xl border border-[var(--color-border)]">
                         <div className = "p-8 md:p-10">
-                            <h2 className = "text-2xl font-semibold text-black"> Create An Account </h2>
-                            <p className = "mt-2 text-sm text-gray-500">
+                            <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]"> Create An Account </h2>
+                            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
                                 Join the university lost and found community
                             </p>
                             <form onSubmit={handleSignup} className = "mt-8 space-y-3">
@@ -143,7 +143,7 @@ function SignupPage(){
                             />
                             <AuthButton type = "submit">Create Account</AuthButton>
                             </form>
-                            <p className = "mt-6 text-center text-sm text-gray-600">
+                            <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">
                                 Already have an account?{" "}
                                 <span
                                     onClick={() => navigate("/login")}

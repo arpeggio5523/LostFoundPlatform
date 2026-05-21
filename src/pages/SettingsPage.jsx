@@ -1,48 +1,67 @@
-import { useState } from "react";
-import { Sun } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import NavBar from "../components/NavBar";
+import { useTheme } from "../context/ThemeContext";
 
 function SettingsPage() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-bg-base)]">
       <NavBar />
 
       <main className="mx-auto max-w-4xl px-6 py-10">
-        <h1 className="mb-6 text-2xl font-semibold text-gray-900">Settings</h1>
+        <h1 className="mb-2 text-2xl font-semibold text-[var(--color-text-primary)]">
+          Settings
+        </h1>
+        <p className="mb-8 text-sm text-[var(--color-text-secondary)]">
+          Customize your experience
+        </p>
 
-        <div className="rounded-2xl bg-white p-6 shadow">
-          {/* Appearance Section */}
+        <div className="rounded-2xl bg-[var(--color-bg-surface)] p-6 shadow border border-[var(--color-border)]">
+          {/* Appearance Section Header */}
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">Appearance</h2>
-            <p className="text-sm text-gray-500">Customize how the app looks and feels</p>
+            <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
+              Appearance
+            </h2>
+            <p className="text-sm text-[var(--color-text-secondary)]">
+              Customize how the app looks and feels
+            </p>
           </div>
 
-          {/* Toggle Row */}
-          <div className="flex items-center justify-between border-t border-gray-100 pt-6">
+          {/* Dark Mode Toggle Row */}
+          <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-6">
             <div className="flex items-start gap-3">
-              <Sun className="mt-1 h-5 w-5 text-amber-500 animate-pulse" />
+              {isDark
+                ? <Moon className="mt-0.5 h-5 w-5 text-[var(--color-brand)]" />
+                : <Sun  className="mt-0.5 h-5 w-5 text-amber-500" />
+              }
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Dark Mode</h3>
-                <p className="text-sm text-gray-500">Switch between light and dark theme</p>
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                  Dark Mode
+                </h3>
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  Switch between light and dark theme
+                </p>
               </div>
             </div>
 
             {/* Toggle Switch */}
             <button
               type="button"
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 ${
-                isDarkMode ? 'bg-teal-600' : 'bg-gray-300'
+              onClick={toggleTheme}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                isDark
+                  ? "bg-[var(--color-brand)] focus:ring-[var(--color-brand)]"
+                  : "bg-gray-300 focus:ring-teal-600"
               }`}
               role="switch"
-              aria-checked={isDarkMode}
+              aria-checked={isDark}
+              aria-label="Toggle dark mode"
             >
               <span
                 aria-hidden="true"
                 className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  isDarkMode ? 'translate-x-5' : 'translate-x-0'
+                  isDark ? "translate-x-5" : "translate-x-0"
                 }`}
               />
             </button>
@@ -54,4 +73,3 @@ function SettingsPage() {
 }
 
 export default SettingsPage;
-

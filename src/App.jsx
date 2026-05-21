@@ -5,6 +5,7 @@ import SignupPage from "./pages/SignupPage";
 import FoundItemsPage from "./pages/FoundItemsPage";
 import ReportFoundItemPage from "./pages/ReportFoundItemPage";
 import LostItemsPage from "./pages/LostItemsPage";
+import ReportLostItemPage from "./pages/Reporting/ReportLost";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/found-items" element={<FoundItemsPage />} />
         <Route path="/lost-items" element={<LostItemsPage />} />
         <Route path="/report-found" element={<ReportFoundItemPage />} />
+        <Route path="/report-lost" element={<ReportLostItemPage/>}/>
 
       </Routes>
   );

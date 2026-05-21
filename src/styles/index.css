@@ -2,11 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Light theme tokens (default) ─────────────────────────────────────── */
 :root {
   font-family: system-ui, sans-serif;
-  color: #111;
+
+  --color-bg-base:        #f9fafb;   /* page background          */
+  --color-bg-surface:     #ffffff;   /* cards, panels, navbars   */
+  --color-bg-raised:      #f3f4f6;   /* active nav items, inputs */
+  --color-bg-hover:       #f9fafb;   /* nav hover state          */
+  --color-border:         #e5e7eb;   /* all borders              */
+  --color-border-subtle:  #f0f0f0;   /* very light dividers      */
+
+  --color-text-primary:   #111827;   /* headings, labels         */
+  --color-text-secondary: #6b7280;   /* subtext, placeholders    */
+  --color-text-muted:     #9ca3af;   /* timestamps, meta         */
+
+  --color-brand:          #006058;   /* teal brand colour        */
+  --color-brand-text:     #ffffff;   /* text on brand bg         */
+  --color-brand-hover:    #00504a;   /* brand hover              */
+  --color-brand-active-bg:#f0fdf9;   /* active nav item bg       */
+}
+
+/* ─── Dark theme token overrides ───────────────────────────────────────── */
+.dark {
+  --color-bg-base:        #1a2520;
+  --color-bg-surface:     #243028;
+  --color-bg-raised:      #2d3c35;
+  --color-bg-hover:       #2d3c35;
+  --color-border:         #374640;
+  --color-border-subtle:  #374640;
+
+  --color-text-primary:   #e8f0ec;
+  --color-text-secondary: #94a3a0;
+  --color-text-muted:     #6b7a76;
+
+  --color-brand:          #4ade80;
+  --color-brand-text:     #111827;
+  --color-brand-hover:    #22c55e;
+  --color-brand-active-bg:#1e3d35;
+}
+
+/* ─── Base defaults ─────────────────────────────────────────────────────── */
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 body {
   margin: 0;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
 }

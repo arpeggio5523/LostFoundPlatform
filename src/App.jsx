@@ -6,6 +6,8 @@ import FoundItemsPage from "./pages/FoundItemsPage";
 import ReportFoundItemPage from "./pages/ReportFoundItemPage";
 import LostItemsPage from "./pages/LostItemsPage";
 import ItemDetailPage from "./pages/ItemDetailPage";
+import ProfilePage from "./pages/ProfilePage";
+import SettingsPage from "./pages/SettingsPage";
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/found-items" element={<FoundItemsPage />} />
         <Route path="/lost-items" element={<LostItemsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/settings" element={<SettingsPage />} />
         <Route path="/item/:id" element={<ItemDetailPage />} />
         <Route path="/report-found" element={<ReportFoundItemPage />} />
       </Routes>

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Search, TrendingUp, Shield } from "lucide-react";
+import { Users, Search, TrendingUp, Shield, FileText, MessageSquare } from "lucide-react";
 
 const stats = [
   { icon: <Users    size={42} />, value: "2,500+", label: "Active Users"    },
@@ -75,6 +75,65 @@ export default function LostFoundHero() {
         <p className="text-[28px] text-[var(--color-text-secondary)] mt-4">
           Simple steps to reunite with your belongings
         </p>
+      </div>
+
+
+      {/* Steps */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-16 mt-24 w-full max-w-7xl">
+
+        {/* Step 1 */}
+        <div className="text-center">
+          <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
+            <span className="text-[34px] font-bold text-[var(--color-brand)]">
+              1
+            </span>
+          </div>
+
+          <h3 className="text-[36px] font-bold text-[var(--color-text-primary)] mt-8">
+            Create a Post
+          </h3>
+
+          <p className="text-[24px] text-[var(--color-text-secondary)] leading-[42px] mt-6">
+            Report your lost item with detailed descriptions,
+            photos, and location information.
+          </p>
+        </div>
+
+        {/* Step 2 */}
+        <div className="text-center">
+          <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
+            <span className="text-[34px] font-bold text-[var(--color-brand)]">
+              2
+            </span>
+          </div>
+
+          <h3 className="text-[36px] font-bold text-[var(--color-text-primary)] mt-8">
+            Search & Match
+          </h3>
+
+          <p className="text-[24px] text-[var(--color-text-secondary)] leading-[42px] mt-6">
+            Browse through found items or wait for potential
+            matches from our community.
+          </p>
+        </div>
+
+        {/* Step 3 */}
+        <div className="text-center">
+          <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
+            <span className="text-[34px] font-bold text-[var(--color-brand)]">
+              3
+            </span>
+          </div>
+
+          <h3 className="text-[36px] font-bold text-[var(--color-text-primary)] mt-8">
+            Connect Securely
+          </h3>
+
+          <p className="text-[24px] text-[var(--color-text-secondary)] leading-[42px] mt-6">
+            Use our secure messaging to arrange pickup and
+            reunite with your items safely.
+          </p>
+        </div>
       </div>
     </div>
   );

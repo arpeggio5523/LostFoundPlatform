@@ -13,7 +13,7 @@ export default function LostFoundHero() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] flex flex-col items-center px-6 py-20 transition-colors duration-200">
+    <div className="min-h-screen bg-[var(--color-bg-background)] flex flex-col items-center px-6 py-20 transition-colors duration-200">
       <div className="max-w-4xl text-center">
         <h1 className="text-[72px] leading-[78px] font-extrabold text-[var(--color-text-primary)]">
           Lost Something?
@@ -31,17 +31,17 @@ export default function LostFoundHero() {
 
         <div className="flex items-center justify-center gap-6 mt-12">
           <button
-            onClick={() => navigate("/lost-items")}
+            onClick={() => navigate("/signup")}
             className="bg-[var(--color-brand)] text-[var(--color-brand-text)] text-xl font-semibold px-10 py-5 rounded-2xl hover:opacity-90 transition-opacity"
           >
-            Browse Lost Items
+            Get Started free
           </button>
 
           <button
-            onClick={() => navigate("/found-items")}
+            onClick={() => navigate("/login")}
             className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xl font-semibold px-10 py-5 rounded-2xl hover:bg-[var(--color-bg-raised)] transition-colors"
           >
-            Browse Found Items
+            Sign in
           </button>
         </div>
       </div>

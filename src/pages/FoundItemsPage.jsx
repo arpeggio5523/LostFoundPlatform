@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
@@ -16,16 +16,17 @@ const LOCATIONS = [
   "Taylor's University",
   "Sunway University",
 ];
-const STATUSES = ["All Status", "approved", "pending", "returned"];
+const STATUSES = ["All Status", "Approved", "Pending", "Returned"];
 
 export default function FoundItemsPage() {
-  const foundItems = MOCK_ITEMS.filter(item => item.type === "found");
-
   const navigate = useNavigate();
   const [search, setSearch]     = useState("");
   const [category, setCategory] = useState("All Categories");
   const [location, setLocation] = useState("All Locations");
   const [status, setStatus]     = useState("All Status");
+  const [foundItems, setFoundItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const filtered = foundItems.filter(item => {
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -44,6 +45,35 @@ export default function FoundItemsPage() {
     backgroundRepeat: "no-repeat", backgroundPosition: "calc(100% - 10px) center",
     minWidth: 150,
   };
+
+  useEffect(() => {
+    const fetchApprovedFoundItems = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/items/found-items");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch approved found items");
+        }
+
+        const data = await response.json();
+        setFoundItems(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApprovedFoundItems();
+  }, []);
+
+  if (loading) {
+    return <p>Loading approved found items...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -123,7 +153,7 @@ export default function FoundItemsPage() {
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 22 }}>
-            {filtered.map(item => <ItemCard key={item.id} item={item} />)}
+            {filtered.map(item => <ItemCard key={item._id} item={item} />)}
           </div>
         )}
       </main>

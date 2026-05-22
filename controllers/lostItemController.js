@@ -1,2 +1,0 @@
-// This file is used by Subteam1 to handle validationn logic for the LostItem model when creating or updating lost item records in the database. 
-// It ensures that all required fields are present and correctly formatted before allowing the operation to proceed.

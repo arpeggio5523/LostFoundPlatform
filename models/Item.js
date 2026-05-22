@@ -1,0 +1,149 @@
+import mongoose from "mongoose";
+
+const nonEmptyString = (value) => {
+  return typeof value === "string" && value.trim().length > 0;
+};
+
+const itemSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: [true, "Item title is required"],
+      trim: true,
+      minlength: [3, "Title must be at least 3 characters"],
+      maxlength: [100, "Title max length is 100 characters"],
+      validate: {
+        validator: nonEmptyString,
+        message: "Title cannot be empty",
+      },
+    },
+
+    description: {
+      type: String,
+      required: [true, "Description is required"],
+      trim: true,
+      minlength: [10, "Description must be at least 10 characters"],
+      maxlength: [500, "Description max length is 500 characters"],
+      validate: {
+        validator: nonEmptyString,
+        message: "Description cannot be empty",
+      },
+    },
+
+    distMark: {
+      type: String,
+      trim: true,
+      maxlength: [200, "Distinctive mark max length is 200 characters"],
+      default: "",
+    },
+
+    color: {
+      type: String,
+      trim: true,
+      maxlength: [50, "Color max length is 50 characters"],
+      default: "",
+    },
+
+    location: {
+      type: String,
+      required: [true, "Location is required"],
+      trim: true,
+      minlength: [3, "Location must be at least 3 characters"],
+      validate: {
+        validator: nonEmptyString,
+        message: "Location cannot be empty",
+      },
+    },
+
+    date: {
+      type: Date,
+      required: [true, "Date is required"],
+      validate: {
+        validator: function (value) {
+          return value <= new Date();
+        },
+        message: "Date cannot be in the future",
+      },
+    },
+
+    category: {
+      type: String,
+      required: [true, "Category is required"],
+      enum: {
+        values: [
+          "Electronics",
+          "Accessories",
+          "Bags & Backpacks",
+          "Documents",
+          "Keys",
+          "Clothing",
+          "Books",
+          "Sports Equipment",
+          "Jewelry",
+          "Other",
+        ],
+        message: "Invalid category selected",
+      },
+    },
+
+    status: {
+      type: String,
+      required: true,
+      enum: {
+        values: [
+          "Pending",
+          "Approved",
+          "Matched",
+          "Returned",
+        ],
+        message:
+          "Status must be one of [Pending, Approved, Matched, Returned]",
+      },
+      default: "Pending",
+    },
+
+    itemType: {
+      type: String,
+      required: [true, "Item type is required"],
+      enum: {
+        values: ["Lost", "Found"],
+        message: "Item type must be either Lost or Found",
+      },
+    },
+
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "User is required"],
+    },
+
+    images: {
+      type: [String],
+
+      validate: {
+        validator: function (arr) {
+          return arr.length <= 5;
+        },
+
+        message: "Maximum 5 images allowed",
+      },
+
+      default: [],
+    },
+
+    item_id: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+  },
+
+  {
+    timestamps: true,
+  }
+);
+
+const Item = mongoose.model("Item", itemSchema);
+
+export default Item;

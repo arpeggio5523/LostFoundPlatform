@@ -1,15 +1,57 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
+import { buildApiUrl } from "../config/api";
+
+const REMEMBERED_EMAIL_KEY = "rememberedEmail";
+const REMEMBERED_PASSWORD_KEY = "rememberedPassword";
+const ACCESS_TOKEN_STORAGE_KEY = "accessToken";
 
 function LoginPage(){
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [formData, setFormData] = useState({
             email: "",
-            password: ""
+            password: "",
+            rememberMe: false,
         });
+    const [feedbackMessage, setFeedbackMessage] = useState("");
+    const [resendMessage, setResendMessage] = useState("");
+    const [isResending, setIsResending] = useState(false);
+    const [popupMessage, setPopupMessage] = useState("");
+    const [showPopup, setShowPopup] = useState(false);
+
+    useEffect(() => {
+        const email = searchParams.get("email") || "";
+        const verificationPending = searchParams.get("verificationPending");
+        const rememberedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY) || "";
+        const rememberedPassword = localStorage.getItem(REMEMBERED_PASSWORD_KEY) || "";
+
+        if (email || rememberedEmail || rememberedPassword) {
+            setFormData((currentData) => ({
+                ...currentData,
+                email: email || rememberedEmail,
+                password: rememberedPassword,
+                rememberMe: !email && Boolean(rememberedEmail),
+            }));
+        }
+
+        if (verificationPending) {
+            setFeedbackMessage(
+                "Registration successful. Please check your email to verify your account before logging in."
+            );
+
+            // Remove the query parameter after showing the message once
+            searchParams.delete("verificationPending");
+
+            navigate(
+                `/login${email ? `?email=${encodeURIComponent(email)}` : ""}`,
+                { replace: true }
+            );
+        }
+    }, [searchParams]);
 
     // A helper to update the state object dynamically
     const handleChange = (e, field) => {
@@ -21,25 +63,69 @@ function LoginPage(){
             console.log("Attempting Login with:", formData);
 
             try {
-                const response = await fetch("http://localhost:3000/api/users/login", {
+                const response = await fetch(buildApiUrl("/api/auth/login"), {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    credentials: "include",
                     body: JSON.stringify(formData),
                 });
 
                 const result = await response.json();
 
                 if (response.ok) {
-                    localStorage.setItem("token", result.token);
-                    alert("Login successful!");
+                    if (result.accessToken) {
+                        if (formData.rememberMe) {
+                            localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, result.accessToken);
+                            localStorage.setItem(REMEMBERED_EMAIL_KEY, formData.email.trim());
+                            localStorage.setItem(REMEMBERED_PASSWORD_KEY, formData.password);
+                            sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+                        } else {
+                            sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, result.accessToken);
+                            localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+                            localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+                            localStorage.removeItem(REMEMBERED_PASSWORD_KEY);
+                        }
+                    }
+                    setFeedbackMessage("");
                     navigate("/found-items");
                     // console.log("Saved:", result);
                 } else {
-                    alert("Error: " + (result.error || "Invalid credentials"));
+                    const nextMessage = result.message || result.error || "Invalid credentials";
+                    setFeedbackMessage(nextMessage);
+                    setPopupMessage(result.message || "Login failed.");
+                    setShowPopup(true);
                 }
             } catch (err) {
                 console.error("Failed to connect to server:", err);
-                alert("Server connection failed");
+                setFeedbackMessage("Server connection failed");
+            }
+        };
+
+    const handleResendVerification = async () => {
+            if (!formData.email) {
+                setResendMessage("Enter your email first.");
+                return;
+            }
+
+            setIsResending(true);
+
+            try {
+                const response = await fetch(buildApiUrl("/api/auth/resend-verification"), {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: formData.email }),
+                });
+
+                const result = await response.json();
+                setResendMessage(
+                    result.message ||
+                    "If an account with that email exists and is not yet verified, a verification email will be sent."
+                );
+            } catch (err) {
+                console.error("Failed to resend verification email:", err);
+                setResendMessage("Could not connect to the server.");
+            } finally {
+                setIsResending(false);
             }
         };
 
@@ -47,6 +133,26 @@ function LoginPage(){
     return(
         <div className = "min-h-screen bg-gray-50">
             <NavBar />
+            {showPopup && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+                <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+                    <h3 className="text-lg font-semibold text-black">
+                        Login Failed
+                    </h3>
+
+                    <p className="mt-3 text-sm text-gray-600">
+                        {popupMessage}
+                    </p>
+
+                    <button
+                        onClick={() => setShowPopup(false)}
+                        className="mt-6 w-full rounded-lg bg-black px-4 py-3 font-semibold text-white transition hover:bg-gray-900"
+                    >
+                        OK
+                    </button>
+                </div>
+            </div>
+            )}
             <div className = "mx-auto flex min-h-[80vh] max-w-lg items-center justify-center">
                 <div className = "grid w-full overflow-hidden rounded-3xl bg-white shadow-xl">
                         <div className = "p-8 md:p-10">
@@ -54,6 +160,11 @@ function LoginPage(){
                             <p className = "mt-2 text-sm text-gray-500">
                                 Enter your credentials to access your account
                             </p>
+                            {feedbackMessage && (
+                                <div className = "mt-6 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4 text-sm text-gray-700">
+                                    {feedbackMessage}
+                                </div>
+                            )}
                             <form onSubmit={handleLogin} className = "mt-8 space-y-5">
                             <AuthInput
                                 label = "Email"
@@ -73,12 +184,37 @@ function LoginPage(){
                             />
                             <div className = "flex items-center text-sm">
                                 <label className = "flex items-center gap-2 text-black">
-                                    <input type="checkbox" className = "h6 w6 rounded accent-gray-950"/>
+                                    <input
+                                        type="checkbox"
+                                        className = "h6 w6 rounded accent-gray-950"
+                                        checked={formData.rememberMe}
+                                        onChange={(e) =>
+                                            setFormData((currentData) => ({
+                                                ...currentData,
+                                                rememberMe: e.target.checked,
+                                            }))
+                                        }
+                                    />
                                     Remember Me
                                 </label>
                             </div>
                             <AuthButton type = "submit">Sign In</AuthButton>
                             </form>
+                            {feedbackMessage === "Please verify your email before logging in." && (
+                                <div className = "mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+                                    <p>Need another verification email?</p>
+                                    <button
+                                        type = "button"
+                                        onClick = {handleResendVerification}
+                                        className = "mt-3 font-semibold text-amber-900 hover:text-amber-700"
+                                    >
+                                        {isResending ? "Sending..." : "Resend verification email"}
+                                    </button>
+                                    {resendMessage && (
+                                        <p className = "mt-3 text-amber-900">{resendMessage}</p>
+                                    )}
+                                </div>
+                            )}
                             <p className = "mt-6 text-center text-sm text-gray-600">
                                 Don't have an account?{" "}
                                 <Link

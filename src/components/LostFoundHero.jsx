@@ -135,6 +135,96 @@ export default function LostFoundHero() {
           </p>
         </div>
       </div>
+
+      {/* Key Features */}
+      <div className="w-full mt-40 bg-[var(--color-bg-background)] py-28 px-6 transition-colors duration-200">
+        
+        <div className="text-center">
+          <h2 className="text-[64px] font-extrabold text-[var(--color-text-primary)]">
+            Key Features
+          </h2>
+
+          <p className="text-[28px] text-[var(--color-text-secondary)] mt-4">
+            Everything you need to find your lost items
+          </p>
+        </div>
+
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-24 w-full max-w-7xl mx-auto">
+
+          {/* Card 1 */}
+          <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-[28px] p-10 flex items-start gap-6">
+            <div className="w-20 h-20 rounded-2xl bg-blue-100 flex items-center justify-center shrink-0">
+              <Search size={40} className="text-[var(--color-brand)]" />
+            </div>
+
+            <div>
+              <h3 className="text-[34px] font-bold text-[var(--color-text-primary)]">
+                Report Lost Items
+              </h3>
+
+              <p className="text-[24px] leading-[40px] text-[var(--color-text-secondary)] mt-4">
+                Easily create detailed posts about your lost items with
+                descriptions and images.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 2 */}
+          <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-[28px] p-10 flex items-start gap-6">
+            <div className="w-20 h-20 rounded-2xl bg-blue-100 flex items-center justify-center shrink-0">
+              <FileText size={40} className="text-[var(--color-brand)]" />
+            </div>
+
+            <div>
+              <h3 className="text-[34px] font-bold text-[var(--color-text-primary)]">
+                Post Found Items
+              </h3>
+
+              <p className="text-[24px] leading-[40px] text-[var(--color-text-secondary)] mt-4">
+                Help others by posting items you've found with
+                location and date information.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 3 */}
+          <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-[28px] p-10 flex items-start gap-6">
+            <div className="w-20 h-20 rounded-2xl bg-blue-100 flex items-center justify-center shrink-0">
+              <MessageSquare size={40} className="text-[var(--color-brand)]" />
+            </div>
+
+            <div>
+              <h3 className="text-[34px] font-bold text-[var(--color-text-primary)]">
+                Secure Messaging
+              </h3>
+
+              <p className="text-[24px] leading-[40px] text-[var(--color-text-secondary)] mt-4">
+                Communicate privately with other users while keeping your
+                contact details safe.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 4 */}
+          <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-[28px] p-10 flex items-start gap-6">
+            <div className="w-20 h-20 rounded-2xl bg-blue-100 flex items-center justify-center shrink-0">
+              <Shield size={40} className="text-[var(--color-brand)]" />
+            </div>
+
+            <div>
+              <h3 className="text-[34px] font-bold text-[var(--color-text-primary)]">
+                Admin Moderation
+              </h3>
+
+              <p className="text-[24px] leading-[40px] text-[var(--color-text-secondary)] mt-4">
+                All posts are reviewed by admins to ensure quality and
+                prevent spam.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

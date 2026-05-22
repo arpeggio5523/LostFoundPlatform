@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { MOCK_ITEMS } from "../data/itemsData";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft } from "lucide-react"; 
+import Navbar2 from "../components/NavBar2";
 
 export default function ItemDetailPage() {
   const { id } = useParams();
@@ -14,8 +15,10 @@ export default function ItemDetailPage() {
   const isLost = item.type === 'lost'; // Helper boolean
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
+    <div className="min-h-screen bg-gray-50 font-sans">
+      <Navbar2 />
+      <div className="flex">
+        <Sidebar />
 
       <main style={{ marginLeft: 220, flex: 1, padding: "30px" }}>
         {/* Dynamic Back Button */}
@@ -109,6 +112,7 @@ export default function ItemDetailPage() {
           </div>
         </div>
       </main>
+    </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
-import { MapPin, Calendar, Tag, Palette, ArrowLeft } from "lucide-react"; 
+import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode } from "lucide-react"; 
 import Navbar2 from "../components/NavBar2";
 
 export default function ItemDetailPage() {
@@ -187,7 +187,7 @@ export default function ItemDetailPage() {
         {/* --- TWO COLUMN LAYOUT END --- */}
 
       </main>
-    </div>
+      </div>
     </div>
   );
 }

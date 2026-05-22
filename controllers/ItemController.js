@@ -30,3 +30,149 @@ export const updateItemStatus = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+const ALLOWED_CATEGORIES = [
+  "Electronics", "Accessories", "Bag & Backpacks", "Documents",
+  "Keys", "Clothing", "Books", "Sports Equipment", "Jewelry", "Other",
+];
+ 
+const ALLOWED_STATUSES = ["Pending", "Approved", "Matched", "Returned"];
+const ALLOWED_TYPES    = ["Lost", "Found"];
+ 
+ 
+const buildItemPayload = (body, userId) => ({
+  title:       body.title,
+  description: body.description,
+  category:    body.category,
+  type:        body.type,
+  location:    body.location,
+  date:        body.date,
+  color:       body.color       || undefined,
+  distMark:    body.distMark    || undefined,
+  images:      body.images      || [],
+  status:      "Pending",               // always starts as Pending
+  reportedBy:  userId,                  // from auth middleware
+  user:        body.user,               // display name passed from client
+});
+ 
+/**
+ * POST /api/items
+ * Create a new Lost or Found item report.
+ */
+export const createItem = async (req, res) => {
+  try {
+    const { title, description, category, type, location, date, images, user } = req.body;
+ 
+    // Required field check
+    const missing = [];
+    if (!title)       missing.push("title");
+    if (!description) missing.push("description");
+    if (!category)    missing.push("category");
+    if (!type)        missing.push("type");
+    if (!location)    missing.push("location");
+    if (!date)        missing.push("date");
+    if (!user)        missing.push("user");
+ 
+    if (missing.length > 0) {
+      return res.status(400).json({ error: `Missing required fields: ${missing.join(", ")}` });
+    }
+ 
+    if (!ALLOWED_TYPES.includes(type)) {
+      return res.status(400).json({ error: `Invalid type. Must be one of: ${ALLOWED_TYPES.join(", ")}` });
+    }
+ 
+    if (!ALLOWED_CATEGORIES.includes(category)) {
+      return res.status(400).json({ error: `Invalid category. Must be one of: ${ALLOWED_CATEGORIES.join(", ")}` });
+    }
+ 
+    if (isNaN(new Date(date).getTime())) {
+      return res.status(400).json({ error: "Invalid date format." });
+    }
+ 
+    if (images && images.length > 5) {
+      return res.status(400).json({ error: "Maximum of 5 images are allowed." });
+    }
+ 
+    const newItem = new Item(buildItemPayload(req.body, req.user._id));
+    const savedItem = await newItem.save();
+ 
+    return res.status(201).json({
+      message: `${type} item report submitted successfully.`,
+      data: savedItem,
+    });
+ 
+  } catch (err) {
+    if (err.name === "ValidationError") {
+      const messages = Object.values(err.errors).map((e) => e.message);
+      return res.status(400).json({ error: messages.join("; ") });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+ 
+/**
+ * GET /api/items
+ * Get all items. 
+ */
+export const getItems = async (req, res) => {
+  try {
+    const filter = {};
+ 
+    if (req.query.type) {
+      if (!ALLOWED_TYPES.includes(req.query.type)) {
+        return res.status(400).json({ error: `Invalid type filter. Must be Lost or Found.` });
+      }
+      filter.type = req.query.type;
+    }
+ 
+    if (req.query.status)   filter.status   = req.query.status;
+    if (req.query.category) filter.category = req.query.category;
+    if (req.query.location) filter.location = new RegExp(req.query.location, "i"); // partial match
+ 
+    const items = await Item.find(filter)
+      .populate("reportedBy", "name email")
+      .sort({ createdAt: -1 });
+ 
+    return res.status(200).json({ count: items.length, data: items });
+ 
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+ 
+/**
+ * GET /api/items/:itemId
+ * Get a single item by its MongoDB _id.
+ */
+export const getItemById = async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.itemId).populate("reportedBy", "name email");
+ 
+    if (!item) {
+      return res.status(404).json({ error: "Item not found." });
+    }
+ 
+    return res.status(200).json({ data: item });
+ 
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+ 
+/**
+ * GET /api/items/my
+ * Get all items reported by the currently logged-in user.
+ */
+export const getMyItems = async (req, res) => {
+  try {
+    const filter = { reportedBy: req.user._id };
+    if (req.query.type) filter.type = req.query.type;
+ 
+    const items = await Item.find(filter).sort({ createdAt: -1 });
+ 
+    return res.status(200).json({ count: items.length, data: items });
+ 
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};

@@ -8,6 +8,7 @@ import LostItemsPage from "./pages/LostItemsPage";
 import ItemDetailPage from "./pages/ItemDetailPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
+import ReportLostItemPage from "./pages/Reporting/ReportLost";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/profile/settings" element={<SettingsPage />} />
         <Route path="/item/:id" element={<ItemDetailPage />} />
         <Route path="/report-found" element={<ReportFoundItemPage />} />
+        <Route path="/report-lost" element={<ReportLostItemPage />} />
       </Routes>
   );
 }

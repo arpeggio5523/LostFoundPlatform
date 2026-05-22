@@ -96,6 +96,19 @@ const itemSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+
+    reportedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        // To match the name in the schema "User"
+        ref: 'User',
+        required: true
+    },
+
+    type: {
+      type: String,
+      required: true,
+      enum: ["Lost", "Found"],
+    }
   },
 
   {

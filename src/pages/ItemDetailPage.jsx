@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
+import { MapPin, Calendar, Tag, Palette, ArrowLeft } from "lucide-react"; 
+import Navbar2 from "../components/NavBar2";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode } from "lucide-react"; 
 
 export default function ItemDetailPage() {
@@ -50,8 +52,10 @@ export default function ItemDetailPage() {
   const isLost = item.itemType === 'Lost'; 
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
+    <div className="min-h-screen bg-gray-50 font-sans">
+      <Navbar2 />
+      <div className="flex">
+        <Sidebar />
 
       {/* Main Content Container */}
       <main style={{ marginLeft: 280, flex: 1, padding: "40px" }}>
@@ -184,6 +188,7 @@ export default function ItemDetailPage() {
         {/* --- TWO COLUMN LAYOUT END --- */}
 
       </main>
+    </div>
     </div>
   );
 }

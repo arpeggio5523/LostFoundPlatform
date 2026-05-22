@@ -7,6 +7,7 @@
   font-family: system-ui, sans-serif;
 
   --color-bg-base:        #f9fafb;   /* page background          */
+  --color-bg-background:  #efffff;   /* home page background     */
   --color-bg-surface:     #ffffff;   /* cards, panels, navbars   */
   --color-bg-raised:      #f3f4f6;   /* active nav items, inputs */
   --color-bg-hover:       #f9fafb;   /* nav hover state          */

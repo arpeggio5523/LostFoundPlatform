@@ -6,7 +6,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import User from "./models/User.js";
-import foundItemsRouter from "./routes/foundItems.js";
+import itemsRouter from "./routes/ItemRoutes.js";
 import authRoutes from "./routes/authRoutes.js"; 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -35,7 +35,7 @@ app.use(cors({
 }));
 
 app.use(express.static(distPath));
-app.use("/api/found-items", foundItemsRouter);
+app.use("/api/items", itemsRouter);
 app.use("/api/auth", authRoutes);
 
 app.get("*", (req, res) => {

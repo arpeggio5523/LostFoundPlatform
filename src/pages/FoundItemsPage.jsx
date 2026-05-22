@@ -44,19 +44,23 @@ export default function FoundItemsPage() {
     const fetchItems = async () => {
       try {
         setLoading(true);
-        const response = await fetch(buildApiUrl("/api/found-items"));
+        const response = await fetch(buildApiUrl("/api/items?type=Found"));
         if (!response.ok) throw new Error("Failed to fetch items");
         const data = await response.json();
 
-        const transformedItems = (data.foundItems || []).map(item => ({
+        const transformedItems = (data.data || []).map(item => ({
           id: item._id,
+          _id: item._id,
           title: item.title,
           description: item.description,
           location: item.location,
-          date: new Date(item.dateFound).toLocaleDateString(),
+          date: new Date(item.date).toLocaleDateString(),
           category: item.category,
           status: item.status,
-          image: item.images && item.images.length > 0 ? item.images[0].url : null,
+          image: item.images && item.images.length > 0 ? item.images[0] : null,
+          user: item.user || "Anonymous",
+          reportedBy: item.reportedBy,
+          type: item.type,
         }));
 
         setItems(transformedItems);

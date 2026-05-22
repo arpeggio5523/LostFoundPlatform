@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
 import { Funnel } from "lucide-react";
-import { MOCK_ITEMS } from "../data/itemsData";
+import { buildApiUrl } from "../services/apiClient";
 
 const CATEGORIES = [
   "All Categories",
@@ -25,27 +25,52 @@ export default function LostItemsPage() {
   const navigate = useNavigate();
   const [search, setSearch]     = useState("");
   const [category, setCategory] = useState("All Categories");
-  const [location, setLocation] = useState("All Locations");
+  const [location, setLocation] = useState("");
   const [status, setStatus]     = useState("All Status");
-  const [loading]               = useState(false);
-  const [error]                 = useState(null);
-  const [items, setItems]       = useState(MOCK_ITEMS);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState(null);
+  const [items, setItems]       = useState([]);
 
-  const lostItems = items.filter(item => item.type === "lost");
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(buildApiUrl("/api/items?type=Lost"));
+        if (!response.ok) throw new Error("Failed to fetch lost items");
+        const data = await response.json();
 
-  const updateStatus = (id, newStatus) => {
-    setItems(prevItems =>
-      prevItems.map(item =>
-        item._id === id ? { ...item, status: newStatus } : item
-      )
-    );
-  };
+        const transformed = (data.data || []).map(item => ({
+          _id:         item._id,
+          title:       item.title,
+          description: item.description,
+          location:    item.location,
+          date:        new Date(item.date).toLocaleDateString(),
+          category:    item.category,
+          status:      item.status,
+          image:       item.images && item.images.length > 0 ? item.images[0] : null,
+          user:        item.user || "Anonymous",
+          reportedBy:  item.reportedBy,
+          type:        item.type,
+        }));
 
-  const filtered = lostItems.filter(item => {
+        setItems(transformed);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, []);
+
+  const filtered = items.filter(item => {
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
                         item.description.toLowerCase().includes(search.toLowerCase());
     const matchCat    = category === "All Categories" || item.category === category;
-    const matchLoc    = location === "All Locations"  || item.location.toLowerCase().includes(location.toLowerCase());
+    const matchLoc    = !location || item.location.toLowerCase().includes(location.toLowerCase());
     const matchStatus = status   === "All Status"     || item.status === status;
     return matchSearch && matchCat && matchLoc && matchStatus;
   });
@@ -117,6 +142,13 @@ export default function LostItemsPage() {
               {CATEGORIES.map(c => <option key={c}>{c}</option>)}
             </select>
 
+            {/* Location search */}
+            <input
+              type="text" placeholder="Filter by location..." value={location}
+              onChange={e => setLocation(e.target.value)}
+              style={{ ...inputStyle, padding: "9px 14px", minWidth: 160 }}
+            />
+
             {/* Status */}
             <select value={status} onChange={e => setStatus(e.target.value)}
               style={{ ...inputStyle, padding: "9px 36px 9px 14px", appearance: "none", cursor: "pointer", minWidth: 150 }}>
@@ -125,7 +157,7 @@ export default function LostItemsPage() {
           </div>
 
           <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--color-text-muted)" }}>
-            <Funnel size={14} /> {filtered.length} items found
+            <Funnel size={14} /> {filtered.length} item{filtered.length !== 1 ? "s" : ""} found
           </div>
         </div>
 
@@ -137,35 +169,19 @@ export default function LostItemsPage() {
 
         {loading ? (
           <div style={{ textAlign: "center", padding: "64px 0", color: "var(--color-text-muted)" }}>
-            Loading items...
+            <p style={{ margin: 0, fontSize: 14 }}>Loading items...</p>
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "64px 0", color: "var(--color-text-muted)" }}>
-            No items match your filters.
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 12px", display: "block" }}>
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <p style={{ margin: 0, fontSize: 14 }}>No items match your filters.</p>
           </div>
         ) : (
           <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
             {filtered.map(item => (
-              <div key={item._id} style={{ display: "flex", flexDirection: "column" }}>
-                <ItemCard item={item} dateLabel="Lost On" />
-
-                <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-                  {[
-                    { label: "Pending",  active: "bg-gray-200 text-gray-800",    inactive: "bg-gray-100 text-gray-700" },
-                    { label: "Approved", active: "bg-blue-200 text-blue-800",    inactive: "bg-blue-100 text-blue-700" },
-                    { label: "Matched",  active: "bg-yellow-200 text-yellow-800",inactive: "bg-yellow-100 text-yellow-700" },
-                    { label: "Returned", active: "bg-green-200 text-green-800",  inactive: "bg-green-100 text-green-700" },
-                  ].map(({ label, active, inactive }) => (
-                    <button
-                      key={label}
-                      onClick={() => updateStatus(item._id, label)}
-                      className={`flex-1 py-2 rounded-lg text-sm transition-colors ${item.status === label ? active : inactive}`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <ItemCard key={item._id} item={item} dateLabel="Lost On" />
             ))}
           </div>
         )}

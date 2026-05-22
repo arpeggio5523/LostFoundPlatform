@@ -61,29 +61,26 @@ export default function ReportFoundItemPage() {
  // Pre-fill form if editing
   useEffect(() => {
     if (!editId) return;
-    fetch(buildApiUrl(`/api/found-items/${editId}`))
+    fetch(buildApiUrl(`/api/items/${editId}`))
       .then(res => res.json())
       .then(data => {
-        const item = data.foundItem;
+        const item = data.data;
         setForm({
           title: item.title || "",
           description: item.description || "",
           category: item.category || "",
           color: item.color || "",
-          marks: item.marks || "",
+          marks: item.distMark || "",
           location: item.location || "",
-          date: item.dateFound ? item.dateFound.split("T")[0] : "",
+          date: item.date ? item.date.split("T")[0] : "",
         });
-        // Load existing images as previews
+        // Load existing images as previews (Item model images are plain strings)
         if (item.images?.length > 0) {
           setImages(item.images.map(img => ({
-            preview: img.url,
-            name: img.filename || "image",
-            existing: true, // flag to know it's from DB
-            url: img.url,
-            filename: img.filename,
-            mimetype: img.mimetype,
-            size: img.size,
+            preview: img,
+            name: "image",
+            existing: true,
+            url: img,
           })));
         }
       })
@@ -158,10 +155,13 @@ export default function ReportFoundItemPage() {
       );
 
       const url = editId
-        ? buildApiUrl(`/api/found-items/${editId}`)
-        : buildApiUrl("/api/found-items");
+        ? buildApiUrl(`/api/items/${editId}`)
+        : buildApiUrl("/api/items");
 
       const method = editId ? "PUT" : "POST";
+
+      // Resolve images: existing images are plain URL strings in the unified model
+      const imageUrls = imageData.map(img => img.url);
 
       const response = await fetch(url, {
         method,
@@ -171,10 +171,12 @@ export default function ReportFoundItemPage() {
           description: form.description,
           category: form.category,
           color: form.color,
-          marks: form.marks,
+          distMark: form.marks,
           location: form.location,
-          dateFound: form.date,
-          images: imageData,
+          date: form.date,
+          images: imageUrls,
+          type: "Found",
+          user: "Anonymous",  // will be overridden from auth in future
         }),
       });
 

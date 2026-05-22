@@ -93,7 +93,7 @@ export const createItem = async (req, res) => {
       return res.status(400).json({ error: "Maximum of 5 images are allowed." });
     }
  
-    const newItem = new Item(buildItemPayload(req.body, req.user._id));
+    const newItem = new Item(buildItemPayload(req.body, req.user.id));
     const savedItem = await newItem.save();
  
     return res.status(201).json({
@@ -165,13 +165,78 @@ export const getItemById = async (req, res) => {
  */
 export const getMyItems = async (req, res) => {
   try {
-    const filter = { reportedBy: req.user._id };
+    const filter = { reportedBy: req.user.id };
     if (req.query.type) filter.type = req.query.type;
  
     const items = await Item.find(filter).sort({ createdAt: -1 });
  
     return res.status(200).json({ count: items.length, data: items });
  
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * PUT /api/items/:itemId
+ * Update an existing item (owner only).
+ */
+export const updateItem = async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.itemId);
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found." });
+    }
+
+    if (String(item.reportedBy) !== String(req.user.id)) {
+      return res.status(403).json({ error: "You do not have permission to update this item." });
+    }
+
+    const { title, description, category, type, location, date, color, distMark, images, user } = req.body;
+
+    if (title)       item.title       = title;
+    if (description) item.description = description;
+    if (category)    item.category    = category;
+    if (type)        item.type        = type;
+    if (location)    item.location    = location;
+    if (date)        item.date        = date;
+    if (color  !== undefined) item.color    = color;
+    if (distMark !== undefined) item.distMark = distMark;
+    if (images !== undefined) item.images   = images;
+    if (user)        item.user        = user;
+
+    const updated = await item.save();
+    return res.status(200).json({ message: "Item updated.", data: updated });
+
+  } catch (err) {
+    if (err.name === "ValidationError") {
+      const messages = Object.values(err.errors).map(e => e.message);
+      return res.status(400).json({ error: messages.join("; ") });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * DELETE /api/items/:itemId
+ * Delete an item (owner only).
+ */
+export const deleteItem = async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.itemId);
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found." });
+    }
+
+    if (String(item.reportedBy) !== String(req.user.id)) {
+      return res.status(403).json({ error: "You do not have permission to delete this item." });
+    }
+
+    await item.deleteOne();
+    return res.status(200).json({ message: "Item deleted successfully." });
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

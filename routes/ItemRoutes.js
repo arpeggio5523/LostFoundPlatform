@@ -1,90 +1,36 @@
 import express from "express";
-import Item from "../models/Item.js";
-import { updateItemStatus } from "../controllers/itemController.js";
+import {
+  createItem,
+  getItems,
+  getItemById,
+  getMyItems,
+  updateItemStatus,
+  updateItem,
+  deleteItem,
+} from "../controllers/ItemController.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
-  try {
-    const items = await Item.find();
-    res.json(items);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-router.post("/", async (req, res) => {
-  try {
-    const newItem = new Item({
-      title: req.body.title,
-      description: req.body.description,
-      distMark: req.body.distMark,
-      color: req.body.color,
-      location: req.body.location,
-      date: req.body.date,
-      category: req.body.category,
-      status: req.body.status, // optional (defaults to Pending)
-      user: req.body.user,
-      images: req.body.images,
-    });
+// GET /api/items          — list all items (optionally filtered by ?type=Lost|Found)
+router.get("/", getItems);
 
-    const savedItem = await newItem.save();
-    res.status(201).json(savedItem);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+// GET /api/items/my       — items reported by the logged-in user (must be before /:itemId)
+router.get("/my", requireAuth, getMyItems);
 
-// SEED DATABASE
-router.post("/seed", async (req, res) => {
-  try {
-    const sampleItems = [
-      {
-        title: "Black Wallet",
-        description: "Leather wallet with student ID card inside",
-        distMark: "Small scratch on the back",
-        color: "Black",
-        location: "Library",
-        date: new Date(),
-        category: "Accessories",
-        status: "Pending",
-        user: "System",
-        images: [],
-      },
+// GET /api/items/:itemId  — single item detail
+router.get("/:itemId", getItemById);
 
-      {
-        title: "Blue Backpack",
-        description: "Nike backpack containing books and charger",
-        distMark: "Torn left strap",
-        color: "Blue",
-        location: "Cafeteria",
-        date: new Date(),
-        category: "Bag & Backpacks",
-        status: "Pending",
-        user: "System",
-        images: [],
-      },
+// POST /api/items         — create a new Lost or Found item report
+router.post("/", requireAuth, createItem);
 
-      {
-        title: "MacBook Pro",
-        description: "Silver MacBook with stickers on cover",
-        distMark: "Apple logo sticker",
-        color: "Silver",
-        location: "Computer Lab",
-        date: new Date(),
-        category: "Electronics",
-        status: "Pending",
-        user: "System",
-        images: [],
-      },
-    ];
+// DELETE /api/items/:itemId     — delete item (owner only)
+router.delete("/:itemId", requireAuth, deleteItem);
 
-    const inserted = await Item.insertMany(sampleItems);
-    res.json(inserted);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// PUT /api/items/:itemId        — update full item (owner only)
+router.put("/:itemId", requireAuth, updateItem);
 
-router.put("/:itemId/status", updateItemStatus);
+// PUT /api/items/:itemId/status — update item status only
+router.put("/:itemId/status", requireAuth, updateItemStatus);
 
 export default router;

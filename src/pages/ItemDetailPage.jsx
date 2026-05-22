@@ -1,11 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { MOCK_ITEMS } from "../data/itemsData";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode } from "lucide-react";
 import { useEffect, useState } from "react";
-import { isOwner } from "../services/authState";
-import { buildApiUrl } from "../services/apiClient";
-import { authHeaders } from "../services/apiClient";
+import { getCurrentUserId } from "../services/authState";
+import { buildApiUrl, authHeaders } from "../services/apiClient";
 
 
 export default function ItemDetailPage() {
@@ -18,10 +16,10 @@ export default function ItemDetailPage() {
   useEffect(() => {
     const fetchItem = async () => {
       try {
-        const response = await fetch(buildApiUrl(`/api/found-items/${id}`));
+        const response = await fetch(buildApiUrl(`/api/items/${id}`));
         if (!response.ok) throw new Error("Item not found");
         const data = await response.json();
-        setItem(data.foundItem);
+        setItem(data.data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -39,7 +37,7 @@ export default function ItemDetailPage() {
     }
 
     try {
-      const response = await fetch(buildApiUrl(`/api/found-items/${item._id}`), {
+      const response = await fetch(buildApiUrl(`/api/items/${item._id}`), {
         method: "DELETE",
         headers: authHeaders(),
       });
@@ -50,7 +48,7 @@ export default function ItemDetailPage() {
       }
 
       alert("Item deleted successfully.");
-      navigate("/found-items");
+      navigate(item.type === "Lost" ? "/lost-items" : "/found-items");
     } catch (err) {
       alert(err.message || "Failed to delete item.");
     }
@@ -59,7 +57,7 @@ export default function ItemDetailPage() {
   if (loading) return <div className="p-10 text-[var(--color-text-muted)]">Loading...</div>;
   if (error || !item) return <div className="p-10 text-red-400">Item not found.</div>;
 
-  const isLost = item.type === "lost";
+  const isLost = item.type === "Lost";
 
   return (
     <div className="flex min-h-screen bg-[var(--color-bg-base)]">
@@ -84,12 +82,20 @@ export default function ItemDetailPage() {
             <div className="bg-[var(--color-bg-surface)] rounded-3xl shadow-sm border border-[var(--color-border)] overflow-hidden">
 
               {/* Image */}
-              <div className="w-full h-[400px]">
-                <img
-                src={item.images?.[0]?.url || "https://via.placeholder.com/800x400"}
-                alt={item.title}
-                className="w-full h-full object-cover"
-                />
+              <div className="w-full h-[400px] bg-[var(--color-bg-raised)] flex items-center justify-center">
+                {item.images?.[0] ? (
+                  <img
+                    src={item.images[0]}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.2 }}>
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                )}
               </div>
 
               <div className="p-10">
@@ -119,12 +125,12 @@ export default function ItemDetailPage() {
                   <InfoBlock label="Category" icon={<Tag size={16} />} value={item.category} />
                   <InfoBlock label="Colour"   icon={<Palette size={16} />} value={item.color} />
                   <InfoBlock label="Location" icon={<MapPin size={16} />} value={item.location} />
-                  <InfoBlock label="Date" icon={<Calendar size={16} />} value={item.dateFound ? new Date(item.dateFound).toLocaleDateString() : "N/A"} />
+                  <InfoBlock label="Date" icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString() : "N/A"} />
                 </div>
 
 
                 {/* Actions */}
-                {isOwner(item) && (
+                {String(item.reportedBy?._id || item.reportedBy) === String(getCurrentUserId()) && (
                   <div className="mt-6 border border-[var(--color-border)] rounded-2xl p-6">
                     <h3 className="text-base font-bold text-[var(--color-text-primary)] mb-4">Actions</h3>
                     <div className="flex gap-3">

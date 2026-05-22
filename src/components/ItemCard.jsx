@@ -3,7 +3,7 @@ import QRIcon from "./QRIcon";
 import NoImagePlaceholder from "./NoImagePlaceHolder";
 import {Calendar, MapPinIcon} from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { isOwner } from "../services/authState";
+import { getCurrentUserId } from "../services/authState";
 
 export default function ItemCard({ item, dateLabel }) {
   const navigate = useNavigate();
@@ -12,7 +12,9 @@ export default function ItemCard({ item, dateLabel }) {
     navigate(`/item/${item._id || item.id}`);
   }
 
-  const showActions = isOwner(item);
+  const currentUserId = getCurrentUserId();
+  const showActions = item && currentUserId &&
+    String(item.reportedBy?._id || item.reportedBy) === String(currentUserId);
 
   const handleEdit = (e) => {
     e.stopPropagation();

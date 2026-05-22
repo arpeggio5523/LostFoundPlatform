@@ -18,6 +18,10 @@ const sessionSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    isPersistent: {
+      type: Boolean,
+      default: false,
+    },
     revokedAt: {
       type: Date,
       default: null,

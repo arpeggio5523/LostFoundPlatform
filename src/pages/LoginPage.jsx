@@ -5,12 +5,17 @@ import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
 import { buildApiUrl } from "../config/api";
 
+const REMEMBERED_EMAIL_KEY = "rememberedEmail";
+const REMEMBERED_PASSWORD_KEY = "rememberedPassword";
+const ACCESS_TOKEN_STORAGE_KEY = "accessToken";
+
 function LoginPage(){
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [formData, setFormData] = useState({
             email: "",
-            password: ""
+            password: "",
+            rememberMe: false,
         });
     const [feedbackMessage, setFeedbackMessage] = useState("");
     const [resendMessage, setResendMessage] = useState("");
@@ -21,11 +26,15 @@ function LoginPage(){
     useEffect(() => {
         const email = searchParams.get("email") || "";
         const verificationPending = searchParams.get("verificationPending");
+        const rememberedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY) || "";
+        const rememberedPassword = localStorage.getItem(REMEMBERED_PASSWORD_KEY) || "";
 
-        if (email) {
+        if (email || rememberedEmail || rememberedPassword) {
             setFormData((currentData) => ({
                 ...currentData,
-                email,
+                email: email || rememberedEmail,
+                password: rememberedPassword,
+                rememberMe: !email && Boolean(rememberedEmail),
             }));
         }
 
@@ -57,14 +66,25 @@ function LoginPage(){
                 const response = await fetch(buildApiUrl("/api/auth/login"), {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    credentials: "include",
                     body: JSON.stringify(formData),
                 });
 
                 const result = await response.json();
 
                 if (response.ok) {
-                    if (result.token) {
-                        localStorage.setItem("token", result.token);
+                    if (result.accessToken) {
+                        if (formData.rememberMe) {
+                            localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, result.accessToken);
+                            localStorage.setItem(REMEMBERED_EMAIL_KEY, formData.email.trim());
+                            localStorage.setItem(REMEMBERED_PASSWORD_KEY, formData.password);
+                            sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+                        } else {
+                            sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, result.accessToken);
+                            localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+                            localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+                            localStorage.removeItem(REMEMBERED_PASSWORD_KEY);
+                        }
                     }
                     setFeedbackMessage("");
                     navigate("/found-items");
@@ -164,7 +184,17 @@ function LoginPage(){
                             />
                             <div className = "flex items-center text-sm">
                                 <label className = "flex items-center gap-2 text-black">
-                                    <input type="checkbox" className = "h6 w6 rounded accent-gray-950"/>
+                                    <input
+                                        type="checkbox"
+                                        className = "h6 w6 rounded accent-gray-950"
+                                        checked={formData.rememberMe}
+                                        onChange={(e) =>
+                                            setFormData((currentData) => ({
+                                                ...currentData,
+                                                rememberMe: e.target.checked,
+                                            }))
+                                        }
+                                    />
                                     Remember Me
                                 </label>
                             </div>

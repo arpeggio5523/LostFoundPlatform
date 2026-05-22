@@ -63,15 +63,18 @@ const setVerificationTokenFields = (user) => {
   return rawToken;
 };
 
-const issueSessionTokens = async (req, res, user) => {
+const issueSessionTokens = async (req, res, user, { rememberMe = false } = {}) => {
   const metadata = getClientMetadata(req);
   const { session, refreshToken } = await createRefreshSession({
     user,
     userAgent: metadata.userAgent,
     ipAddress: metadata.ipAddress,
+    isPersistent: rememberMe,
   });
 
-  attachRefreshTokenCookie(res, refreshToken);
+  attachRefreshTokenCookie(res, refreshToken, {
+    isPersistent: rememberMe,
+  });
 
   return buildAuthResponse({
     user,
@@ -138,7 +141,7 @@ export const signup = async (req, res) => {
 // Authenticate existing user credentials and log in
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe = false } = req.body;
     const normalizedEmail = normalizeEmail(email);
 
     const user = await User.findOne({ email: normalizedEmail });
@@ -170,7 +173,9 @@ export const login = async (req, res) => {
       });
     }
 
-    const authResponse = await issueSessionTokens(req, res, user);
+    const authResponse = await issueSessionTokens(req, res, user, {
+      rememberMe: Boolean(rememberMe),
+    });
 
     res.status(200).json({
       message: "Login successful",
@@ -315,7 +320,9 @@ export const refresh = async (req, res) => {
     const metadata = getClientMetadata(req);
     const rotated = await rotateRefreshSession(session, metadata);
 
-    attachRefreshTokenCookie(res, rotated.refreshToken);
+    attachRefreshTokenCookie(res, rotated.refreshToken, {
+      isPersistent: rotated.session.isPersistent,
+    });
 
     return res.status(200).json({
       accessToken: buildAuthResponse({

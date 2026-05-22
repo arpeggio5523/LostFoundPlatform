@@ -142,12 +142,18 @@ export const getClientMetadata = (req) => {
   };
 };
 
-export const createRefreshSession = async ({ user, userAgent, ipAddress }) => {
+export const createRefreshSession = async ({
+  user,
+  userAgent,
+  ipAddress,
+  isPersistent = false,
+}) => {
   const expiresAt = getRefreshExpiryDate();
   const session = new Session({
     userId: user._id,
     refreshTokenHash: "pending",
     expiresAt,
+    isPersistent,
     userAgent,
     ipAddress,
   });
@@ -168,6 +174,7 @@ export const rotateRefreshSession = async (session, metadata) => {
     user: { _id: session.userId },
     userAgent: metadata.userAgent,
     ipAddress: metadata.ipAddress,
+    isPersistent: session.isPersistent,
   });
 
   session.revokedAt = new Date();
@@ -275,12 +282,20 @@ const buildRefreshCookieOptions = () => {
   return options;
 };
 
-export const attachRefreshTokenCookie = (res, refreshToken) => {
-  const expiresAt = getRefreshExpiryDate();
-  res.cookie(getCookieName(), refreshToken, {
+export const attachRefreshTokenCookie = (
+  res,
+  refreshToken,
+  { isPersistent = false } = {}
+) => {
+  const cookieOptions = {
     ...buildRefreshCookieOptions(),
-    expires: expiresAt,
-  });
+  };
+
+  if (isPersistent) {
+    cookieOptions.expires = getRefreshExpiryDate();
+  }
+
+  res.cookie(getCookieName(), refreshToken, cookieOptions);
 };
 
 export const clearRefreshTokenCookie = (res) => {

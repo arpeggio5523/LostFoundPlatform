@@ -225,6 +225,94 @@ export default function LostFoundHero() {
           </div>
         </div>
       </div>
+
+    {/* Testimonials */}
+    <div className="w-full py-32 px-6 bg-[var(--color-bg-background)] transition-colors duration-200">
+
+      {/* Heading */}
+      <div className="text-center">
+        <h2 className="text-[64px] font-extrabold text-[var(--color-text-primary)]">
+          What Users Say
+        </h2>
+
+        <p className="text-[28px] text-[var(--color-text-secondary)] mt-4">
+          Real stories from our community
+        </p>
+      </div>
+
+      {/* Testimonial Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 w-full max-w-7xl mx-auto">
+
+        {/* Card 1 */}
+        <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-[24px] p-8">
+          
+          <div className="flex text-yellow-400 text-3xl">
+            ★★★★★
+          </div>
+
+          <p className="text-[22px] italic leading-[40px] text-[var(--color-text-secondary)] mt-8">
+            "I found my lost laptop within 2 days! The platform made it so easy
+            to connect with the person who found it."
+          </p>
+
+          <div className="border-t border-[var(--color-border)] mt-8 pt-6">
+            <h4 className="text-[28px] font-bold text-[var(--color-text-primary)]">
+              Sarah Johnson
+            </h4>
+
+            <p className="text-[22px] text-[var(--color-text-secondary)] mt-1">
+              Stanford University
+            </p>
+          </div>
+        </div>
+
+        {/* Card 2 */}
+        <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-[24px] p-8">
+          
+          <div className="flex text-yellow-400 text-3xl">
+            ★★★★★
+          </div>
+
+          <p className="text-[22px] italic leading-[40px] text-[var(--color-text-secondary)] mt-8">
+            "Great service! I was able to return a wallet I found to its rightful
+            owner. The secure messaging feature is excellent."
+          </p>
+
+          <div className="border-t border-[var(--color-border)] mt-8 pt-6">
+            <h4 className="text-[28px] font-bold text-[var(--color-text-primary)]">
+              Mike Chen
+            </h4>
+
+            <p className="text-[22px] text-[var(--color-text-secondary)] mt-1">
+              MIT
+            </p>
+          </div>
+        </div>
+
+        {/* Card 3 */}
+        <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-[24px] p-8">
+          
+          <div className="flex text-yellow-400 text-3xl">
+            ★★★★★
+          </div>
+
+          <p className="text-[22px] italic leading-[40px] text-[var(--color-text-secondary)] mt-8">
+            "Simple and effective platform! I was able to post my lost item report
+            and someone found it within days."
+          </p>
+
+          <div className="border-t border-[var(--color-border)] mt-8 pt-6">
+            <h4 className="text-[28px] font-bold text-[var(--color-text-primary)]">
+              Emily Watson
+            </h4>
+
+            <p className="text-[22px] text-[var(--color-text-secondary)] mt-1">
+              UC Berkeley
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
   );
 }

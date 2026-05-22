@@ -19,7 +19,7 @@ export default function ItemCard({ item, dateLabel }) {
 
         {/* Image */}
         <div className="relative">
-            {item.image
+            {item.image && item.image.length > 0
             ? <img src={item.image} alt={item.title} className="w-full h-52 object-cover block" />
             : <NoImagePlaceholder />
             }

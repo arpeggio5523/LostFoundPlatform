@@ -4,7 +4,6 @@ import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
 import Navbar2 from "../components/NavBar2";
 import {Search, ChevronDown, Funnel} from "lucide-react";
-import { MOCK_ITEMS } from "../data/itemsData";
 
 const CATEGORIES = [
   "All Categories",
@@ -30,9 +29,30 @@ export default function LostItemsPage() {
   const [status, setStatus]     = useState("All Status");
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState(null);
-  const [items, setItems]       = useState(MOCK_ITEMS);
+  const [items, setItems]       = useState([]);
 
-  const lostItems = items.filter(item => item.type === "lost");
+  useEffect(() => {
+    const fetchLostItems = async () => {
+      try {
+        setLoading(true);
+
+        const response = await fetch("http://localhost:3000/api/items/lost-items");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch lost items");
+        }
+
+        const data = await response.json();
+        setItems(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLostItems();
+  }, []);
 
   const updateStatus = (id, newStatus) => {
     setItems(prevItems =>
@@ -42,7 +62,7 @@ export default function LostItemsPage() {
     );
   };
 
-  const filtered = lostItems.filter(item => {
+  const filtered = items.filter(item => {
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
                         item.description.toLowerCase().includes(search.toLowerCase());
     const matchCat    = category === "All Categories" || item.category === category;

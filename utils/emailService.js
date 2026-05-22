@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
+let verifiedTransporter = null;
 
 const getSmtpConfig = () => {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
@@ -20,6 +21,22 @@ const getSmtpConfig = () => {
   };
 };
 
+const getTransporter = async () => {
+  const smtpConfig = getSmtpConfig();
+
+  if (!smtpConfig) {
+    return null;
+  }
+
+  if (!verifiedTransporter) {
+    const transporter = nodemailer.createTransport(smtpConfig);
+    await transporter.verify();
+    verifiedTransporter = transporter;
+  }
+
+  return verifiedTransporter;
+};
+
 const buildVerificationEmailHtml = ({ fullName, verificationUrl, email, apiVerificationUrl }) => `
   <p>Hello ${fullName || "there"},</p>
   <p>Thank you for registering for LostFound MY.</p>
@@ -32,20 +49,22 @@ const buildVerificationEmailHtml = ({ fullName, verificationUrl, email, apiVerif
 `;
 
 export const sendVerificationEmail = async ({ email, fullName, verificationUrl }) => {
-  const smtpConfig = getSmtpConfig();
   const apiBaseUrl = process.env.API_BASE_URL || "http://localhost:3000";
   const apiVerificationUrl = `${apiBaseUrl.replace(/\/$/, "")}/api/auth/verify-email`;
 
-  if (!smtpConfig) {
+  const transporter = await getTransporter();
+
+  if (!transporter) {
     if (isDevelopment) {
+      console.warn(
+        "SMTP configuration is missing. Verification email was not sent; using console fallback instead."
+      );
       console.log(`Email verification URL for ${email}: ${verificationUrl}`);
       return;
     }
 
     throw new Error("SMTP configuration is missing");
   }
-
-  const transporter = nodemailer.createTransport(smtpConfig);
 
   await transporter.sendMail({
     from: process.env.SMTP_FROM,

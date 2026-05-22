@@ -101,7 +101,6 @@ export default function ItemDetailPage() {
               <div className="p-10">
                 {/* Badges */}
                 <div className="flex items-center justify-between mb-4">
-                  <Badge type={item.type} label={item.type} />
                   <Badge type={item.status} label={item.status} isStatus />
                 </div>
 

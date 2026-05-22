@@ -1,7 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Bell, LogOut } from "lucide-react";
+import { useTheme } from "../context/ThemeContext";
+import { clearAuth } from "../services/authState";
 
 function Navbar2(){
+    const navigate = useNavigate();
+    const { resetTheme } = useTheme();
+
+    const handleLogout = () => {
+        resetTheme();   // revert to light before navigating away
+        clearAuth();    // clear stored token + user
+        navigate("/login");
+    };
+
     return(
         <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-[var(--color-border)] bg-white dark:bg-[var(--color-bg-surface)] transition-colors duration-200">
             <div className="flex w-full items-center justify-between px-8 py-5">
@@ -32,12 +43,12 @@ function Navbar2(){
                 <button className="flex h-10 w-10 items-center justify-center rounded-2xl text-gray-900 dark:text-[var(--color-text-primary)] hover:bg-gray-100 dark:hover:bg-[var(--color-bg-raised)]">
                     <Bell size={20} strokeWidth={2} />
                 </button>
-                <Link
-                    to="/login"
+                <button
+                    onClick={handleLogout}
                     className="flex h-10 w-10 items-center justify-center rounded-2xl text-gray-900 dark:text-[var(--color-text-primary)] hover:bg-gray-100 dark:hover:bg-[var(--color-bg-raised)]"
                 >
                     <LogOut size={20} strokeWidth={2} />
-                </Link>
+                </button>
             </nav>
             </div>
         </header>

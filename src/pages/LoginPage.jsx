@@ -4,9 +4,11 @@ import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
 import { setAuthUser } from "../services/authState";
+import { useTheme } from "../context/ThemeContext";
 
 function LoginPage(){
     const navigate = useNavigate();
+    const { loadUserTheme } = useTheme();
     const [formData, setFormData] = useState({
             email: "",
             password: ""
@@ -32,6 +34,10 @@ function LoginPage(){
 
                 if (response.ok) {
                     setAuthUser(result.user, result.token);
+                    // Restore this user's saved theme preference
+                    if (result.user?.id) {
+                        loadUserTheme(result.user.id);
+                    }
                     alert("Login successful!");
                     navigate("/found-items");
                     // console.log("Saved:", result);

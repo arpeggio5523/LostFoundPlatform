@@ -46,6 +46,21 @@ export const getApprovedFoundItems = async (req, res) => {
   }
 };
 
+export const getApprovedLostItems = async (req, res) => {
+  try {
+    const items = await Item.find({
+      itemType: "Lost",
+      status: "Approved",
+    });
+
+    res.status(200).json(items);
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+};
+
 export const getItemById = async (req, res) => {
   try {
     const item = await Item.findById(req.params.itemId).populate("user", "fullName email");

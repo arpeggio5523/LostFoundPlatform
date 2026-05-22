@@ -3,6 +3,7 @@ import Item from "../models/Item.js";
 import { 
   updateItemStatus,
   getApprovedFoundItems,
+  getApprovedLostItems,
   getItemById,
 } from "../controllers/itemController.js";
 
@@ -18,6 +19,8 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/found-items", getApprovedFoundItems);
+
+router.get("/lost-items", getApprovedLostItems);
 
 router.get("/:itemId", getItemById);
 

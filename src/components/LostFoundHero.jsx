@@ -313,6 +313,26 @@ export default function LostFoundHero() {
         </div>
       </div>
     </div>
+
+    {/* CTA Section */}
+      <div className="w-screen bg-[var(--color-brand)] py-32 px-6 text-center flex flex-col items-center justify-center">
+
+        <h2 className="text-[72px] font-extrabold text-white">
+          Ready to Find Your Items?
+        </h2>
+
+        <p className="text-[28px] text-[var(--color-brand-text)] mt-8 max-w-5xl mx-auto leading-[44px]">
+          Join thousands of university students who have successfully reunited
+          with their belongings.
+        </p>
+
+        <button
+          onClick={() => navigate("/signup")}
+          className="mt-14 bg-white text-[var(--color-text-primary)] text-[24px] font-semibold px-12 py-5 rounded-2xl hover:scale-105 transition-transform"
+        >
+          Create Free Account
+        </button>
+      </div>
     </div>
   );
 }

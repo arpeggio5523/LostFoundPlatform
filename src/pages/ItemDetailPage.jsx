@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft } from "lucide-react"; 
 import Navbar2 from "../components/NavBar2";
-import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode } from "lucide-react"; 
 
 export default function ItemDetailPage() {
   const { itemId } = useParams();

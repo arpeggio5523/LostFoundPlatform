@@ -1,11 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
+import { getCurrentUserId } from "../services/authState";
 
 function SignupPage(){
     const navigate = useNavigate();
+
+    // Signup page is always light mode — no dark bleeding in from a previous session
+    useEffect(() => {
+        const root = document.documentElement;
+        root.classList.remove("dark");
+
+        return () => {
+            // Restore the logged-in user's theme when navigating away
+            const userId = getCurrentUserId();
+            if (userId) {
+                const saved = localStorage.getItem(`theme_${userId}`);
+                if (saved === "dark") root.classList.add("dark");
+            }
+        };
+    }, []);
 
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");

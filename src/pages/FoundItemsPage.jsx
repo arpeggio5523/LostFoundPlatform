@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
 import { buildApiUrl } from "../services/apiClient";
+import { LogOut } from "lucide-react";
+import { useTheme } from "../context/ThemeContext";
+import { clearAuth } from "../services/authState";
 
 const CATEGORIES = [
     "All Categories",
@@ -32,6 +35,13 @@ const STATUSES = ["All Status", "approved", "pending", "returned"];
 export default function FoundItemsPage() {
 
   const navigate = useNavigate();
+  const { resetTheme } = useTheme();
+
+  const handleLogout = () => {
+    resetTheme();
+    clearAuth();
+    navigate("/login");
+  };
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -106,20 +116,49 @@ export default function FoundItemsPage() {
               Browse items that have been found by the community
             </p>
           </div>
-          <button
-            onClick={() => navigate("/report-found")}
-            style={{
-              display: "flex", alignItems: "center", gap: 8,
-              background: "var(--color-brand)", color: "var(--color-brand-text)",
-              border: "none", borderRadius: 10,
-              padding: "11px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer",
-              transition: "background 0.15s",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = "var(--color-brand-hover)"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "var(--color-brand)"; }}
-          >
-            <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Report Found Item
-          </button>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <button
+              onClick={() => navigate("/report-found")}
+              style={{
+                display: "flex", alignItems: "center", gap: 8,
+                background: "var(--color-brand)", color: "var(--color-brand-text)",
+                border: "none", borderRadius: 10,
+                padding: "11px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--color-brand-hover)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "var(--color-brand)"; }}
+            >
+              <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Report Found Item
+            </button>
+
+            <button
+              onClick={handleLogout}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: "#dc2626",
+                color: "white",
+                border: "none",
+                borderRadius: 10,
+                padding: "11px 20px",
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = "#b91c1c";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = "#dc2626";
+              }}
+            >
+              <LogOut size={18} />
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Filter bar */}

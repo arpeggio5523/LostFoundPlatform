@@ -191,7 +191,7 @@ export default function ReportFoundItemPage() {
           setErrors(prev => ({ ...prev, ...serverErrors }));
         }
 
-        throw new Error(error.message || "Failed to submit report");
+        throw new Error(error.error || error.message || "Failed to submit report");
       }
 
       alert(editId ? "Item updated successfully!" : "Report submitted successfully!");

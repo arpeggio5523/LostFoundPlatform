@@ -1,7 +1,8 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 import FoundItemsPage from "./pages/FoundItemsPage";
 import ReportFoundItemPage from "./pages/ReportFoundItemPage";
 import LostItemsPage from "./pages/LostItemsPage";
@@ -14,8 +15,10 @@ function App() {
   return (
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/found-items" element={<FoundItemsPage />} />
         <Route path="/lost-items" element={<LostItemsPage />} />
         <Route path="/profile" element={<ProfilePage />} />

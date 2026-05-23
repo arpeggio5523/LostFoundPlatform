@@ -44,24 +44,25 @@ function resolveInitialDark() {
 
 export function ThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(resolveInitialDark);
+  const [forceLight, setForceLight] = useState(false);
 
   // useLayoutEffect fires synchronously after DOM mutations but before paint,
   // so the class is always correct before the user sees anything.
   useLayoutEffect(() => {
     const root = document.documentElement;
-    if (isDark) {
+    if (isDark && !forceLight) {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
     }
 
-    // Persist only when a user is logged in
+    // Persist only when a user is logged in and not forcefully overridden
     const userId = getCurrentUserId();
     const key = themeKey(userId);
-    if (key) {
+    if (key && !forceLight) {
       localStorage.setItem(key, isDark ? "dark" : "light");
     }
-  }, [isDark]);
+  }, [isDark, forceLight]);
 
   const toggleTheme = () => setIsDark((prev) => !prev);
 
@@ -83,7 +84,7 @@ export function ThemeProvider({ children }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme, loadUserTheme, resetTheme }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme, loadUserTheme, resetTheme, setForceLight }}>
       {children}
     </ThemeContext.Provider>
   );

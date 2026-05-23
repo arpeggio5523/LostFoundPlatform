@@ -123,9 +123,11 @@ export default function ReportLostItemPage() {
       setFormData(INITIAL_FORM);
       setSelectedImages([]);
       setErrors({});
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || error.message || "Failed to submit report. Please try again.");
     } catch (err) {
       console.error(err);
-      setSubmitMessage("Failed to submit report. Please try again.");
+      setSubmitMessage(err.message || "Failed to submit report. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

@@ -1,7 +1,11 @@
 const API_BASE_URL = "http://localhost:3000";
 
 export function getToken() {
-  return localStorage.getItem("token");
+  return (
+    sessionStorage.getItem("accessToken") ||
+    localStorage.getItem("accessToken") ||
+    localStorage.getItem("token")
+  );
 }
 
 export function authHeaders(extraHeaders = {}) {

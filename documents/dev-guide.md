@@ -20,7 +20,7 @@ npm run server
 ```
 Then open these 3 and check if it shows success in setup
 1. frontend dev: http://localhost:5173/
-2.  backend/prod: http://localhost:3000/
+2.  backend/prod: http://localhost:3000/http://localhost:3000/
 3.  Mongo test: http://localhost:3000/api/test-mongo
 
 ## Development

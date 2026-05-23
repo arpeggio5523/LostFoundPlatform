@@ -1,58 +1,89 @@
 import mongoose from "mongoose";
 
+const nonEmptyString = (value) => {
+  return typeof value === "string" && value.trim().length > 0;
+};
+
 const itemSchema = new mongoose.Schema(
   {
     title: {
       type: String,
       required: [true, "Item title is required"],
       trim: true,
+      minlength: [3, "Title must be at least 3 characters"],
       maxlength: [100, "Title max length is 100 characters"],
+      validate: {
+        validator: nonEmptyString,
+        message: "Title cannot be empty",
+      },
     },
 
     description: {
       type: String,
       required: [true, "Description is required"],
+      trim: true,
+      minlength: [10, "Description must be at least 10 characters"],
       maxlength: [500, "Description max length is 500 characters"],
+      validate: {
+        validator: nonEmptyString,
+        message: "Description cannot be empty",
+      },
     },
 
     distMark: {
       type: String,
       trim: true,
       maxlength: [200, "Distinctive mark max length is 200 characters"],
+      default: "",
     },
 
     color: {
       type: String,
       trim: true,
       maxlength: [50, "Color max length is 50 characters"],
+      default: "",
     },
 
     location: {
       type: String,
       required: [true, "Location is required"],
       trim: true,
+      minlength: [3, "Location must be at least 3 characters"],
+      validate: {
+        validator: nonEmptyString,
+        message: "Location cannot be empty",
+      },
     },
 
     date: {
       type: Date,
       required: [true, "Date is required"],
+      validate: {
+        validator: function (value) {
+          return value <= new Date();
+        },
+        message: "Date cannot be in the future",
+      },
     },
 
     category: {
       type: String,
       required: [true, "Category is required"],
-      enum: [
-        "Electronics",
-        "Accessories",
-        "Bag & Backpacks",
-        "Documents",
-        "Keys",
-        "Clothing",
-        "Books",
-        "Sports Equipment",
-        "Jewelry",
-        "Other",
-      ],
+      enum: {
+        values: [
+          "Electronics",
+          "Accessories",
+          "Bag & Backpacks",
+          "Documents",
+          "Keys",
+          "Clothing",
+          "Books",
+          "Sports Equipment",
+          "Jewelry",
+          "Other",
+        ],
+        message: "Invalid category selected",
+      },
     },
 
     status: {
@@ -73,7 +104,7 @@ const itemSchema = new mongoose.Schema(
 
     user: {
       type: String,
-      required: [true, "User name is required"],
+      required: [true, "User is required"],
       trim: true,
     },
 
@@ -95,6 +126,7 @@ const itemSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
+      trim: true,
     },
 
     reportedBy: {

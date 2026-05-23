@@ -8,7 +8,7 @@ import {
   updateItem,
   deleteItem,
 } from "../controllers/ItemController.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 

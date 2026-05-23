@@ -5,39 +5,40 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
-import User from "./models/User.js";
+import authRoutes from "./routes/authRoutes.js";
 import itemsRouter from "./routes/ItemRoutes.js";
-import authRoutes from "./routes/authRoutes.js"; 
+import connectDB from "./config/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = 3000;
+const PORT = 3000;
 const distPath = path.join(__dirname, "dist");
 const distIndexPath = path.join(distPath, "index.html");
 
-const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/fit3170db";
-mongoose.connect(mongoURI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error("MongoDB connection error:", err));
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
-app.use(express.json({ limit: '10mb' }));
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || origin.startsWith('http://localhost:')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin) || origin.startsWith("http://localhost:")) {
+            return callback(null, true);
+        }
+        return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
 }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(distPath));
-app.use("/api/items", itemsRouter);
 app.use("/api/auth", authRoutes);
+app.use("/api/items", itemsRouter);
 
+// Serve Vite build in production
+app.use(express.static(distPath));
 app.get("*", (req, res) => {
   if (!fs.existsSync(distIndexPath)) {
     return res.status(200).send("Backend running. Run npm run build to serve Vite app.");
@@ -45,6 +46,21 @@ app.get("*", (req, res) => {
   res.sendFile(distIndexPath);
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+const startServer = async () => {
+    try {
+        await connectDB();
+        app.listen(PORT, () => {
+            console.log(`Server running at http://localhost:${PORT}`);
+        });
+    } catch (err) {
+        console.error("Failed to start server:", err);
+    }
+};
+
+const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === __filename;
+
+if (isDirectRun) {
+    startServer();
+}
+
+export { app, startServer };

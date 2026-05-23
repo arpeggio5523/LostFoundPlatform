@@ -19,10 +19,9 @@ const NAV_ITEMS = [
   { label: "Profile",     path: "/profile",       icon: User },
 ];
 
-export default function Sidebar() {
+export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <aside style={{
@@ -37,7 +36,7 @@ export default function Sidebar() {
       left: 0, top: 0, bottom: 0,
       zIndex: 100,
       transition: "width 0.3s ease, background 0.2s ease, border-color 0.2s ease",
-      overflow: "hidden",
+      overflow: "visible",
     }}>
       {/* Collapse Toggle Button */}
       <button

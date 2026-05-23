@@ -39,6 +39,7 @@ export default function FoundItemsPage() {
   const [category, setCategory] = useState("All Categories");
   const [location, setLocation] = useState("All Locations");
   const [status, setStatus]     = useState("All Status");
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -89,9 +90,12 @@ export default function FoundItemsPage() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--color-bg-base)", fontFamily: "system-ui, sans-serif", transition: "background 0.2s ease" }}>
-      <Sidebar />
+      <Sidebar 
+        isCollapsed={isCollapsed} 
+        setIsCollapsed={setIsCollapsed} 
+      />
 
-      <main style={{ marginLeft: 220, flex: 1, padding: "36px 40px" }}>
+      <main style={{ marginLeft: isCollapsed ? 70 : 220, transition: "margin-left 0.3s ease", flex: 1, padding: "36px 40px" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28 }}>
           <div>

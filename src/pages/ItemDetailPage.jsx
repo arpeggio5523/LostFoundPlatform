@@ -12,6 +12,7 @@ export default function ItemDetailPage() {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -61,9 +62,12 @@ export default function ItemDetailPage() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--color-bg-base)", transition: "background 0.2s ease" }}>
-      <Sidebar />
+      <Sidebar 
+        isCollapsed={isCollapsed} 
+        setIsCollapsed={setIsCollapsed} 
+      />
 
-      <main style={{ marginLeft: 220, flex: 1, padding: "40px" }}>
+      <main style={{ marginLeft: isCollapsed ? 70 : 220, transition: "margin-left 0.3s ease", flex: 1, padding: "40px" }}>
 
         {/* Back Button */}
         <button

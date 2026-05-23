@@ -83,7 +83,7 @@ export default function FoundItemsPage() {
       item.description.toLowerCase().includes(search.toLowerCase());
     const matchCat    = category === "All Categories" || item.category === category;
     const matchLoc    = location === "All Locations"  || item.location === location;
-    const matchStatus = status   === "All Status"     || item.status === status;
+    const matchStatus = status   === "All Status"     || item.status.toLowerCase() === status.toLowerCase();
     return matchSearch && matchCat && matchLoc && matchStatus;
   });
 

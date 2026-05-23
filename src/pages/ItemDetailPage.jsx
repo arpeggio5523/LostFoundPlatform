@@ -101,8 +101,10 @@ export default function ItemDetailPage() {
               <div className="p-10">
                 {/* Badges */}
                 <div className="flex items-center justify-between mb-4">
-                  <Badge type={item.type} label={item.type} />
-                  <Badge type={item.status} label={item.status} isStatus />
+                  <div className="flex items-center gap-2">
+                    <Badge type={item.type} label={item.type} />
+                    <Badge type={item.status} label={item.status} isStatus />
+                  </div>
                 </div>
 
                 {/* Title */}
@@ -135,7 +137,7 @@ export default function ItemDetailPage() {
                     <h3 className="text-base font-bold text-[var(--color-text-primary)] mb-4">Actions</h3>
                     <div className="flex gap-3">
                       <button
-                        onClick={() => navigate(`/report-found?edit=${item._id}`)}
+                        onClick={() => navigate(item.type === "Lost" ? `/report-lost?edit=${item._id}` : `/report-found?edit=${item._id}`)}
                         className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all"
                       >
                         Edit

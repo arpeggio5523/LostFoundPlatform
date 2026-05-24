@@ -103,7 +103,7 @@ export default function ReportFoundItemPage() {
 
   function handleFiles(files) {
     const valid = Array.from(files).filter(f => f.type.startsWith("image/"));
-    const toAdd = valid.slice(0, 3 - images.length).map(f => ({
+    const toAdd = valid.slice(0, 1 - images.length).map(f => ({
       file: f,
       preview: URL.createObjectURL(f),
       name: f.name,
@@ -333,18 +333,18 @@ export default function ReportFoundItemPage() {
         {/* Image Upload */}
         <div className="mb-3">
           <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
-            Images <span className="text-[var(--color-text-muted)] font-normal">(Recommended, max 3)</span>
+            Images <span className="text-[var(--color-text-muted)] font-normal">(Recommended, max 1)</span>
           </label>
 
           {/* Dropzone */}
           <div
-            onClick={() => images.length < 3 && fileInputRef.current.click()}
+            onClick={() => images.length < 1 && fileInputRef.current.click()}
             onDragOver={e => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded-xl p-9 text-center transition-colors
               ${dragOver ? "border-[var(--color-brand)] bg-[var(--color-brand-active-bg)]" : "border-[var(--color-border)] bg-[var(--color-bg-raised)]"}
-              ${images.length < 3 ? "cursor-pointer hover:border-gray-400" : "cursor-default opacity-60"}`}
+              ${images.length < 1 ? "cursor-pointer hover:border-gray-400" : "cursor-default opacity-60"}`}
           >
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2.5">
               <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>

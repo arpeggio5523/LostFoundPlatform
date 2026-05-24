@@ -53,6 +53,7 @@ export default function ReportLostItemPage() {
     title: "", description: "", category: "",
     color: "", marks: "", location: "", exactLocation: "", date: "",
   });
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [images, setImages] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [errors, setErrors] = useState({});
@@ -76,6 +77,8 @@ export default function ReportLostItemPage() {
           exactLocation: item.exactLocation || "",
           date: item.date ? item.date.split("T")[0] : "",
         });
+        if (item.user === "Anonymous") setIsAnonymous(true);
+        else setIsAnonymous(false);
         // Load existing images as previews (Item model images are plain strings)
         if (item.images?.length > 0) {
           setImages(item.images.map(img => ({
@@ -185,7 +188,7 @@ export default function ReportLostItemPage() {
           date: form.date,
           images: imageUrls,
           type: "Lost",
-          user: authUser.fullName || "Anonymous",
+          user: isAnonymous ? "Anonymous" : (authUser.fullName || "Anonymous"),
         }),
       });
 
@@ -379,6 +382,20 @@ export default function ReportLostItemPage() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Anonymous Toggle */}
+        <div className="flex items-center mb-5 mt-2">
+          <input
+            type="checkbox"
+            id="anonToggleLost"
+            checked={isAnonymous}
+            onChange={(e) => setIsAnonymous(e.target.checked)}
+            className="w-4 h-4 cursor-pointer"
+          />
+          <label htmlFor="anonToggleLost" className="ml-2 text-sm font-semibold text-[var(--color-text-primary)] cursor-pointer select-none">
+            Post Anonymously (Hide my name)
+          </label>
         </div>
 
         {/* Actions */}

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { authHeaders, buildApiUrl } from "../services/apiClient";
+import { getAuthUser } from "../services/authState";
 
 const CATEGORIES = [
     "All Categories",
@@ -52,6 +53,7 @@ export default function ReportFoundItemPage() {
     title: "", description: "", category: "",
     color: "", marks: "", location: "", exactLocation: "", date: "",
   });
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [images, setImages] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [errors, setErrors] = useState({});
@@ -75,6 +77,8 @@ export default function ReportFoundItemPage() {
           exactLocation: item.exactLocation || "",
           date: item.date ? item.date.split("T")[0] : "",
         });
+        if (item.user === "Anonymous") setIsAnonymous(true);
+        else setIsAnonymous(false);
         // Load existing images as previews (Item model images are plain strings)
         if (item.images?.length > 0) {
           setImages(item.images.map(img => ({
@@ -129,6 +133,12 @@ export default function ReportFoundItemPage() {
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
     try {
+      const authUser = getAuthUser();
+      if (!authUser) {
+        setSubmitError("Not authenticated. Please log in.");
+        return;
+      }
+
       const imageData = await Promise.all(
         images.map(img => {
           // If existing image from DB, just pass it as-is
@@ -178,7 +188,7 @@ export default function ReportFoundItemPage() {
           date: form.date,
           images: imageUrls,
           type: "Found",
-          user: "Anonymous",  // will be overridden from auth in future
+          user: isAnonymous ? "Anonymous" : (authUser.fullName || "Anonymous"),
         }),
       });
 
@@ -375,10 +385,23 @@ export default function ReportFoundItemPage() {
             </div>
           )}
         </div>
-
         <p className="text-xs text-[var(--color-text-muted)] mb-7">
           Photos help owners identify their items faster. A QR code will be automatically generated for this item.
         </p>
+
+        {/* Anonymous Toggle */}
+        <div className="flex items-center mb-5 mt-2">
+          <input
+            type="checkbox"
+            id="anonToggleFound"
+            checked={isAnonymous}
+            onChange={(e) => setIsAnonymous(e.target.checked)}
+            className="w-4 h-4 cursor-pointer"
+          />
+          <label htmlFor="anonToggleFound" className="ml-2 text-sm font-semibold text-[var(--color-text-primary)] cursor-pointer select-none">
+            Post Anonymously (Hide my name)
+          </label>
+        </div>
 
         {/* Actions */}
         <div className="flex gap-3">

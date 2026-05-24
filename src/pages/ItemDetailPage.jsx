@@ -144,6 +144,7 @@ export default function ItemDetailPage() {
                   <InfoBlock label="Category" icon={<Tag size={16} />} value={item.category} />
                   <InfoBlock label="Colour"   icon={<Palette size={16} />} value={item.color} />
                   <InfoBlock label="Location" icon={<MapPin size={16} />} value={item.location} />
+                  <InfoBlock label="Exact Location" icon={<MapPin size={16} />} value={item.exactLocation || "Not specified"} />
                   <InfoBlock label="Date"     icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString() : "N/A"} />
                 </div>
 

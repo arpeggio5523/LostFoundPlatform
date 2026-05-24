@@ -23,6 +23,19 @@ const CATEGORIES = [
 
 const STATUSES = ["All Status", "Pending", "Approved", "Matched", "Returned"];
 
+const LOCATIONS = [
+  "All Locations",
+  "Universiti Malaya (UM)",
+  "Universiti Kebangsaan Malaysia (UKM)",
+  "Universiti Sains Malaysia (USM)",
+  "Universiti Putra Malaysia (UPM) Central Library",
+  "Universiti Teknologi Malaysia (UTM)",
+  "Universiti Teknologi MARA (UiTM)",
+  "Taylor's University",
+  "Sunway University",
+  "Multimedia University (MMU)",
+];
+
 export default function LostItemsPage() {
   const navigate = useNavigate();
   const { resetTheme } = useTheme();
@@ -34,7 +47,7 @@ export default function LostItemsPage() {
   };
   const [search, setSearch]     = useState("");
   const [category, setCategory] = useState("All Categories");
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState("All Locations");
   const [status, setStatus]     = useState("All Status");
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
@@ -80,7 +93,7 @@ export default function LostItemsPage() {
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
                         item.description.toLowerCase().includes(search.toLowerCase());
     const matchCat    = category === "All Categories" || item.category === category;
-    const matchLoc    = !location || item.location.toLowerCase().includes(location.toLowerCase());
+    const matchLoc    = location === "All Locations" || item.location === location;
     const matchStatus = status   === "All Status"     || item.status === status;
     return matchSearch && matchCat && matchLoc && matchStatus;
   });
@@ -184,12 +197,11 @@ export default function LostItemsPage() {
               {CATEGORIES.map(c => <option key={c}>{c}</option>)}
             </select>
 
-            {/* Location search */}
-            <input
-              type="text" placeholder="Filter by location..." value={location}
-              onChange={e => setLocation(e.target.value)}
-              style={{ ...inputStyle, padding: "9px 14px", minWidth: 160 }}
-            />
+            {/* Location */}
+            <select value={location} onChange={e => setLocation(e.target.value)}
+              style={{ ...inputStyle, padding: "9px 36px 9px 14px", appearance: "none", cursor: "pointer", minWidth: 150 }}>
+              {LOCATIONS.map(l => <option key={l}>{l}</option>)}
+            </select>
 
             {/* Status */}
             <select value={status} onChange={e => setStatus(e.target.value)}

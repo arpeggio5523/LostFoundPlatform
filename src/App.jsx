@@ -9,7 +9,7 @@ import LostItemsPage from "./pages/LostItemsPage";
 import ItemDetailPage from "./pages/ItemDetailPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
-import ReportLostItemPage from "./pages/Reporting/ReportLost";
+import ReportLostItemPage from "./pages/ReportLostItemPage";
 
 function App() {
   return (

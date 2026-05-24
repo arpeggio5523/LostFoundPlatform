@@ -50,7 +50,7 @@ export default function ReportFoundItemPage() {
 
   const [form, setForm] = useState({
     title: "", description: "", category: "",
-    color: "", marks: "", location: "", date: "",
+    color: "", marks: "", location: "", exactLocation: "", date: "",
   });
   const [images, setImages] = useState([]);
   const [dragOver, setDragOver] = useState(false);
@@ -72,6 +72,7 @@ export default function ReportFoundItemPage() {
           color: item.color || "",
           marks: item.distMark || "",
           location: item.location || "",
+          exactLocation: item.exactLocation || "",
           date: item.date ? item.date.split("T")[0] : "",
         });
         // Load existing images as previews (Item model images are plain strings)
@@ -173,6 +174,7 @@ export default function ReportFoundItemPage() {
           color: form.color,
           distMark: form.marks,
           location: form.location,
+          exactLocation: form.exactLocation,
           date: form.date,
           images: imageUrls,
           type: "Found",
@@ -291,7 +293,7 @@ export default function ReportFoundItemPage() {
         </Field>
 
         {/* Location */}
-        <Field label="Location Found" required error={errors.location}>
+        <Field label="Location Found (University)" required error={errors.location}>
           <select
             name="location" value={form.location} onChange={handleChange}
             className={`${errors.location ? inputErrorClass : inputClass} appearance-none cursor-pointer`}
@@ -299,6 +301,15 @@ export default function ReportFoundItemPage() {
             <option value="">Select location</option>
             {LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
           </select>
+        </Field>
+
+        {/* Exact Location */}
+        <Field label="Exact Place (e.g., Library 2nd floor, Cafe table)">
+          <input
+            name="exactLocation" value={form.exactLocation} onChange={handleChange}
+            placeholder="Where exactly?"
+            className={inputClass}
+          />
         </Field>
 
         {/* Date */}

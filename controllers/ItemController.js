@@ -35,6 +35,18 @@ const ALLOWED_CATEGORIES = [
   "Electronics", "Accessories", "Bag & Backpacks", "Documents",
   "Keys", "Clothing", "Books", "Sports Equipment", "Jewelry", "Other",
 ];
+
+const ALLOWED_LOCATIONS = [
+  "Universiti Malaya (UM)",
+  "Universiti Kebangsaan Malaysia (UKM)",
+  "Universiti Sains Malaysia (USM)",
+  "Universiti Putra Malaysia (UPM) Central Library",
+  "Universiti Teknologi Malaysia (UTM)",
+  "Universiti Teknologi MARA (UiTM)",
+  "Taylor's University",
+  "Sunway University",
+  "Multimedia University (MMU)",
+];
  
 const ALLOWED_STATUSES = ["Pending", "Approved", "Matched", "Returned"];
 const ALLOWED_TYPES    = ["Lost", "Found"];
@@ -46,6 +58,7 @@ const buildItemPayload = (body, userId) => ({
   category:    body.category,
   type:        body.type,
   location:    body.location,
+  exactLocation: body.exactLocation || undefined,
   date:        body.date,
   color:       body.color       || undefined,
   distMark:    body.distMark    || undefined,
@@ -83,6 +96,10 @@ export const createItem = async (req, res) => {
  
     if (!ALLOWED_CATEGORIES.includes(category)) {
       return res.status(400).json({ error: `Invalid category. Must be one of: ${ALLOWED_CATEGORIES.join(", ")}` });
+    }
+
+    if (!ALLOWED_LOCATIONS.includes(location)) {
+      return res.status(400).json({ error: `Invalid location. Must be one of: ${ALLOWED_LOCATIONS.join(", ")}` });
     }
  
     if (isNaN(new Date(date).getTime())) {
@@ -131,7 +148,7 @@ export const getItems = async (req, res) => {
     if (req.query.location) filter.location = new RegExp(req.query.location, "i"); // partial match
  
     const items = await Item.find(filter)
-      .populate("reportedBy", "name email")
+      .populate("reportedBy", "fullName email")
       .sort({ createdAt: -1 });
  
     return res.status(200).json({ count: items.length, data: items });
@@ -147,7 +164,7 @@ export const getItems = async (req, res) => {
  */
 export const getItemById = async (req, res) => {
   try {
-    const item = await Item.findById(req.params.itemId).populate("reportedBy", "name email");
+    const item = await Item.findById(req.params.itemId).populate("reportedBy", "fullName email");
  
     if (!item) {
       return res.status(404).json({ error: "Item not found." });
@@ -194,13 +211,14 @@ export const updateItem = async (req, res) => {
       return res.status(403).json({ error: "You do not have permission to update this item." });
     }
 
-    const { title, description, category, type, location, date, color, distMark, images, user } = req.body;
+    const { title, description, category, type, location, exactLocation, date, color, distMark, images, user } = req.body;
 
     if (title)       item.title       = title;
     if (description) item.description = description;
     if (category)    item.category    = category;
     if (type)        item.type        = type;
     if (location)    item.location    = location;
+    if (exactLocation !== undefined) item.exactLocation = exactLocation;
     if (date)        item.date        = date;
     if (color  !== undefined) item.color    = color;
     if (distMark !== undefined) item.distMark = distMark;

@@ -47,12 +47,33 @@ const itemSchema = new mongoose.Schema(
     location: {
       type: String,
       required: [true, "Location is required"],
+      enum: {
+        values: [
+          "Universiti Malaya (UM)",
+          "Universiti Kebangsaan Malaysia (UKM)",
+          "Universiti Sains Malaysia (USM)",
+          "Universiti Putra Malaysia (UPM) Central Library",
+          "Universiti Teknologi Malaysia (UTM)",
+          "Universiti Teknologi MARA (UiTM)",
+          "Taylor's University",
+          "Sunway University",
+          "Multimedia University (MMU)",
+        ],
+        message: "Invalid location selected",
+      },
       trim: true,
       minlength: [3, "Location must be at least 3 characters"],
       validate: {
         validator: nonEmptyString,
         message: "Location cannot be empty",
       },
+    },
+
+    exactLocation: {
+      type: String,
+      trim: true,
+      maxlength: [200, "Exact location max length is 200 characters"],
+      default: "",
     },
 
     date: {

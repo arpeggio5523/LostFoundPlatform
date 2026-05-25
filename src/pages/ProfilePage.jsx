@@ -88,7 +88,7 @@ function ProfilePage() {
                   {
                     id: "phone",
                     icon: "📞",
-                    label: currentUser?.phone || "—",
+                    label: currentUser?.phoneNumber || "—",
                   },
                   {
                     id: "role",

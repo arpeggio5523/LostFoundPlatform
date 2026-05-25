@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Home",        path: "/home",          icon: Home },
+  { label: "Home",        path: "/dashboard",          icon: Home },
   { label: "Found Items", path: "/found-items",   icon: Search },
   { label: "Lost Items",  path: "/lost-items",    icon: FileText },
   { label: "Messages",    path: "/messages",      icon: MessageSquare },

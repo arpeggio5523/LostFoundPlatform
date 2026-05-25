@@ -65,6 +65,8 @@ const sanitizeUser = (user) => ({
   _id: user._id,
   fullName: user.fullName,
   email: user.email,
+  createdAt: user.createdAt, 
+  phoneNumber: user.phoneNumber,
   ...(typeof user.role !== "undefined" ? { role: user.role } : {}),
   ...(typeof user.isEmailVerified !== "undefined"
     ? { isEmailVerified: user.isEmailVerified }

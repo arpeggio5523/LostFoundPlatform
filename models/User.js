@@ -85,8 +85,9 @@ const userSchema = new mongoose.Schema({
   },
   lastVerificationEmailSentAt: {
     type: Date,
-  }
-});
+  },
+}, { timestamps: true });
+
 
 // Hash password before saving user document
 userSchema.pre("save", async function () {

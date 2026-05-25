@@ -75,7 +75,7 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
             </svg>
           </div>
           <span style={{ fontWeight: 800, fontSize: 18, color: "var(--color-brand)", letterSpacing: "-0.02em" }}>
-            FindIt
+            LostFound MY
           </span>
         </div>
       )}

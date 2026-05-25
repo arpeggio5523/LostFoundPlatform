@@ -15,7 +15,7 @@ export default function Dashboard() {
         {/* Heading */}
         <div className="mb-10">
           <h1 className="text-4xl font-bold">
-            Welcome to Your FindIt Dashboard
+            Welcome to Your LostFound MY Dashboard
           </h1>
 
           <p className="text-gray-600 mt-2">
@@ -89,7 +89,7 @@ export default function Dashboard() {
         {/* How It Works */}
         <section className="mt-12 bg-white border rounded-2xl shadow-sm p-10 max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-10">
-            How FindIt Works
+            How LostFound MY Works
           </h2>
 
           <div className="flex flex-col md:flex-row items-center pt-6 justify-center gap-6">

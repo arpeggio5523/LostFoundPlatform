@@ -4,6 +4,8 @@ import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode } from "lucide-react"
 import { useEffect, useState } from "react";
 import { getCurrentUserId } from "../services/authState";
 import { buildApiUrl, authHeaders } from "../services/apiClient";
+import ConfirmModal from "../components/ConfirmModal";
+import { useToast } from "../context/ToastContext";
 
 
 export default function ItemDetailPage() {
@@ -13,6 +15,8 @@ export default function ItemDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -31,11 +35,7 @@ export default function ItemDetailPage() {
   }, [id]);
 
   const handleDelete = async () => {
-    const confirmed = window.confirm("Delete this item? This action cannot be undone.");
-
-    if (!confirmed) {
-      return;
-    }
+    setShowDeleteModal(false);
 
     try {
       const response = await fetch(buildApiUrl(`/api/items/${item._id}`), {
@@ -48,10 +48,10 @@ export default function ItemDetailPage() {
         throw new Error(result.message || "Failed to delete item");
       }
 
-      alert("Item deleted successfully.");
+      showToast("Item deleted successfully.", "success");
       navigate(item.type === "Lost" ? "/lost-items" : "/found-items");
     } catch (err) {
-      alert(err.message || "Failed to delete item.");
+      showToast(err.message || "Failed to delete item.", "error");
     }
   };
 
@@ -178,7 +178,7 @@ export default function ItemDetailPage() {
                         Edit
                       </button>
                       <button
-                        onClick={handleDelete}
+                        onClick={() => setShowDeleteModal(true)}
                         style={{
                           flex: 1, padding: "12px", background: "#dc2626", color: "#fff",
                           border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer",
@@ -248,6 +248,15 @@ export default function ItemDetailPage() {
 
         </div>
       </main>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Item"
+        message="Are you sure you want to delete this item? This action cannot be undone."
+        confirmText="Delete"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 }

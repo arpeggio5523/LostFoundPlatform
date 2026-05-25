@@ -5,9 +5,11 @@ import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
 import { getCurrentUserId } from "../services/authState";
 import { useForceLightMode } from "../hooks/useForceLightMode";
+import { useToast } from "../context/ToastContext";
 
 function SignupPage(){
     const navigate = useNavigate();
+    const { showToast } = useToast();
 
     useForceLightMode();
 
@@ -22,27 +24,27 @@ function SignupPage(){
         event.preventDefault(); // prevent refresh
 
         if (password.length < 8){
-            alert("Password must be at least 8 characters long.");
+            showToast("Password must be at least 8 characters long.", "error");
             return
         }
 
         if (password != confirmPassword){
-            alert("Confirm password is not same with password.");
+            showToast("Confirm password is not same with password.", "error");
             return
         }
 
         if (!/[A-Z]/.test(password)){
-            alert("Password must contain at least 1 capital letter.")
+            showToast("Password must contain at least 1 capital letter.", "error")
             return
         }
 
         if (!/[a-z]/.test(password)){
-            alert("Password must contain at least 1 small letter.")
+            showToast("Password must contain at least 1 small letter.", "error")
             return
         }
 
         if(!/[^A-Za-z0-9]/.test(password)){
-            alert("Password must contain at least 1 special character.")
+            showToast("Password must contain at least 1 special character.", "error")
             return
         }
 
@@ -75,14 +77,14 @@ function SignupPage(){
             const result = await response.json();
 
             if (response.ok) {
-                alert("Account created successfully! Please log in.");
+                showToast("Account created successfully! Please log in.", "success");
                 navigate("/login");
             } else {
-                alert("Signup failed: " + result.message);
+                showToast("Signup failed: " + result.message, "error");
             }
         } catch (err) {
             console.error("Connection error:", err);
-            alert("Could not connect to the server.");
+            showToast("Could not connect to the server.", "error");
         }
     }
 

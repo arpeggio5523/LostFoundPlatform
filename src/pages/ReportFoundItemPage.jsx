@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { authHeaders, buildApiUrl } from "../services/apiClient";
 import { getAuthUser } from "../services/authState";
+import { useToast } from "../context/ToastContext";
 
 const CATEGORIES = [
     "All Categories",
@@ -45,6 +46,7 @@ const inputErrorClass = "w-full px-3.5 py-2.5 rounded-lg border border-red-400 b
 
 export default function ReportFoundItemPage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const editId = searchParams.get("edit"); // gets the ID if editing
   const fileInputRef = useRef(null);
@@ -206,7 +208,7 @@ export default function ReportFoundItemPage() {
         throw new Error(error.error || error.message || "Failed to submit report");
       }
 
-      alert(editId ? "Item updated successfully!" : "Report submitted successfully!");
+      showToast(editId ? "Item updated successfully!" : "Report submitted successfully!", "success");
       navigate("/found-items");
     } catch (error) {
       setSubmitError(error.message || "Failed to submit report");

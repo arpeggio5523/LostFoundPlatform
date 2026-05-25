@@ -116,66 +116,6 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
           );
         })}
       </nav>
-
-      {/* Bottom actions */}
-      <div style={{ padding: "0 10px", borderTop: "1px solid var(--color-border-subtle)", paddingTop: 16 }}>
-        <button
-          onClick={() => navigate("/report-lost")}
-          title={isCollapsed ? "Report Lost Item" : undefined}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: isCollapsed ? 0 : 8,
-            justifyContent: isCollapsed ? "center" : "flex-start",
-            width: isCollapsed ? 46 : "100%",
-            height: isCollapsed ? 46 : "auto",
-            padding: isCollapsed ? 0 : "10px 12px",
-            borderRadius: isCollapsed ? "50%" : 8,
-            border: "none",
-            background: "var(--color-brand)",
-            color: "var(--color-brand-text)",
-            fontWeight: 600,
-            fontSize: 13.5,
-            cursor: "pointer",
-            marginBottom: 4,
-            transition: "background 0.15s",
-            margin: isCollapsed ? "0 auto 4px" : "0 0 4px",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = "var(--color-brand-hover)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "var(--color-brand)"; }}
-        >
-          <Plus size={isCollapsed ? 20 : 16} style={{ flexShrink: 0 }} />
-          {!isCollapsed && " Report Lost Item"}
-        </button>
-        <button
-          onClick={() => navigate("/report-found")}
-          title={isCollapsed ? "Report Found Item" : undefined}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: isCollapsed ? 0 : 8,
-            justifyContent: isCollapsed ? "center" : "flex-start",
-            width: isCollapsed ? 46 : "100%",
-            height: isCollapsed ? 46 : "auto",
-            padding: isCollapsed ? 0 : "10px 12px",
-            borderRadius: isCollapsed ? "50%" : 8,
-            border: "none",
-            background: "transparent",
-            color: "var(--color-text-secondary)",
-            fontWeight: 600,
-            fontSize: 13.5,
-            cursor: "pointer",
-            marginBottom: 4,
-            transition: "background 0.15s, color 0.15s",
-            margin: isCollapsed ? "0 auto 4px" : "0 0 4px",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = "var(--color-bg-hover)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
-        >
-          <Plus size={isCollapsed ? 20 : 16} style={{ flexShrink: 0 }} />
-          {!isCollapsed && " Report Found Item"}
-        </button>
-      </div>
     </aside>
   );
 }

@@ -16,6 +16,7 @@ export default function ItemDetailPage() {
   const [error, setError] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -52,6 +53,35 @@ export default function ItemDetailPage() {
       navigate(item.type === "Lost" ? "/lost-items" : "/found-items");
     } catch (err) {
       showToast(err.message || "Failed to delete item.", "error");
+    }
+  };
+
+  const handleContactOwner = async () => {
+    setSendingEmail(true);
+    try {
+      const response = await fetch(buildApiUrl(`/api/items/${item._id}/contact`), {
+        method: "POST",
+        headers: authHeaders(),
+      });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || "Failed to send email");
+      }
+
+      showToast(
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <span style={{ fontWeight: "bold" }}>Email Sent!</span>
+          <span style={{ fontWeight: "normal", fontSize: "0.9em" }}>
+            The owner has been notified. They will contact you directly via email if they wish to proceed.
+          </span>
+        </div>,
+        "success"
+      );
+    } catch (err) {
+      showToast(err.message || "Failed to send email.", "error");
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -148,17 +178,23 @@ export default function ItemDetailPage() {
                   <InfoBlock label="Date"     icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString() : "N/A"} />
                 </div>
 
-                {/* Claim / Found CTA */}
-                <button style={{
-                  width: "100%", padding: "16px", background: "var(--color-brand)",
-                  color: "var(--color-brand-text)", border: "none", borderRadius: 12,
-                  fontSize: 15, fontWeight: 700, cursor: "pointer", transition: "background 0.15s",
-                }}
-                  onMouseEnter={e => e.currentTarget.style.background = "var(--color-brand-hover)"}
-                  onMouseLeave={e => e.currentTarget.style.background = "var(--color-brand)"}
-                >
-                  {isLost ? "I found this item" : "Claim Item"}
-                </button>
+                {/* Contact Owner CTA */}
+                {String(item.reportedBy?._id || item.reportedBy) !== String(getCurrentUserId()) && (
+                  <button 
+                    onClick={handleContactOwner}
+                    disabled={sendingEmail}
+                    style={{
+                    width: "100%", padding: "16px", background: "var(--color-brand)",
+                    color: "var(--color-brand-text)", border: "none", borderRadius: 12,
+                    fontSize: 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
+                    transition: "background 0.15s", opacity: sendingEmail ? 0.7 : 1,
+                  }}
+                    onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand-hover)")}
+                    onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand)")}
+                  >
+                    {sendingEmail ? "Sending..." : "Contact owner"}
+                  </button>
+                )}
 
                 {/* Owner Actions (Edit / Delete) */}
                 {String(item.reportedBy?._id || item.reportedBy) === String(getCurrentUserId()) && (

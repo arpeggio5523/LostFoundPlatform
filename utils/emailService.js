@@ -1,4 +1,4 @@
-﻿import nodemailer from "nodemailer";
+import nodemailer from "nodemailer";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 let verifiedTransporter = null;
@@ -87,5 +87,40 @@ export const sendVerificationEmail = async ({ email, fullName, verificationUrl }
       email,
       apiVerificationUrl,
     }),
+  });
+};
+
+export const sendContactOwnerEmail = async ({ ownerEmail, ownerName, postTitle, senderEmail }) => {
+  const transporter = await getTransporter();
+
+  if (!transporter) {
+    if (isDevelopment) {
+      console.warn(
+        "SMTP configuration is missing. Contact Owner email was not sent; using console fallback instead."
+      );
+      console.log(`Contact Owner Email:\nTo: ${ownerEmail}\nSubject: Inquiry regarding your LostFound MY post: ${postTitle}\nFrom: ${senderEmail}`);
+      return;
+    }
+
+    throw new Error("SMTP configuration is missing");
+  }
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to: ownerEmail,
+    subject: `Inquiry regarding your LostFound MY post: ${postTitle}`,
+    text: [
+      `Hi ${ownerName || "there"},`,
+      "",
+      `Someone has contacted you regarding your post "${postTitle}" on LostFound MY.`,
+      "",
+      `You can reach them directly via email at: ${senderEmail}`,
+      "",
+      "Please coordinate with them via email to manage the item recovery or exchange.",
+      "",
+      "Best regards,",
+      "",
+      "The LostFound MY Team",
+    ].join("\n"),
   });
 };

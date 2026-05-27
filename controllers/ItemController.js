@@ -2,6 +2,8 @@
 // It ensures that all required fields are present and correctly formatted before allowing the operation to proceed.
 
 import Item from "../models/Item.js";
+import User from "../models/User.js";
+import { sendContactOwnerEmail } from "../utils/emailService.js";
 
 export const updateItemStatus = async (req, res) => {
   try {
@@ -256,6 +258,45 @@ export const deleteItem = async (req, res) => {
     await item.deleteOne();
     return res.status(200).json({ message: "Item deleted successfully." });
 
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * POST /api/items/:itemId/contact
+ * Send an email to the owner of the item.
+ */
+export const contactOwner = async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.itemId).populate("reportedBy", "fullName email");
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found." });
+    }
+
+    const owner = item.reportedBy;
+    if (!owner) {
+      return res.status(404).json({ error: "Owner not found." });
+    }
+
+    if (String(owner._id) === String(req.user.id)) {
+      return res.status(400).json({ error: "You cannot contact yourself." });
+    }
+
+    const sender = await User.findById(req.user.id);
+    if (!sender) {
+      return res.status(404).json({ error: "Sender not found." });
+    }
+
+    await sendContactOwnerEmail({
+      ownerEmail: owner.email,
+      ownerName: owner.fullName,
+      postTitle: item.title,
+      senderEmail: sender.email,
+    });
+
+    return res.status(200).json({ message: "Email sent successfully." });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

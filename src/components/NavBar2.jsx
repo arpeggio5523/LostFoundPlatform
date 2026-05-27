@@ -10,14 +10,14 @@ function Navbar2(){
     const handleLogout = () => {
         resetTheme();   // revert to light before navigating away
         clearAuth();    // clear stored token + user
-        navigate("/login");
+        navigate("/");
     };
 
     return(
         <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-[var(--color-border)] bg-white dark:bg-[var(--color-bg-surface)] transition-colors duration-200">
             <div className="flex w-full items-center justify-between px-8 py-5">
             {/* left logo*/}
-            <Link to="/login" className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700 dark:bg-[var(--color-brand-active-bg)] text-white shadow-sm">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

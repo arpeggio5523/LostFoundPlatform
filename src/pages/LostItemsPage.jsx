@@ -43,7 +43,7 @@ export default function LostItemsPage() {
   const handleLogout = () => {
     resetTheme();
     clearAuth();
-    navigate("/login");
+    navigate("/");
   };
   const [search, setSearch]     = useState("");
   const [category, setCategory] = useState("All Categories");

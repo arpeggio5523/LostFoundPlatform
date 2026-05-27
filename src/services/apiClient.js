@@ -97,7 +97,7 @@ export async function apiFetch(path, options = {}) {
         isRefreshing = false;
         refreshSubscribers = [];
         clearAuth();
-        window.location.href = "/login";
+        window.location.href = "/";
         return Promise.reject(err);
       }
     }

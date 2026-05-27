@@ -40,7 +40,7 @@ export default function FoundItemsPage() {
   const handleLogout = () => {
     resetTheme();
     clearAuth();
-    navigate("/login");
+    navigate("/");
   };
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);

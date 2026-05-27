@@ -14,13 +14,21 @@ function ProfilePage() {
   const handleLogout = () => {
     resetTheme();
     clearAuth();
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
   const currentUser = getAuthUser();
   console.log("currentUser:", currentUser);
   const [userPosts, setUserPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  useEffect(() => {
+    const user = getAuthUser();
+
+    if (!user) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
   useEffect(() => {
     apiFetch("/api/items/my")
       .then((res) => res.json())

@@ -5,7 +5,7 @@ import ItemCard from "../components/ItemCard";
 import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { LogOut } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
-import { clearAuth } from "../services/authState";
+import { getAuthUser, clearAuth } from "../services/authState";
 
 const CATEGORIES = [
     "All Categories",
@@ -40,7 +40,7 @@ export default function FoundItemsPage() {
   const handleLogout = () => {
     resetTheme();
     clearAuth();
-    navigate("/");
+    navigate("/login", { replace: true });
   };
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +50,14 @@ export default function FoundItemsPage() {
   const [location, setLocation] = useState("All Locations");
   const [status, setStatus]     = useState("All Status");
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    const user = getAuthUser();
+
+    if (!user) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const fetchItems = async () => {

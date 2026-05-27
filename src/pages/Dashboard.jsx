@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { LogOut, Search, PlusCircle, List, ArrowRight } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
-import { clearAuth } from "../services/authState";
+import { getAuthUser, clearAuth } from "../services/authState";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -13,8 +13,16 @@ export default function Dashboard() {
   const handleLogout = () => {
     resetTheme();
     clearAuth();
-    navigate("/");
+    navigate("/login", { replace: true });
   };
+
+  useEffect(() => {
+    const user = getAuthUser();
+
+    if (!user) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
 
   return (
     <div className="flex min-h-screen bg-[var(--color-bg-base)] transition-colors duration-200 font-sans">

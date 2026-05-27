@@ -66,6 +66,7 @@ function LoginPage(){
             try {
                 const response = await fetch(buildApiUrl("/api/auth/login"), {
                     method: "POST",
+                    credentials: "include",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(formData),
                 });
@@ -113,6 +114,7 @@ function LoginPage(){
             try {
                 const response = await fetch(buildApiUrl("/api/auth/resend-verification"), {
                     method: "POST",
+                    credentials: "include",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email: formData.email }),
                 });

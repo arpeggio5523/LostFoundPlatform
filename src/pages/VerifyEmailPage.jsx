@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import AuthButton from "../components/AuthButton";
 import AuthInput from "../components/AuthInput";
-import { buildApiUrl } from "../services/apiClient";
+import { buildApiUrl, apiFetch } from "../services/apiClient";
 
 const verificationRequestCache = new Map();
 
@@ -13,7 +13,7 @@ const verifyEmailRequest = async ({ email, token }) => {
   if (!verificationRequestCache.has(cacheKey)) {
     verificationRequestCache.set(
       cacheKey,
-      fetch(buildApiUrl("/api/auth/verify-email"), {
+      apiFetch("/api/auth/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, token }),
@@ -97,7 +97,7 @@ function VerifyEmailPage() {
     setIsResending(true);
 
     try {
-      const response = await fetch(buildApiUrl("/api/auth/resend-verification"), {
+      const response = await apiFetch("/api/auth/resend-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: resendEmail }),

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
-import { buildApiUrl } from "../services/apiClient";
+import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { LogOut } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { clearAuth } from "../services/authState";
@@ -55,7 +55,7 @@ export default function FoundItemsPage() {
     const fetchItems = async () => {
       try {
         setLoading(true);
-        const response = await fetch(buildApiUrl("/api/items?type=Found"));
+        const response = await apiFetch("/api/items?type=Found");
         if (!response.ok) throw new Error("Failed to fetch items");
         const data = await response.json();
 

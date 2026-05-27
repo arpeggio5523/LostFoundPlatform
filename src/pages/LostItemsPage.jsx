@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
 import { Funnel, LogOut } from "lucide-react";
-import { buildApiUrl } from "../services/apiClient";
+import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { useTheme } from "../context/ThemeContext";
 import { clearAuth } from "../services/authState";
 
@@ -58,7 +58,7 @@ export default function LostItemsPage() {
     const fetchItems = async () => {
       try {
         setLoading(true);
-        const response = await fetch(buildApiUrl("/api/items?type=Lost"));
+        const response = await apiFetch("/api/items?type=Lost");
         if (!response.ok) throw new Error("Failed to fetch lost items");
         const data = await response.json();
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { getAuthUser } from "../services/authState";
-import { buildApiUrl, authHeaders } from "../services/apiClient";
+import { buildApiUrl, authHeaders, apiFetch } from "../services/apiClient";
 
 
 function ProfilePage() {
@@ -13,7 +13,7 @@ function ProfilePage() {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    fetch(buildApiUrl("/api/items/my"), { headers: authHeaders() })
+    apiFetch("/api/items/my")
       .then((res) => res.json())
       .then((data) => setUserPosts(Array.isArray(data.data) ? data.data : []))
       .catch(() => setUserPosts([]))

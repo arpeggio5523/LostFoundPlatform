@@ -3,7 +3,7 @@ import Sidebar from "../components/Sidebar";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getCurrentUserId } from "../services/authState";
-import { buildApiUrl, authHeaders } from "../services/apiClient";
+import { buildApiUrl, authHeaders, apiFetch } from "../services/apiClient";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../context/ToastContext";
 
@@ -22,7 +22,7 @@ export default function ItemDetailPage() {
   useEffect(() => {
     const fetchItem = async () => {
       try {
-        const response = await fetch(buildApiUrl(`/api/items/${id}`));
+        const response = await apiFetch(`/api/items/${id}`);
         if (!response.ok) throw new Error("Item not found");
         const data = await response.json();
         setItem(data.data);
@@ -39,7 +39,7 @@ export default function ItemDetailPage() {
     setShowDeleteModal(false);
 
     try {
-      const response = await fetch(buildApiUrl(`/api/items/${item._id}`), {
+      const response = await apiFetch(`/api/items/${item._id}`, {
         method: "DELETE",
         headers: authHeaders(),
       });
@@ -59,7 +59,7 @@ export default function ItemDetailPage() {
   const handleContactOwner = async () => {
     setSendingEmail(true);
     try {
-      const response = await fetch(buildApiUrl(`/api/items/${item._id}/contact`), {
+      const response = await apiFetch(`/api/items/${item._id}/contact`, {
         method: "POST",
         headers: authHeaders(),
       });

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
+import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { getCurrentUserId } from "../services/authState";
 import { useForceLightMode } from "../hooks/useForceLightMode";
 import { useToast } from "../context/ToastContext";
@@ -68,7 +69,7 @@ function SignupPage(){
         };
         
         try {
-            const response = await fetch("http://localhost:3000/api/auth/signup", {
+            const response = await apiFetch("/api/auth/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(signupData),

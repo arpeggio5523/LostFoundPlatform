@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { authHeaders, buildApiUrl } from "../services/apiClient";
+import { authHeaders, buildApiUrl, apiFetch } from "../services/apiClient";
 import { getAuthUser } from "../services/authState";
 import { useToast } from "../context/ToastContext";
 
@@ -65,7 +65,7 @@ export default function ReportFoundItemPage() {
  // Pre-fill form if editing
   useEffect(() => {
     if (!editId) return;
-    fetch(buildApiUrl(`/api/items/${editId}`))
+    apiFetch(`/api/items/${editId}`)
       .then(res => res.json())
       .then(data => {
         const item = data.data;
@@ -176,7 +176,7 @@ export default function ReportFoundItemPage() {
       // Resolve images: existing images are plain URL strings in the unified model
       const imageUrls = imageData.map(img => img.url);
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
         headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({

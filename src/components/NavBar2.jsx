@@ -33,7 +33,7 @@ function Navbar2(){
                         <line x1="16" y1="16.5" x2="19" y2="19" />
                     </svg>
                 </div>
-                <span className="text-xl font-semibold text-gray-900 dark:text-[var(--color-text-primary)]">
+                <span className="text-xl font-semibold text-[var(--color-brand)]">
                     LostFound MY
                 </span>
             </Link>

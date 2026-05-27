@@ -37,7 +37,7 @@ export default function ItemCard({ item, dateLabel }) {
         {/* Content */}
         <div className="p-4">
             <div className="flex items-center justify-between gap-2 mb-1.5">
-                <h3 className="text-sm font-bold text-gray-900 dark:text-[var(--color-text-primary)] leading-snug flex-1">{item.title}</h3>
+                <h3 className="text-sm font-bold text-[var(--color-brand)] leading-snug flex-1">{item.title}</h3>
                 <StatusBadge status={item.status} />
             </div>
 

@@ -402,7 +402,7 @@ export default function ReportLostItemPage() {
 
         {/* Actions */}
         <div className="flex gap-3 mt-7">
-          <button onClick={handleSubmit} className="flex-1 py-3 bg-[var(--color-text-primary)] text-[var(--color-bg-base)] border-none rounded-xl text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity">
+          <button onClick={handleSubmit} className="flex-1 py-3 bg-[var(--color-brand)] text-[var(--color-brand-text)] border-none rounded-xl text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity">
           {editId ? "Save Changes" : "Submit Report"}
           </button>
           <button

@@ -23,14 +23,14 @@ function Navbar(){
                         </svg>
                         </div>
                 </div>
-                <span className="text-xl font-semibold text-gray-900 dark:text-[var(--color-text-primary)]">
+                <span className="text-xl font-semibold text-[var(--color-brand)]">
                     LostFound MY
                 </span>
             </Link>
 
             {/* right nav*/}
             <nav className="flex items-center gap-6">
-                <Link to="/login" className="rounded-lg bg-white dark:bg-transparent px-5 py-2 text-sm font-semibold text-gray-900 dark:text-[var(--color-text-primary)] hover:bg-gray-100 dark:hover:bg-[var(--color-bg-raised)]">
+                <Link to="/login" className="rounded-lg bg-white dark:bg-transparent px-5 py-2 text-sm font-semibold text-[var(--color-brand)] hover:bg-gray-100 dark:hover:bg-[var(--color-bg-raised)]">
                     Login
                 </Link>
                 <Link to="/signup" className="rounded-lg bg-[var(--color-brand)] px-5 py-2 text-sm font-semibold text-[var(--color-brand-text)] hover:opacity-90 transition-opacity">

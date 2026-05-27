@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { LogOut } from "lucide-react";
+import { LogOut, Search, PlusCircle, List, ArrowRight } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { clearAuth } from "../services/authState";
 
@@ -25,136 +25,145 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main 
-        className="flex-1 p-8 overflow-y-auto transition-[margin] duration-300 ease-in-out"
+        className="flex-1 p-6 md:p-12 overflow-y-auto transition-[margin] duration-300 ease-in-out"
         style={{ marginLeft: isCollapsed ? 70 : 220 }}
       >
-        
-        {/* Header with Title and Logout */}
-        <div className="flex items-start justify-between mb-10">
-          <div>
-            <h1 className="text-4xl font-bold text-[var(--color-text-primary)]">
-              Welcome to Your LostFound MY Dashboard
-            </h1>
-            <p className="text-[var(--color-text-secondary)] mt-2">
-              Connecting you to your lost property and helping others find theirs.
-            </p>
-          </div>
+        <div className="max-w-6xl mx-auto space-y-10">
           
-          <div className="flex gap-3 items-center">
+          {/* Header with Title and Logout */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[var(--color-border)] pb-8">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-extrabold text-[var(--color-text-primary)] tracking-tight">
+                Dashboard
+              </h1>
+              <p className="text-lg text-[var(--color-text-secondary)] mt-3 max-w-xl">
+                Manage your reports, help the community, and find what you've lost.
+              </p>
+            </div>
+            
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 bg-[#064e3b] hover:bg-[#022c22] text-white border-none rounded-xl px-5 py-3 font-bold text-sm cursor-pointer transition-colors"
+              className="group flex items-center gap-2 bg-[#064e3b] hover:bg-[#022c22] text-white rounded-xl px-6 py-3 font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md"
             >
-              <LogOut size={18} />
+              <LogOut size={18} className="text-white/80 group-hover:text-white transition-colors" />
               Logout
             </button>
           </div>
-        </div>
 
-        {/* Top Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
-          {/* Card 1 */}
-          <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl shadow-sm p-8 text-center transition-colors duration-200">
-            <h2 className="text-2xl font-bold mb-4 text-[var(--color-text-primary)]">
-              Report Lost Item
-            </h2>
-
-            <p className="text-[var(--color-text-secondary)] mb-8">
-              Post details about what you've lost so the community can help you
-              find it.
-            </p>
-
-            <button
-              onClick={() => navigate("/report-lost")}
-              className="flex items-center justify-center gap-2 mx-auto bg-[var(--color-brand)] text-[var(--color-brand-text)] rounded-xl px-5 py-3 font-bold text-sm hover:opacity-90 cursor-pointer transition-opacity"
-            >
-              <span className="text-lg leading-none">+</span>
-              Report Lost Item
-            </button>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl shadow-sm p-8 text-center transition-colors duration-200">
-            <h2 className="text-2xl font-bold mb-4 text-[var(--color-text-primary)]">
-              Found an Item?
-            </h2>
-
-            <p className="text-[var(--color-text-secondary)] mb-8">
-              Found something on campus? Report it to help it get back to its
-              owner.
-            </p>
-
-            <button
-              onClick={() => navigate("/report-found")}
-              className="flex items-center justify-center gap-2 mx-auto bg-[var(--color-brand)] text-[var(--color-brand-text)] rounded-xl px-5 py-3 font-bold text-sm hover:opacity-90 cursor-pointer transition-opacity"
-            >
-              <span className="text-lg leading-none">+</span>
-              Report Found Item
-            </button>
-          </div>
-
-          {/* Card 3 */}
-          <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl shadow-sm p-8 text-center transition-colors duration-200">
-            <h2 className="text-2xl font-bold mb-4 text-[var(--color-text-primary)]">
-              Browse Found Listings
-            </h2>
-
-            <p className="text-[var(--color-text-secondary)] mb-8">
-              Search the latest community reports for items matching what you've
-              lost.
-            </p>
-
-            <button
-              onClick={() => navigate("/found-items")}
-              className="bg-[var(--color-brand)] text-[var(--color-brand-text)] rounded-xl px-5 py-3 font-bold text-sm hover:opacity-90 cursor-pointer transition-opacity border-none"
-            >
-              Go to Found Item List
-            </button>
-          </div>
-        </div>
-
-        {/* How It Works */}
-        <section className="mt-12 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl shadow-sm p-10 max-w-4xl mx-auto transition-colors duration-200">
-          <h2 className="text-3xl font-bold text-center mb-10 text-[var(--color-text-primary)]">
-            How LostFound MY Works
-          </h2>
-
-          <div className="flex flex-col md:flex-row items-center pt-6 justify-center gap-6">
+          {/* Primary Actions Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
-            <div className="text-center">
-              <div className="w-20 h-20 bg-[var(--color-brand-active-bg)] text-[var(--color-brand)] rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                1
+            {/* Card 1: Report Lost */}
+            <div 
+              onClick={() => navigate("/report-lost")}
+              className="group relative overflow-hidden bg-gradient-to-br from-[var(--color-bg-surface)] to-[var(--color-bg-raised)] border border-[var(--color-border)] rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1"
+            >
+              <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
+                <Search size={180} />
               </div>
-
-              <p className="font-semibold text-lg text-[var(--color-text-primary)]">Report</p>
-            </div>
-
-            <div className="hidden md:flex items-center text-[var(--color-border)] text-4xl">
-              →
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 bg-[var(--color-brand-active-bg)] text-[var(--color-brand)] rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                2
+              <div className="relative z-10">
+                <div className="h-14 w-14 rounded-2xl bg-[var(--color-brand-active-bg)] text-[var(--color-brand)] flex items-center justify-center mb-6 shadow-sm">
+                  <Search size={28} strokeWidth={2.5} />
+                </div>
+                <h2 className="text-2xl font-bold mb-3 text-[var(--color-text-primary)]">I lost something</h2>
+                <p className="text-[var(--color-text-secondary)] mb-8 max-w-sm">
+                  Create a report with details of your missing item so the community can keep an eye out for it.
+                </p>
+                <div className="flex items-center text-[var(--color-brand)] font-semibold gap-2 group-hover:gap-4 transition-all bg-[var(--color-brand)]/10 w-max px-4 py-2 rounded-lg">
+                  Report Lost Item <ArrowRight size={18} />
+                </div>
               </div>
-
-              <p className="font-semibold text-lg text-[var(--color-text-primary)]">Match</p>
             </div>
 
-            <div className="hidden md:flex items-center text-[var(--color-border)] text-4xl">
-              →
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 bg-[var(--color-brand-active-bg)] text-[var(--color-brand)] rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                3
+            {/* Card 2: Report Found */}
+            <div 
+              onClick={() => navigate("/report-found")}
+              className="group relative overflow-hidden bg-gradient-to-br from-[var(--color-bg-surface)] to-[var(--color-bg-raised)] border border-[var(--color-border)] rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1"
+            >
+              <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
+                <PlusCircle size={180} />
               </div>
-
-              <p className="font-semibold text-lg text-[var(--color-text-primary)]">Connect</p>
+              <div className="relative z-10">
+                <div className="h-14 w-14 rounded-2xl bg-[var(--color-brand-active-bg)] text-[var(--color-brand)] flex items-center justify-center mb-6 shadow-sm">
+                  <PlusCircle size={28} strokeWidth={2.5} />
+                </div>
+                <h2 className="text-2xl font-bold mb-3 text-[var(--color-text-primary)]">I found something</h2>
+                <p className="text-[var(--color-text-secondary)] mb-8 max-w-sm">
+                  Report an item you discovered on campus to help reunite it with its rightful owner safely.
+                </p>
+                <div className="flex items-center text-[var(--color-brand)] font-semibold gap-2 group-hover:gap-4 transition-all bg-[var(--color-brand)]/10 w-max px-4 py-2 rounded-lg">
+                  Report Found Item <ArrowRight size={18} />
+                </div>
+              </div>
             </div>
           </div>
-        </section>
+
+          {/* Secondary Action: Browse */}
+          <div 
+            onClick={() => navigate("/found-items")}
+            className="group flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 cursor-pointer transition-all duration-300 hover:border-[var(--color-brand)] hover:shadow-md"
+          >
+            <div className="flex items-center gap-6 mb-6 sm:mb-0">
+              <div className="h-14 w-14 rounded-full bg-[var(--color-bg-raised)] text-[var(--color-text-primary)] flex items-center justify-center shrink-0 group-hover:bg-[var(--color-brand)] group-hover:text-white transition-colors duration-300">
+                <List size={26} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-[var(--color-text-primary)]">Browse all found listings</h3>
+                <p className="text-[var(--color-text-secondary)] mt-1">Search through recent community discoveries to see if your item was found.</p>
+              </div>
+            </div>
+            <button className="w-full sm:w-auto bg-[var(--color-brand)] text-[var(--color-brand-text)] px-8 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity whitespace-nowrap">
+              View Database
+            </button>
+          </div>
+
+          {/* How It Works (Minimal Version) */}
+          <div className="pt-10 pb-8">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="h-px bg-[var(--color-border)] flex-1"></div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-muted)] text-center">
+                How the process works
+              </h3>
+              <div className="h-px bg-[var(--color-border)] flex-1"></div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+              {/* Decorative line behind steps (visible only on md+) */}
+              <div className="hidden md:block absolute top-6 left-1/6 right-1/6 h-[2px] bg-[var(--color-border)] -z-10 opacity-50"></div>
+
+              <div className="flex flex-col items-center text-center">
+                <div className="h-12 w-12 rounded-full bg-[var(--color-bg-surface)] border-2 border-[var(--color-border)] text-[var(--color-text-primary)] flex items-center justify-center font-bold text-lg mb-5 shadow-sm transition-transform hover:scale-110 duration-200">
+                  1
+                </div>
+                <h4 className="font-bold text-lg text-[var(--color-text-primary)] mb-2">Report</h4>
+                <p className="text-sm text-[var(--color-text-secondary)] max-w-[220px]">
+                  Submit a detailed report of the item you lost or found.
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center text-center">
+                <div className="h-12 w-12 rounded-full bg-[var(--color-bg-surface)] border-2 border-[var(--color-brand)] text-[var(--color-brand)] flex items-center justify-center font-bold text-lg mb-5 shadow-md shadow-[var(--color-brand)]/20 transition-transform hover:scale-110 duration-200">
+                  2
+                </div>
+                <h4 className="font-bold text-lg text-[var(--color-text-primary)] mb-2">Match</h4>
+                <p className="text-sm text-[var(--color-text-secondary)] max-w-[220px]">
+                  Our community browses the database to find matching items.
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center text-center">
+                <div className="h-12 w-12 rounded-full bg-[var(--color-bg-surface)] border-2 border-[var(--color-border)] text-[var(--color-text-primary)] flex items-center justify-center font-bold text-lg mb-5 shadow-sm transition-transform hover:scale-110 duration-200">
+                  3
+                </div>
+                <h4 className="font-bold text-lg text-[var(--color-text-primary)] mb-2">Connect</h4>
+                <p className="text-sm text-[var(--color-text-secondary)] max-w-[220px]">
+                  Contact the owner directly via email to arrange a safe return.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+        </div>
       </main>
     </div>
   );

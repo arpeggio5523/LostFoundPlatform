@@ -58,7 +58,38 @@ function ProfilePage() {
 
       <main style={{ marginLeft: 220, flex: 1, padding: "36px 40px" }}>
         {/* Header */}
-        <h1 className="mb-8 text-3xl font-semibold">My Profile</h1>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            marginBottom: 28,
+          }}
+        >
+          <div>
+            <h1
+              style={{
+                margin: 0,
+                fontSize: 28,
+                fontWeight: 800,
+                color: "var(--color-brand)",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              My Profile
+            </h1>
+
+            <p
+              style={{
+                margin: "4px 0 0",
+                fontSize: 14,
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              View and manage your account information and activity
+            </p>
+          </div>
+        </div>
 
         <div
           className="grid gap-6"

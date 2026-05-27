@@ -148,17 +148,19 @@ export default function ItemDetailPage() {
                   <InfoBlock label="Date"     icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString() : "N/A"} />
                 </div>
 
-                {/* Claim / Found CTA */}
-                <button style={{
-                  width: "100%", padding: "16px", background: "var(--color-brand)",
-                  color: "var(--color-brand-text)", border: "none", borderRadius: 12,
-                  fontSize: 15, fontWeight: 700, cursor: "pointer", transition: "background 0.15s",
-                }}
-                  onMouseEnter={e => e.currentTarget.style.background = "var(--color-brand-hover)"}
-                  onMouseLeave={e => e.currentTarget.style.background = "var(--color-brand)"}
-                >
-                  {isLost ? "I found this item" : "Claim Item"}
-                </button>
+                {/* Contact Owner CTA */}
+                {String(item.reportedBy?._id || item.reportedBy) !== String(getCurrentUserId()) && (
+                  <button style={{
+                    width: "100%", padding: "16px", background: "var(--color-brand)",
+                    color: "var(--color-brand-text)", border: "none", borderRadius: 12,
+                    fontSize: 15, fontWeight: 700, cursor: "pointer", transition: "background 0.15s",
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--color-brand-hover)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "var(--color-brand)"}
+                  >
+                    Contact owner
+                  </button>
+                )}
 
                 {/* Owner Actions (Edit / Delete) */}
                 {String(item.reportedBy?._id || item.reportedBy) === String(getCurrentUserId()) && (

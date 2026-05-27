@@ -43,7 +43,7 @@ export default function Dashboard() {
           <div className="flex gap-3 items-center">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white border-none rounded-xl px-5 py-3 font-bold text-sm cursor-pointer transition-colors"
+              className="flex items-center gap-2 bg-[#064e3b] hover:bg-[#022c22] text-white border-none rounded-xl px-5 py-3 font-bold text-sm cursor-pointer transition-colors"
             >
               <LogOut size={18} />
               Logout

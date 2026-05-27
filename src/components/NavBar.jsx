@@ -33,7 +33,7 @@ function Navbar(){
                 <Link to="/login" className="rounded-lg bg-white dark:bg-transparent px-5 py-2 text-sm font-semibold text-gray-900 dark:text-[var(--color-text-primary)] hover:bg-gray-100 dark:hover:bg-[var(--color-bg-raised)]">
                     Login
                 </Link>
-                <Link to="/signup" className="rounded-lg bg-gray-950 dark:bg-[var(--color-brand-active-bg)] px-5 py-2 text-sm font-semibold text-white dark:text-[var(--color-brand)] hover:bg-gray-800 dark:hover:bg-[var(--color-bg-raised)]">
+                <Link to="/signup" className="rounded-lg bg-[var(--color-brand)] px-5 py-2 text-sm font-semibold text-[var(--color-brand-text)] hover:opacity-90 transition-opacity">
                     Sign Up
                 </Link>
             </nav>

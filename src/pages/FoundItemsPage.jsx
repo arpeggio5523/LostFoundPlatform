@@ -138,7 +138,7 @@ export default function FoundItemsPage() {
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                background: "#dc2626",
+                background: "#064e3b",
                 color: "white",
                 border: "none",
                 borderRadius: 10,
@@ -149,10 +149,10 @@ export default function FoundItemsPage() {
                 transition: "background 0.15s",
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = "#b91c1c";
+                e.currentTarget.style.background = "#022c22";
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.background = "#dc2626";
+                e.currentTarget.style.background = "#064e3b";
               }}
             >
               <LogOut size={18} />

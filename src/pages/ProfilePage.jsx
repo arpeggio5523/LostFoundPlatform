@@ -1,12 +1,21 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { getAuthUser } from "../services/authState";
+import { getAuthUser, clearAuth } from "../services/authState";
 import { buildApiUrl, authHeaders, apiFetch } from "../services/apiClient";
+import { LogOut } from "lucide-react";
+import { useTheme } from "../context/ThemeContext";
 
 
 function ProfilePage() {
   const navigate = useNavigate();
+  const { resetTheme } = useTheme();
+
+  const handleLogout = () => {
+    resetTheme();
+    clearAuth();
+    navigate("/login");
+  };
   const currentUser = getAuthUser();
   console.log("currentUser:", currentUser);
   const [userPosts, setUserPosts] = useState([]);
@@ -181,6 +190,14 @@ function ProfilePage() {
                   className="text-xs font-medium px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition"
                 >
                   + Found Item
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg bg-[#064e3b] text-white hover:bg-[#022c22] transition"
+                >
+                  <LogOut size={14} />
+                  Logout
                 </button>
               </div>
             </div>

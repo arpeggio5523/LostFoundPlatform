@@ -2,7 +2,7 @@ function AuthButton({ children, type = "button", ...props }) {
     return (
         <button
             type={type}
-            className="w-full rounded-lg bg-black dark:bg-[var(--color-bg-raised)] dark:border dark:border-[var(--color-border)] px-4 py-3 font-semibold text-white dark:text-[var(--color-text-primary)] transition hover:bg-gray-900 dark:hover:bg-[var(--color-border)]"
+            className="w-full rounded-lg bg-[var(--color-brand)] px-4 py-3 font-semibold text-[var(--color-brand-text)] transition hover:opacity-90 border-none"
             {...props}
         >
             {children}

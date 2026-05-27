@@ -24,7 +24,7 @@ function Navbar(){
                         </div>
                 </div>
                 <span className="text-xl font-semibold text-gray-900 dark:text-[var(--color-text-primary)]">
-                    FindIt
+                    LostFound MY
                 </span>
             </Link>
 

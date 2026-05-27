@@ -28,6 +28,10 @@ export function buildApiUrl(path) {
     return API_BASE_URL;
   }
 
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+
   return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 

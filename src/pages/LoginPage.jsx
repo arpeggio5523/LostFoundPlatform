@@ -89,7 +89,7 @@ function LoginPage(){
                         }
                     }
                     setFeedbackMessage("");
-                    navigate("/found-items");
+                    navigate("/dashboard");
                 } else {
                     const nextMessage = result.message || result.error || "Invalid credentials";
                     setFeedbackMessage(nextMessage);

@@ -31,12 +31,34 @@ export default function Dashboard() {
         <div className="max-w-6xl mx-auto space-y-10">
           
           {/* Header with Title and Logout */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[var(--color-border)] pb-8">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              marginBottom: 28,
+            }}
+          >
             <div>
-              <h1 className="text-4xl md:text-5xl font-extrabold text-[var(--color-text-primary)] tracking-tight">
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: 28,
+                  fontWeight: 800,
+                  color: "var(--color-brand)",
+                  letterSpacing: "-0.02em",
+                }}
+              >
                 Dashboard
               </h1>
-              <p className="text-lg text-[var(--color-text-secondary)] mt-3 max-w-xl">
+
+              <p
+                style={{
+                  margin: "4px 0 0",
+                  fontSize: 14,
+                  color: "var(--color-text-secondary)",
+                }}
+              >
                 Manage your reports, help the community, and find what you've lost.
               </p>
             </div>

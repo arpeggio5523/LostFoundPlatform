@@ -187,7 +187,7 @@ export default function ItemDetailPage() {
                 {/* Badges */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Badge type={item.type} label={item.type} />
+                    {/* <Badge type={item.type} label={item.type} /> */}
                     <Badge type={effectiveStatus} label={effectiveStatus} isStatus />
                   </div>
                 </div>

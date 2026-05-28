@@ -77,7 +77,7 @@ const buildItemPayload = (body, userId) => ({
   color:       body.color       || undefined,
   distMark:    body.distMark    || undefined,
   images:      body.images      || [],
-  status:      body.type,              // lost/found items begin in their own type state
+  status:      "Approved",             
   reportedBy:  userId,                  // from auth middleware
   user:        body.user,               // display name passed from client
 });

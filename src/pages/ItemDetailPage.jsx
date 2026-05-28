@@ -17,6 +17,8 @@ export default function ItemDetailPage() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [savingStatus, setSavingStatus] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -34,6 +36,11 @@ export default function ItemDetailPage() {
     };
     fetchItem();
   }, [id]);
+
+  useEffect(() => {
+    if (!item) return;
+    setSelectedStatus(item.status === "Returned" ? "Returned" : item.type);
+  }, [item]);
 
   const handleDelete = async () => {
     setShowDeleteModal(false);
@@ -85,10 +92,41 @@ export default function ItemDetailPage() {
     }
   };
 
+  const handleStatusUpdate = async () => {
+    if (!item || selectedStatus === "" || selectedStatus === (item.status === "Returned" ? "Returned" : item.type)) {
+      return;
+    }
+
+    setSavingStatus(true);
+    try {
+      const response = await apiFetch(`/api/items/${item._id}/status`, {
+        method: "PUT",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ status: selectedStatus }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to update item status.");
+      }
+
+      setItem(result.data);
+      setSelectedStatus(result.data.status === "Returned" ? "Returned" : result.data.type);
+      showToast("Item status updated successfully.", "success");
+    } catch (err) {
+      showToast(err.message || "Failed to update item status.", "error");
+    } finally {
+      setSavingStatus(false);
+    }
+  };
+
   if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>Loading...</div>;
   if (error || !item) return <div style={{ padding: 40, color: "#f87171" }}>Item not found.</div>;
 
   const isLost = item.type === "Lost";
+  const isOwner = String(item.reportedBy?._id || item.reportedBy) === String(getCurrentUserId());
+  const effectiveStatus = item.status === "Returned" ? "Returned" : item.type;
+  const statusOptions = isLost ? ["Lost", "Returned"] : ["Found", "Returned"];
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--color-bg-base)", transition: "background 0.2s ease" }}>
@@ -149,8 +187,8 @@ export default function ItemDetailPage() {
                 {/* Badges */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Badge type={item.type} label={item.type} />
-                    <Badge type={item.status} label={item.status} isStatus />
+                    {/* <Badge type={item.type} label={item.type} /> */}
+                    <Badge type={effectiveStatus} label={effectiveStatus} isStatus />
                   </div>
                 </div>
 
@@ -179,7 +217,7 @@ export default function ItemDetailPage() {
                 </div>
 
                 {/* Contact Owner CTA */}
-                {String(item.reportedBy?._id || item.reportedBy) !== String(getCurrentUserId()) && (
+                {!isOwner && (
                   <button 
                     onClick={handleContactOwner}
                     disabled={sendingEmail}
@@ -196,35 +234,81 @@ export default function ItemDetailPage() {
                   </button>
                 )}
 
-                {/* Owner Actions (Edit / Delete) */}
-                {String(item.reportedBy?._id || item.reportedBy) === String(getCurrentUserId()) && (
+                {/* Owner Actions (Edit / Delete / Status Update) */}
+                {isOwner && (
                   <div style={{ marginTop: 24, border: "1px solid var(--color-border)", borderRadius: 16, padding: 24 }}>
                     <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 16 }}>Actions</h3>
-                    <div style={{ display: "flex", gap: 12 }}>
-                      <button
-                        onClick={() => navigate(item.type === "Lost" ? `/report-lost?edit=${item._id}` : `/report-found?edit=${item._id}`)}
-                        style={{
-                          flex: 1, padding: "12px", background: "#2563eb", color: "#fff",
-                          border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer",
-                          transition: "background 0.15s",
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = "#1d4ed8"}
-                        onMouseLeave={e => e.currentTarget.style.background = "#2563eb"}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => setShowDeleteModal(true)}
-                        style={{
-                          flex: 1, padding: "12px", background: "#dc2626", color: "#fff",
-                          border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer",
-                          transition: "background 0.15s",
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = "#b91c1c"}
-                        onMouseLeave={e => e.currentTarget.style.background = "#dc2626"}
-                      >
-                        Delete
-                      </button>
+
+                    <div style={{ display: "grid", gap: 16 }}>
+                      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                        <button
+                          onClick={() => navigate(item.type === "Lost" ? `/report-lost?edit=${item._id}` : `/report-found?edit=${item._id}`)}
+                          style={{
+                            flex: 1, minWidth: 120, padding: "12px", background: "#2563eb", color: "#fff",
+                            border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer",
+                            transition: "background 0.15s",
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = "#1d4ed8"}
+                          onMouseLeave={e => e.currentTarget.style.background = "#2563eb"}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteModal(true)}
+                          style={{
+                            flex: 1, minWidth: 120, padding: "12px", background: "#dc2626", color: "#fff",
+                            border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer",
+                            transition: "background 0.15s",
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = "#b91c1c"}
+                          onMouseLeave={e => e.currentTarget.style.background = "#dc2626"}
+                        >
+                          Delete
+                        </button>
+                      </div>
+
+                      <div style={{ display: "grid", gap: 12 }}>
+                        <div>
+                          <label htmlFor="status-select" style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 8 }}>Item Status</label>
+                          <select
+                            id="status-select"
+                            value={selectedStatus}
+                            onChange={(e) => setSelectedStatus(e.target.value)}
+                            disabled={item.status === "Returned"}
+                            style={{
+                              width: "100%", padding: "12px 14px", borderRadius: 12,
+                              border: "1px solid var(--color-border)", background: "var(--color-bg-raised)",
+                              color: "var(--color-text-primary)", fontSize: 14, cursor: item.status === "Returned" ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            {statusOptions.map((statusOption) => (
+                              <option key={statusOption} value={statusOption}>{statusOption}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <button
+                          onClick={handleStatusUpdate}
+                          disabled={savingStatus || item.status === "Returned" || selectedStatus === effectiveStatus}
+                          style={{
+                            width: "100%", padding: "12px", background: "#10b981", color: "#fff",
+                            border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: savingStatus || item.status === "Returned" || selectedStatus === effectiveStatus ? "not-allowed" : "pointer",
+                            transition: "background 0.15s",
+                          }}
+                          onMouseEnter={e => {
+                            if (!savingStatus && item.status !== "Returned" && selectedStatus !== effectiveStatus) {
+                              e.currentTarget.style.background = "#059669";
+                            }
+                          }}
+                          onMouseLeave={e => {
+                            if (!savingStatus && item.status !== "Returned" && selectedStatus !== effectiveStatus) {
+                              e.currentTarget.style.background = "#10b981";
+                            }
+                          }}
+                        >
+                          {savingStatus ? "Saving..." : "Update status"}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

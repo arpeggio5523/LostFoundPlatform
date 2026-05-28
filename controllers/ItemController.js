@@ -10,25 +10,37 @@ export const updateItemStatus = async (req, res) => {
     const { itemId } = req.params;
     const { status } = req.body;
 
-    const item = await Item.findOneAndUpdate(
-      { _id: itemId },
-      { $set: { status: status } },
-      {
-        new: true,
-        runValidators: true,
-        context: 'query'
-      }
-    );
-
+    const item = await Item.findById(itemId);
     if (!item) {
       return res.status(404).json({ error: "Item not found." });
     }
 
+    if (String(item.reportedBy) !== String(req.user.id)) {
+      return res.status(403).json({ error: "You do not have permission to update this item." });
+    }
+
+    const allowedStatuses = item.type === "Lost" ? ["Lost", "Returned"] : ["Found", "Returned"];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ error: `Invalid status for this item. Allowed statuses are: ${allowedStatuses.join(", ")}.` });
+    }
+
+    if (item.status === "Returned" && status !== "Returned") {
+      return res.status(400).json({ error: "Returned items cannot be changed back to another status." });
+    }
+
+    item.status = status;
+    const updatedItem = await item.save();
+
     res.status(200).json({
       message: "Item status updated",
-      data: item
+      data: updatedItem,
     });
   } catch (err) {
+    if (err.name === "ValidationError") {
+      const messages = Object.values(err.errors).map((e) => e.message);
+      return res.status(400).json({ error: messages.join("; ") });
+    }
     res.status(500).json({ error: err.message });
   }
 };
@@ -65,7 +77,7 @@ const buildItemPayload = (body, userId) => ({
   color:       body.color       || undefined,
   distMark:    body.distMark    || undefined,
   images:      body.images      || [],
-  status:      "Approved",              // always starts as Approved
+  status:      body.type,              // lost/found items begin in their own type state
   reportedBy:  userId,                  // from auth middleware
   user:        body.user,               // display name passed from client
 });

@@ -6,6 +6,8 @@ export default function StatusBadge({ status }) {
     pending:  "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
     returned: "bg-blue-100   text-blue-800   dark:bg-blue-900/40   dark:text-blue-300",
     matched:  "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
+    lost:     "bg-rose-100  text-rose-800  dark:bg-rose-900/40  dark:text-rose-300",
+    found:    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
   };
 
   const currentStyle = styles[normalizedStatus] || "bg-gray-100 text-gray-800 dark:bg-gray-700/60 dark:text-gray-300";

@@ -112,13 +112,15 @@ const itemSchema = new mongoose.Schema(
       required: true,
       enum: {
         values: [
+          "Lost",
+          "Found",
+          "Returned",
           "Pending",
           "Approved",
           "Matched",
-          "Returned",
         ],
         message:
-          "Status must be one of [Pending, Approved, Matched, Returned]",
+          "Status must be one of [Lost, Found, Returned, Pending, Approved, Matched]",
       },
       default: "Approved",
     },

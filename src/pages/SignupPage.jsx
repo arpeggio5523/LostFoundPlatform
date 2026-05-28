@@ -78,8 +78,11 @@ function SignupPage(){
             const result = await response.json();
 
             if (response.ok) {
-                showToast("Account created successfully! Please log in.", "success");
-                navigate("/login");
+                showToast(
+                    result.message || "Account created successfully. Please verify your email.",
+                    "success"
+                );
+                navigate(`/verify-email?email=${encodeURIComponent(email.trim())}`);
             } else {
                 showToast("Signup failed: " + result.message, "error");
             }

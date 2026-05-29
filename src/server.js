@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3000;
-const distPath = path.join(__dirname, "dist");
+const distPath = path.join(__dirname, "../dist");
 const distIndexPath = path.join(distPath, "index.html");
 
 const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")

@@ -30,3 +30,20 @@ const formatTime = (isoString) => {
     ? date.toLocaleTimeString("en-MY", { hour: "numeric", minute: "2-digit" })
     : date.toLocaleDateString("en-MY", { day: "numeric", month: "short" });
 };
+
+export default function MessagesPage() {
+  const navigate = useNavigate();
+  const currentUserId = getCurrentUserId();
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [conversations, setConversations] = useState([]);
+  const [loadingConvos, setLoadingConvos] = useState(true);
+  const [selectedId, setSelectedId] = useState(null);
+  const [search, setSearch] = useState("");
+
+  const [messages, setMessages] = useState([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const scrollRef = useRef(null);

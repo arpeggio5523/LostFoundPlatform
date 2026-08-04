@@ -21,3 +21,12 @@ const initialsFor = (name = "?") =>
     .slice(0, 2)
     .map((n) => n[0]?.toUpperCase())
     .join("") || "?";
+
+const formatTime = (isoString) => {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  const isToday = date.toDateString() === new Date().toDateString();
+  return isToday
+    ? date.toLocaleTimeString("en-MY", { hour: "numeric", minute: "2-digit" })
+    : date.toLocaleDateString("en-MY", { day: "numeric", month: "short" });
+};

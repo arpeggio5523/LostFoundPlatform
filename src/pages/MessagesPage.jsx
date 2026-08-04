@@ -13,3 +13,11 @@ function Avatar({ initials }) {
     </div>
   );
 }
+
+const initialsFor = (name = "?") =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0]?.toUpperCase())
+    .join("") || "?";

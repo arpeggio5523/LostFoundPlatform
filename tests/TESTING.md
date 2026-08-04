@@ -72,5 +72,5 @@ npx vitest run
 
 ## CI/CD
 
-- Unit and integration tests run on every push.
+- Unit and integration tests run on every push to any branch.
 - Deployment is handled by CI/CD on every merge to `main`.

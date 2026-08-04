@@ -134,4 +134,20 @@ export default function MessagesPage() {
               selectedId ? "hidden md:flex" : "flex"
             }`}
           >
-            
+            <div className="px-5 pt-5 pb-4">
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-[var(--color-text-primary)]">
+                Messages
+              </h1>
+              <div className="relative mt-3">
+                <Search
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[var(--color-text-muted)]"
+                />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search conversations..."
+                  className="w-full rounded-lg border border-gray-200 dark:border-[var(--color-border)] bg-gray-50 dark:bg-[var(--color-bg-raised)] py-2 pl-9 pr-3 text-sm text-gray-900 dark:text-[var(--color-text-primary)] placeholder:text-gray-400 dark:placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]/40"
+                />
+              </div>
+            </div>

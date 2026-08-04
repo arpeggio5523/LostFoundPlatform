@@ -243,3 +243,69 @@ export default function MessagesPage() {
                     )}
                   </div>
                 </div>
+
+                {/* Message list */}
+                <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+                  {loadingMessages ? (
+                    <p className="text-center text-sm text-gray-400 dark:text-[var(--color-text-muted)]">
+                      Loading messages…
+                    </p>
+                  ) : (
+                    messages.map((m) => {
+                      const isMine = String(m.sender?._id || m.sender) === String(currentUserId);
+                      return (
+                        <div key={m._id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
+                          <div
+                            className={`max-w-[70%] rounded-2xl px-4 py-2 text-sm ${
+                              isMine
+                                ? "rounded-br-md bg-[var(--color-brand)] text-[var(--color-brand-text)]"
+                                : "rounded-bl-md bg-white text-gray-800 dark:bg-[var(--color-bg-surface)] dark:text-[var(--color-text-primary)] border border-gray-200 dark:border-[var(--color-border-subtle)]"
+                            }`}
+                          >
+                            <p>{m.text}</p>
+                            <p
+                              className={`mt-1 text-[10px] ${
+                                isMine
+                                  ? "text-[var(--color-brand-text)]/70"
+                                  : "text-gray-400 dark:text-[var(--color-text-muted)]"
+                              }`}
+                            >
+                              {formatTime(m.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Composer */}
+                <div className="border-t border-gray-200 dark:border-[var(--color-border-subtle)] bg-white dark:bg-[var(--color-bg-surface)] px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-[var(--color-text-secondary)] dark:hover:bg-[var(--color-bg-raised)]">
+                      <Paperclip size={18} />
+                    </button>
+                    <input
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                      placeholder="Type a message..."
+                      className="flex-1 rounded-full border border-gray-200 dark:border-[var(--color-border)] bg-gray-50 dark:bg-[var(--color-bg-raised)] px-4 py-2 text-sm text-gray-900 dark:text-[var(--color-text-primary)] placeholder:text-gray-400 dark:placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]/40"
+                    />
+                    <button
+                      onClick={handleSend}
+                      disabled={!draft.trim() || sending}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand)] text-[var(--color-brand-text)] transition-opacity disabled:opacity-40"
+                    >
+                      <Send size={16} />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}

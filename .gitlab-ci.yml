@@ -1,0 +1,8 @@
+stages:
+  - test
+
+test_job:
+  stage: test
+  script:
+    - npm ci --no-audit --no-fund --prefer-offline
+    - npm test -- --watchAll=false

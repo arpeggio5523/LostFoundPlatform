@@ -47,3 +47,47 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
 
   const scrollRef = useRef(null);
+
+  // Auth guard, same pattern as ProfilePage
+  useEffect(() => {
+    const user = getAuthUser();
+    if (!user) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
+  // Load conversation list
+  useEffect(() => {
+    fetchConversations()
+      .then((data) => setConversations(Array.isArray(data.data) ? data.data : []))
+      .catch(() => setConversations([]))
+      .finally(() => setLoadingConvos(false));
+  }, []);
+
+  // Load messages when a conversation is selected
+  useEffect(() => {
+    if (!selectedId) return;
+
+    setLoadingMessages(true);
+    fetchMessages(selectedId)
+      .then((data) => setMessages(Array.isArray(data.data) ? data.data : []))
+      .catch(() => setMessages([]))
+      .finally(() => setLoadingMessages(false));
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages.length, selectedId]);
+
+  const selectedConvo = conversations.find((c) => c._id === selectedId) || null;
+
+  const otherParticipant = (convo) =>
+    convo?.participants?.find((p) => String(p._id) !== String(currentUserId));
+
+  const filteredConversations = conversations.filter((c) => {
+    const other = otherParticipant(c);
+    const haystack = `${other?.fullName || ""} ${c.item?.title || ""}`.toLowerCase();
+    return haystack.includes(search.toLowerCase());
+  });

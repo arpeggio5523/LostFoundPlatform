@@ -207,3 +207,39 @@ export default function MessagesPage() {
               )}
             </div>
           </aside>
+
+          {/* Chat panel */}
+          <section
+            className={`flex-1 flex-col bg-gray-50 dark:bg-[var(--color-bg)] ${
+              selectedId ? "flex" : "hidden md:flex"
+            }`}
+          >
+            {!selectedConvo ? (
+              <div className="flex flex-1 flex-col items-center justify-center gap-2">
+                <MessageSquare size={28} className="text-gray-300 dark:text-[var(--color-text-muted)]" />
+                <p className="text-sm font-medium text-gray-500 dark:text-[var(--color-text-secondary)]">
+                  Select a conversation to start messaging
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Chat header */}
+                <div className="flex items-center gap-3 border-b border-gray-200 dark:border-[var(--color-border-subtle)] bg-white dark:bg-[var(--color-bg-surface)] px-5 py-3">
+                  <button
+                    onClick={() => setSelectedId(null)}
+                    className="mr-1 flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-[var(--color-text-secondary)] dark:hover:bg-[var(--color-bg-raised)] md:hidden"
+                  >
+                    <ArrowLeft size={18} />
+                  </button>
+                  <Avatar initials={initialsFor(otherParticipant(selectedConvo)?.fullName)} />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-[var(--color-text-primary)]">
+                      {otherParticipant(selectedConvo)?.fullName || "Unknown user"}
+                    </p>
+                    {selectedConvo.item?.title && (
+                      <p className="truncate text-xs text-[var(--color-brand)]">
+                        {selectedConvo.item.title}
+                      </p>
+                    )}
+                  </div>
+                </div>

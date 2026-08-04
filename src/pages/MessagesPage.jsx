@@ -116,3 +116,22 @@ export default function MessagesPage() {
       setSending(false);
     }
   };
+
+  return (
+    <div className="min-h-screen flex bg-gray-50 dark:bg-[var(--color-bg)]">
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
+      <div
+        className="flex flex-1 flex-col transition-[margin] duration-300"
+        style={{ marginLeft: isCollapsed ? 70 : 220 }}
+      >
+        <Navbar2 />
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* Conversation list */}
+          <aside
+            className={`w-[320px] shrink-0 border-r border-gray-200 dark:border-[var(--color-border-subtle)] bg-white dark:bg-[var(--color-bg-surface)] flex flex-col ${
+              selectedId ? "hidden md:flex" : "flex"
+            }`}
+          >
+            

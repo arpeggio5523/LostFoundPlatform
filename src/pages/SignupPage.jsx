@@ -3,25 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
+import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { getCurrentUserId } from "../services/authState";
+import { useForceLightMode } from "../hooks/useForceLightMode";
+import { useToast } from "../context/ToastContext";
 
 function SignupPage(){
     const navigate = useNavigate();
+    const { showToast } = useToast();
 
-    // Signup page is always light mode — no dark bleeding in from a previous session
-    useEffect(() => {
-        const root = document.documentElement;
-        root.classList.remove("dark");
-
-        return () => {
-            // Restore the logged-in user's theme when navigating away
-            const userId = getCurrentUserId();
-            if (userId) {
-                const saved = localStorage.getItem(`theme_${userId}`);
-                if (saved === "dark") root.classList.add("dark");
-            }
-        };
-    }, []);
+    useForceLightMode();
 
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
@@ -34,27 +25,27 @@ function SignupPage(){
         event.preventDefault(); // prevent refresh
 
         if (password.length < 8){
-            alert("Password must be at least 8 characters long.");
+            showToast("Password must be at least 8 characters long.", "error");
             return
         }
 
         if (password != confirmPassword){
-            alert("Confirm password is not same with password.");
+            showToast("Confirm password is not same with password.", "error");
             return
         }
 
         if (!/[A-Z]/.test(password)){
-            alert("Password must contain at least 1 capital letter.")
+            showToast("Password must contain at least 1 capital letter.", "error")
             return
         }
 
         if (!/[a-z]/.test(password)){
-            alert("Password must contain at least 1 small letter.")
+            showToast("Password must contain at least 1 small letter.", "error")
             return
         }
 
         if(!/[^A-Za-z0-9]/.test(password)){
-            alert("Password must contain at least 1 special character.")
+            showToast("Password must contain at least 1 special character.", "error")
             return
         }
 
@@ -78,7 +69,7 @@ function SignupPage(){
         };
         
         try {
-            const response = await fetch("http://localhost:3000/api/auth/signup", {
+            const response = await apiFetch("/api/auth/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(signupData),
@@ -87,14 +78,17 @@ function SignupPage(){
             const result = await response.json();
 
             if (response.ok) {
-                alert("Account created successfully! Please log in.");
-                navigate("/login");
+                showToast(
+                    result.message || "Account created successfully. Please verify your email.",
+                    "success"
+                );
+                navigate(`/verify-email?email=${encodeURIComponent(email.trim())}`);
             } else {
-                alert("Signup failed: " + result.message);
+                showToast("Signup failed: " + result.message, "error");
             }
         } catch (err) {
             console.error("Connection error:", err);
-            alert("Could not connect to the server.");
+            showToast("Could not connect to the server.", "error");
         }
     }
 

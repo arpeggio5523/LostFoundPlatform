@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { authHeaders, buildApiUrl } from "../services/apiClient";
+import { authHeaders, buildApiUrl, apiFetch } from "../services/apiClient";
+import { getAuthUser } from "../services/authState";
+import { useToast } from "../context/ToastContext";
 
 const CATEGORIES = [
     "All Categories",
@@ -44,14 +46,16 @@ const inputErrorClass = "w-full px-3.5 py-2.5 rounded-lg border border-red-400 b
 
 export default function ReportFoundItemPage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const editId = searchParams.get("edit"); // gets the ID if editing
   const fileInputRef = useRef(null);
 
   const [form, setForm] = useState({
     title: "", description: "", category: "",
-    color: "", marks: "", location: "", date: "",
+    color: "", marks: "", location: "", exactLocation: "", date: "",
   });
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [images, setImages] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [errors, setErrors] = useState({});
@@ -61,7 +65,7 @@ export default function ReportFoundItemPage() {
  // Pre-fill form if editing
   useEffect(() => {
     if (!editId) return;
-    fetch(buildApiUrl(`/api/items/${editId}`))
+    apiFetch(`/api/items/${editId}`)
       .then(res => res.json())
       .then(data => {
         const item = data.data;
@@ -72,8 +76,11 @@ export default function ReportFoundItemPage() {
           color: item.color || "",
           marks: item.distMark || "",
           location: item.location || "",
+          exactLocation: item.exactLocation || "",
           date: item.date ? item.date.split("T")[0] : "",
         });
+        if (item.user === "Anonymous") setIsAnonymous(true);
+        else setIsAnonymous(false);
         // Load existing images as previews (Item model images are plain strings)
         if (item.images?.length > 0) {
           setImages(item.images.map(img => ({
@@ -98,7 +105,7 @@ export default function ReportFoundItemPage() {
 
   function handleFiles(files) {
     const valid = Array.from(files).filter(f => f.type.startsWith("image/"));
-    const toAdd = valid.slice(0, 3 - images.length).map(f => ({
+    const toAdd = valid.slice(0, 1 - images.length).map(f => ({
       file: f,
       preview: URL.createObjectURL(f),
       name: f.name,
@@ -128,6 +135,12 @@ export default function ReportFoundItemPage() {
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
     try {
+      const authUser = getAuthUser();
+      if (!authUser) {
+        setSubmitError("Not authenticated. Please log in.");
+        return;
+      }
+
       const imageData = await Promise.all(
         images.map(img => {
           // If existing image from DB, just pass it as-is
@@ -163,7 +176,7 @@ export default function ReportFoundItemPage() {
       // Resolve images: existing images are plain URL strings in the unified model
       const imageUrls = imageData.map(img => img.url);
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
         headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
@@ -173,10 +186,11 @@ export default function ReportFoundItemPage() {
           color: form.color,
           distMark: form.marks,
           location: form.location,
+          exactLocation: form.exactLocation,
           date: form.date,
           images: imageUrls,
           type: "Found",
-          user: "Anonymous",  // will be overridden from auth in future
+          user: isAnonymous ? "Anonymous" : (authUser.fullName || "Anonymous"),
         }),
       });
 
@@ -191,10 +205,10 @@ export default function ReportFoundItemPage() {
           setErrors(prev => ({ ...prev, ...serverErrors }));
         }
 
-        throw new Error(error.message || "Failed to submit report");
+        throw new Error(error.error || error.message || "Failed to submit report");
       }
 
-      alert(editId ? "Item updated successfully!" : "Report submitted successfully!");
+      showToast(editId ? "Item updated successfully!" : "Report submitted successfully!", "success");
       navigate("/found-items");
     } catch (error) {
       setSubmitError(error.message || "Failed to submit report");
@@ -291,7 +305,7 @@ export default function ReportFoundItemPage() {
         </Field>
 
         {/* Location */}
-        <Field label="Location Found" required error={errors.location}>
+        <Field label="Location Found (University)" required error={errors.location}>
           <select
             name="location" value={form.location} onChange={handleChange}
             className={`${errors.location ? inputErrorClass : inputClass} appearance-none cursor-pointer`}
@@ -299,6 +313,15 @@ export default function ReportFoundItemPage() {
             <option value="">Select location</option>
             {LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
           </select>
+        </Field>
+
+        {/* Exact Location */}
+        <Field label="Exact Place (e.g., Library 2nd floor, Cafe table)">
+          <input
+            name="exactLocation" value={form.exactLocation} onChange={handleChange}
+            placeholder="Where exactly?"
+            className={inputClass}
+          />
         </Field>
 
         {/* Date */}
@@ -312,18 +335,18 @@ export default function ReportFoundItemPage() {
         {/* Image Upload */}
         <div className="mb-3">
           <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
-            Images <span className="text-[var(--color-text-muted)] font-normal">(Recommended, max 3)</span>
+            Images <span className="text-[var(--color-text-muted)] font-normal">(Recommended, max 1)</span>
           </label>
 
           {/* Dropzone */}
           <div
-            onClick={() => images.length < 3 && fileInputRef.current.click()}
+            onClick={() => images.length < 1 && fileInputRef.current.click()}
             onDragOver={e => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded-xl p-9 text-center transition-colors
               ${dragOver ? "border-[var(--color-brand)] bg-[var(--color-brand-active-bg)]" : "border-[var(--color-border)] bg-[var(--color-bg-raised)]"}
-              ${images.length < 3 ? "cursor-pointer hover:border-gray-400" : "cursor-default opacity-60"}`}
+              ${images.length < 1 ? "cursor-pointer hover:border-gray-400" : "cursor-default opacity-60"}`}
           >
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2.5">
               <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
@@ -364,10 +387,23 @@ export default function ReportFoundItemPage() {
             </div>
           )}
         </div>
-
         <p className="text-xs text-[var(--color-text-muted)] mb-7">
           Photos help owners identify their items faster. A QR code will be automatically generated for this item.
         </p>
+
+        {/* Anonymous Toggle */}
+        <div className="flex items-center mb-5 mt-2">
+          <input
+            type="checkbox"
+            id="anonToggleFound"
+            checked={isAnonymous}
+            onChange={(e) => setIsAnonymous(e.target.checked)}
+            className="w-4 h-4 cursor-pointer"
+          />
+          <label htmlFor="anonToggleFound" className="ml-2 text-sm font-semibold text-[var(--color-text-primary)] cursor-pointer select-none">
+            Post Anonymously (Hide my name)
+          </label>
+        </div>
 
         {/* Actions */}
         <div className="flex gap-3">
@@ -377,7 +413,7 @@ export default function ReportFoundItemPage() {
           >
             Submit Report
           </button> */}
-          <button onClick={handleSubmit} className="flex-1 py-3 bg-[var(--color-text-primary)] text-[var(--color-bg-base)] border-none rounded-xl text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity">
+          <button onClick={handleSubmit} className="flex-1 py-3 bg-[var(--color-brand)] text-[var(--color-brand-text)] border-none rounded-xl text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity">
           {editId ? "Save Changes" : "Submit Report"}
           </button>
           <button

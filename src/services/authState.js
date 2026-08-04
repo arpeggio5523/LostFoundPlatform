@@ -28,7 +28,7 @@ export function getAuthUser() {
 
 export function getCurrentUserId() {
   const user = getAuthUser();
-  return user?.id || null;
+  return user?.id || user?._id || null;
 }
 
 export function clearAuth() {

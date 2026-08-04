@@ -1,4 +1,4 @@
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, ArrowLeft } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import { useTheme } from "../context/ThemeContext";
 
@@ -10,6 +10,13 @@ function SettingsPage() {
       <Sidebar />
 
       <main style={{ marginLeft: 220, flex: 1, padding: "36px 40px" }}>
+        <button
+          onClick={() => window.history.back()}
+          className="mb-6 flex items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-brand)] transition"
+        >
+          <ArrowLeft size={18} />
+          Back to Profile
+        </button>
         <h1 className="mb-2 text-2xl font-semibold text-[var(--color-text-primary)]">
           Settings
         </h1>

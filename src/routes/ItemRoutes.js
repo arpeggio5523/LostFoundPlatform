@@ -7,8 +7,9 @@ import {
   updateItemStatus,
   updateItem,
   deleteItem,
+  contactOwner,
 } from "../controllers/ItemController.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -32,5 +33,8 @@ router.put("/:itemId", requireAuth, updateItem);
 
 // PUT /api/items/:itemId/status — update item status only
 router.put("/:itemId/status", requireAuth, updateItemStatus);
+
+// POST /api/items/:itemId/contact — contact the owner
+router.post("/:itemId/contact", requireAuth, contactOwner);
 
 export default router;

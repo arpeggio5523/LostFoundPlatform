@@ -5,7 +5,7 @@ function Navbar(){
         <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-[var(--color-border)] bg-white dark:bg-[var(--color-bg-surface)] transition-colors duration-200">
             <div className="flex w-full items-center justify-between px-8 py-5">
             {/* left logo*/}
-            <Link to="/login" className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700 dark:bg-[var(--color-brand-active-bg)] text-white">
                     <div className="flex h-15 w-12 items-center justify-center rounded-xl bg-teal-700 dark:bg-[var(--color-brand-active-bg)] text-white">
                         <svg
@@ -23,17 +23,17 @@ function Navbar(){
                         </svg>
                         </div>
                 </div>
-                <span className="text-xl font-semibold text-gray-900 dark:text-[var(--color-text-primary)]">
-                    FindIt
+                <span className="text-xl font-semibold text-[var(--color-brand)]">
+                    LostFound MY
                 </span>
             </Link>
 
             {/* right nav*/}
             <nav className="flex items-center gap-6">
-                <Link to="/login" className="rounded-lg bg-white dark:bg-transparent px-5 py-2 text-sm font-semibold text-gray-900 dark:text-[var(--color-text-primary)] hover:bg-gray-100 dark:hover:bg-[var(--color-bg-raised)]">
+                <Link to="/login" className="rounded-lg bg-white dark:bg-transparent px-5 py-2 text-sm font-semibold text-[var(--color-brand)] hover:bg-gray-100 dark:hover:bg-[var(--color-bg-raised)]">
                     Login
                 </Link>
-                <Link to="/signup" className="rounded-lg bg-gray-950 dark:bg-[var(--color-brand-active-bg)] px-5 py-2 text-sm font-semibold text-white dark:text-[var(--color-brand)] hover:bg-gray-800 dark:hover:bg-[var(--color-bg-raised)]">
+                <Link to="/signup" className="rounded-lg bg-[var(--color-brand)] px-5 py-2 text-sm font-semibold text-[var(--color-brand-text)] hover:opacity-90 transition-opacity">
                     Sign Up
                 </Link>
             </nav>

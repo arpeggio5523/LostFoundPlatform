@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --config config/vite.config.js --host",
-    "build": "vite build --config config/vite.config.js",
-    "preview": "vite preview --config config/vite.config.js",
-    "server": "node server.js",
-    "start": "node server.js",
-    "dev:full": "concurrently \"npm run dev\" \"nodemon server.js\""
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node src/server.js",
+    "start": "node src/server.js",
+    "dev:full": "concurrently \"npm run dev\" \"nodemon src/server.js\""
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -22,6 +22,7 @@
     "mongodb": "^7.2.0",
     "mongoose": "^9.6.2",
     "node": "^22.22.3",
+    "nodemailer": "^8.0.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.15.0"

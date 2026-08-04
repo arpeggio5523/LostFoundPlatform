@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
-import { Funnel } from "lucide-react";
-import { buildApiUrl } from "../services/apiClient";
+import { Funnel, LogOut } from "lucide-react";
+import { buildApiUrl, apiFetch } from "../services/apiClient";
+import { useTheme } from "../context/ThemeContext";
+import { getAuthUser, clearAuth } from "../services/authState";
 
 const CATEGORIES = [
   "All Categories",
@@ -21,21 +23,50 @@ const CATEGORIES = [
 
 const STATUSES = ["All Status", "Pending", "Approved", "Matched", "Returned"];
 
+const LOCATIONS = [
+  "All Locations",
+  "Universiti Malaya (UM)",
+  "Universiti Kebangsaan Malaysia (UKM)",
+  "Universiti Sains Malaysia (USM)",
+  "Universiti Putra Malaysia (UPM) Central Library",
+  "Universiti Teknologi Malaysia (UTM)",
+  "Universiti Teknologi MARA (UiTM)",
+  "Taylor's University",
+  "Sunway University",
+  "Multimedia University (MMU)",
+];
+
 export default function LostItemsPage() {
   const navigate = useNavigate();
+  const { resetTheme } = useTheme();
+
+  const handleLogout = () => {
+    resetTheme();
+    clearAuth();
+    navigate("/login", { replace: true });
+  };
   const [search, setSearch]     = useState("");
   const [category, setCategory] = useState("All Categories");
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState("All Locations");
   const [status, setStatus]     = useState("All Status");
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
   const [items, setItems]       = useState([]);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    const user = getAuthUser();
+
+    if (!user) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
         setLoading(true);
-        const response = await fetch(buildApiUrl("/api/items?type=Lost"));
+        const response = await apiFetch("/api/items?type=Lost");
         if (!response.ok) throw new Error("Failed to fetch lost items");
         const data = await response.json();
 
@@ -70,7 +101,7 @@ export default function LostItemsPage() {
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
                         item.description.toLowerCase().includes(search.toLowerCase());
     const matchCat    = category === "All Categories" || item.category === category;
-    const matchLoc    = !location || item.location.toLowerCase().includes(location.toLowerCase());
+    const matchLoc    = location === "All Locations" || item.location === location;
     const matchStatus = status   === "All Status"     || item.status === status;
     return matchSearch && matchCat && matchLoc && matchStatus;
   });
@@ -85,9 +116,12 @@ export default function LostItemsPage() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--color-bg-base)", fontFamily: "system-ui, sans-serif", transition: "background 0.2s ease" }}>
-      <Sidebar />
+      <Sidebar 
+        isCollapsed={isCollapsed} 
+        setIsCollapsed={setIsCollapsed} 
+      />
 
-      <main style={{ marginLeft: 220, flex: 1, padding: "36px 40px" }}>
+      <main style={{ marginLeft: isCollapsed ? 70 : 220, transition: "margin-left 0.3s ease", flex: 1, padding: "36px 40px" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28 }}>
           <div>
@@ -98,20 +132,49 @@ export default function LostItemsPage() {
               Browse items that have been lost by the community
             </p>
           </div>
-          <button
-            onClick={() => navigate("/report-lost")}
-            style={{
-              display: "flex", alignItems: "center", gap: 8,
-              background: "var(--color-brand)", color: "var(--color-brand-text)",
-              border: "none", borderRadius: 10,
-              padding: "11px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer",
-              transition: "background 0.15s",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = "var(--color-brand-hover)"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "var(--color-brand)"; }}
-          >
-            <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Report Lost Item
-          </button>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <button
+              onClick={() => navigate("/report-lost")}
+              style={{
+                display: "flex", alignItems: "center", gap: 8,
+                background: "var(--color-brand)", color: "var(--color-brand-text)",
+                border: "none", borderRadius: 10,
+                padding: "11px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--color-brand-hover)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "var(--color-brand)"; }}
+            >
+              <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Report Lost Item
+            </button>
+
+            <button
+              onClick={handleLogout}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: "#064e3b",
+                color: "white",
+                border: "none",
+                borderRadius: 10,
+                padding: "11px 20px",
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = "#022c22";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = "#064e3b";
+              }}
+            >
+              <LogOut size={18} />
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Filter bar */}
@@ -142,12 +205,11 @@ export default function LostItemsPage() {
               {CATEGORIES.map(c => <option key={c}>{c}</option>)}
             </select>
 
-            {/* Location search */}
-            <input
-              type="text" placeholder="Filter by location..." value={location}
-              onChange={e => setLocation(e.target.value)}
-              style={{ ...inputStyle, padding: "9px 14px", minWidth: 160 }}
-            />
+            {/* Location */}
+            <select value={location} onChange={e => setLocation(e.target.value)}
+              style={{ ...inputStyle, padding: "9px 36px 9px 14px", appearance: "none", cursor: "pointer", minWidth: 150 }}>
+              {LOCATIONS.map(l => <option key={l}>{l}</option>)}
+            </select>
 
             {/* Status */}
             <select value={status} onChange={e => setStatus(e.target.value)}

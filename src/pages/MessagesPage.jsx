@@ -91,3 +91,28 @@ export default function MessagesPage() {
     const haystack = `${other?.fullName || ""} ${c.item?.title || ""}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
   });
+
+  const handleSend = async () => {
+    const text = draft.trim();
+    if (!text || !selectedId || sending) return;
+
+    setSending(true);
+    try {
+      const data = await sendMessage(selectedId, text);
+      if (data.data) {
+        setMessages((prev) => [...prev, data.data]);
+        setDraft("");
+        setConversations((prev) =>
+          prev.map((c) =>
+            c._id === selectedId
+              ? { ...c, lastMessage: text, lastMessageAt: new Date().toISOString() }
+              : c
+          )
+        );
+      }
+    } catch {
+      // silently ignore for now — could hook into Toast.jsx here
+    } finally {
+      setSending(false);
+    }
+  };

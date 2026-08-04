@@ -4,7 +4,7 @@ stages:
 
 test:
   stage: test
-  image: node:20
+  image: node:22
   script:
     - npm ci
     - npx vitest run

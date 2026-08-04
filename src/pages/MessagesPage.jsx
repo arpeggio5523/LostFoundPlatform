@@ -151,3 +151,59 @@ export default function MessagesPage() {
                 />
               </div>
             </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {loadingConvos ? (
+                <p className="px-5 pt-6 text-sm text-gray-400 dark:text-[var(--color-text-muted)]">
+                  Loading conversations…
+                </p>
+              ) : filteredConversations.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-2 px-8 pt-16 text-center">
+                  <MessageSquare
+                    size={28}
+                    className="text-gray-300 dark:text-[var(--color-text-muted)]"
+                  />
+                  <p className="text-sm font-medium text-gray-600 dark:text-[var(--color-text-secondary)]">
+                    No messages yet
+                  </p>
+                  <p className="text-xs text-[var(--color-brand)]">
+                    Start a conversation by contacting item owners
+                  </p>
+                </div>
+              ) : (
+                filteredConversations.map((c) => {
+                  const other = otherParticipant(c);
+                  const isActive = c._id === selectedId;
+                  return (
+                    <button
+                      key={c._id}
+                      onClick={() => setSelectedId(c._id)}
+                      className={`flex w-full items-start gap-3 px-5 py-3 text-left transition-colors ${
+                        isActive
+                          ? "bg-gray-100 dark:bg-[var(--color-bg-raised)]"
+                          : "hover:bg-gray-50 dark:hover:bg-[var(--color-bg-hover)]"
+                      }`}
+                    >
+                      <Avatar initials={initialsFor(other?.fullName)} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate text-sm font-semibold text-gray-900 dark:text-[var(--color-text-primary)]">
+                            {other?.fullName || "Unknown user"}
+                          </span>
+                          <span className="shrink-0 text-xs text-gray-400 dark:text-[var(--color-text-muted)]">
+                            {formatTime(c.lastMessageAt)}
+                          </span>
+                        </div>
+                        {c.item?.title && (
+                          <p className="truncate text-xs text-[var(--color-brand)]">{c.item.title}</p>
+                        )}
+                        <p className="truncate text-xs text-gray-500 dark:text-[var(--color-text-secondary)]">
+                          {c.lastMessage || "No messages yet"}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </aside>

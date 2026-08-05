@@ -240,7 +240,72 @@ export default function AdminDashboardPage() {
               {returnedItems} out of {totalItems} items successfully returned to owners
             </p>
           </div>
-        
+        {/* Third Action: Content Moderation */}
+          <div 
+            className="group bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 cursor-pointer transition-all duration-300"
+          >
+            <div className="flex items-center gap-6 mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-[var(--color-text-primary)]">Content Moderation</h3>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 bg-gray-200 rounded-2xl p-1 mb-6">
+              <button
+                type="button"
+                onClick={() => setModerationTab("pending")}
+                className={`py-1 rounded-xl text-m font-semibold transition-all duration-200 ${
+                  moderationTab === "pending"
+                    ? "bg-white shadow-sm text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)]"
+                }`}
+              >
+                Pending ({pendingPost})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setModerationTab("approved")}
+                className={`py-1 rounded-xl font-semibold transition-all duration-200 ${
+                  moderationTab === "approved"
+                    ? "bg-white shadow-sm text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)]"
+                }`}
+              >
+                Approved ({approvedPost})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setModerationTab("all")}
+                className={`py-1 rounded-xl font-semibold transition-all duration-200 ${
+                  moderationTab === "all"
+                    ? "bg-white shadow-sm text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)]"
+                }`}
+              >
+                All Items ({totalItems})
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {displayedItems.length === 0 ? (
+                <div className="text-center py-10 text-[var(--color-text-secondary)] font-medium">
+                  {emptyMessage}
+                </div>
+              ) : (
+                displayedItems.map((item) => (
+                  <ModerationItemCard
+                    key={item.id}
+                    item={item}
+                    onApprove={handleApprove}
+                    onReject={handleReject}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </main>
     </div>

@@ -4,16 +4,19 @@ stages:
 
 test:
   stage: test
-  image: node:22
   tags:
     - fit2107
   script:
+    - export NVM_DIR="$HOME/.nvm"
+    - '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
+    - nvm use 22 || nvm use default || module load nodejs 2> /dev/null || true
     - npm ci
     - npx vitest run
 
 deploy:
   stage: deploy
-  image: node:20
+  tags:
+    - fit2107
   script:
     - echo "Add your deployment commands here"
   only:

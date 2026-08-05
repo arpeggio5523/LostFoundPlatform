@@ -8,7 +8,8 @@ import {
   User, 
   ChevronLeft, 
   ChevronRight, 
-  Plus 
+  Plus,
+  Shield 
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
   { label: "Found Items", path: "/found-items",   icon: Search },
   { label: "Lost Items",  path: "/lost-items",    icon: FileText },
   { label: "Profile",     path: "/profile",       icon: User },
+  { label: "Admin",       path: "/admin-dashboard", icon: Shield}
 ];
 
 export default function Sidebar( { isCollapsed, setIsCollapsed } ) {

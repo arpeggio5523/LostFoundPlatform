@@ -5,6 +5,8 @@ stages:
 test:
   stage: test
   image: node:22
+  tags:
+    - fit2107
   script:
     - npm ci
     - npx vitest run

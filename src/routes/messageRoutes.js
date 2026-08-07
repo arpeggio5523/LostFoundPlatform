@@ -16,4 +16,9 @@ router.get("/conversations/:conversationId/messages", getConversationMessages);
 router.post("/conversations/:conversationId/messages", sendMessage);
 router.post("/conversations/start", startConversation);
 
+// quick server checks
+router.get("/health", (_req, res) => {
+  res.json({ ok: true });
+});
+
 export default router;

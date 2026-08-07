@@ -47,8 +47,8 @@
 import { apiFetch } from "./apiClient";
 import { getCurrentUserId } from "./authState";
 
-const USE_MOCKS = true; // ← flip to false once backend endpoints exist
-
+// const USE_MOCKS = true; // ← flip to false once backend endpoints exist
+const USE_MOCKS = false;
 /* ---------------------------------------------------------------------- */
 /* Mock data — matches the contract above field-for-field                 */
 /* ---------------------------------------------------------------------- */

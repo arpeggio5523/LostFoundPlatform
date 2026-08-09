@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode } from "lucide-react";
+import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2} from "lucide-react";
 import { useEffect, useState } from "react";
 import { getCurrentUserId } from "../services/authState";
 import { buildApiUrl, authHeaders, apiFetch } from "../services/apiClient";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../context/ToastContext";
+import StatusBadge from "../components/StatusBadge";
 
 
 export default function ItemDetailPage() {
@@ -120,6 +121,14 @@ export default function ItemDetailPage() {
     }
   };
 
+  const handleMarkAsMatched = async () => {
+    showToast("Status updated to matched.", "success");
+  };
+
+  const handleMarkAsReturned = async () =>{
+    showToast("Status updated to returned.", "success");
+  };
+
   if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>Loading...</div>;
   if (error || !item) return <div style={{ padding: 40, color: "#f87171" }}>Item not found.</div>;
 
@@ -188,7 +197,7 @@ export default function ItemDetailPage() {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     {/* <Badge type={item.type} label={item.type} /> */}
-                    <Badge type={effectiveStatus} label={effectiveStatus} isStatus />
+                    <StatusBadge status={effectiveStatus} />
                   </div>
                 </div>
 
@@ -314,6 +323,39 @@ export default function ItemDetailPage() {
                 )}
               </div>
             </div>
+
+            <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 cursor-pointer transition-all duration-300 mt-6">
+                <div className= "text-[var(--color-text-primary), text-2xl, font-bold">
+                  Actions
+                </div>
+                <div className= "grid grid-cols-4 gap-6" >
+                  <button
+                    className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
+                  >
+                      Edit
+                  </button>
+                  <button
+                    onClick={handleMarkAsMatched}
+                    className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
+                  >
+                      Mark as matched
+                  </button>
+                  <button
+                      onClick={handleMarkAsReturned}
+                      className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
+                  >
+                      Mark as returned
+                  </button>
+                  <button
+                      onClick={handleDelete}
+                      className="flex mt-6 w-full rounded-lg items-center justify-center gap-2 bg-red-600 border border-[var(--color-border)] py-2 font-semibold text-[var(--color-brand-text)] transition hover:bg-red-700"
+                  >
+                      <Trash2 size={20} />
+                      Delete
+                  </button>
+                </div>
+                
+            </div>
           </div>
 
           {/* RIGHT COLUMN */}
@@ -381,23 +423,7 @@ export default function ItemDetailPage() {
   );
 }
 
-// Badge Component
-function Badge({ type, label, isStatus }) {
-  const normalizedType = type ? type.toLowerCase() : "";
-  const isGreen = normalizedType === "found" || normalizedType === "approved";
 
-  return (
-    <div style={{
-      padding: "6px 12px", borderRadius: 8,
-      background: isGreen ? "var(--color-success-bg, #ecfdf5)" : "var(--color-info-bg, #eff6ff)",
-      color: isGreen ? "var(--color-success, #059669)" : "var(--color-info, #2563eb)",
-      fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em",
-      border: `1px solid ${isGreen ? "var(--color-success-border, #d1fae5)" : "var(--color-info-border, #dbeafe)"}`,
-    }}>
-      {label}
-    </div>
-  );
-}
 
 // InfoBlock Component
 function InfoBlock({ label, icon, value }) {

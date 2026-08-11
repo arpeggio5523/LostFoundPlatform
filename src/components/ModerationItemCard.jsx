@@ -21,9 +21,29 @@ function ModerationItemCard({ item, onApprove, onReject, onViewDetails, onDelete
 
       {/* Item Content */}
       <div className="flex-1">
-        <div className="flex items-center gap-3 mb-2">
-          <StatusBadge status={item.type} />
-          <StatusBadge status={item.status} />
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <div className="flex items-center gap-3">
+            <StatusBadge status={item.type} />
+            <StatusBadge status={item.status} />
+          </div>
+
+          <div className="flex gap-3 shrink-0">
+            <button
+              onClick={() => onApprove(item.id)}
+              className="flex items-center gap-2 bg-green-100 text-green-700 px-4 py-1 rounded-lg font-semibold hover:bg-green-700 hover:text-white transition-colors"
+            >
+              <CheckCircle size={18} />
+              Approve
+            </button>
+
+            <button
+              onClick={() => onReject(item.id)}
+              className="flex items-center gap-2 bg-red-100 text-red-700 px-4 py-1 rounded-lg font-semibold hover:bg-red-700 hover:text-white transition-colors"
+            >
+              <XCircle size={18} />
+              Reject
+            </button>
+          </div>
         </div>
 
         <h4 className="text-m font-bold text-[var(--color-text-primary)] mb-2">
@@ -39,22 +59,6 @@ function ModerationItemCard({ item, onApprove, onReject, onViewDetails, onDelete
         </p>
 
         <div className="flex gap-3">
-          <button
-            onClick={() => onApprove(item.id)}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-1 rounded-lg font-semibold hover:bg-green-700 transition"
-          >
-            <CheckCircle size={18} />
-            Approve
-          </button>
-
-          <button
-            onClick={() => onReject(item.id)}
-            className="flex items-center gap-2 bg-red-600 text-white px-4 py-1 rounded-lg font-semibold hover:bg-red-700 transition"
-          >
-            <XCircle size={18} />
-            Reject
-          </button>
-
           <button
             onClick={() => onViewDetails(item.id)}
             className="border border-gray-300 px-4 py-1 rounded-lg font-semibold hover:bg-gray-100 transition"

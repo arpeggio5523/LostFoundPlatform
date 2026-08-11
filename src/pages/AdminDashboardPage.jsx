@@ -5,12 +5,19 @@ import { LogOut, Users, FileText, Search, Trophy, ArrowRight, TrendingUp} from "
 import { useTheme } from "../context/ThemeContext";
 import { getAuthUser, clearAuth } from "../services/authState";
 import ModerationItemCard from "../components/ModerationItemCard";
+import ConfirmModal from "../components/ConfirmModal";
+import { apiFetch } from "../services/apiClient";
+import { useToast } from "../context/ToastContext";
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [moderationTab, setModerationTab] = useState("pending");
+  const [moderationItems, setModerationItems] = useState([]);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [loadingItems, setLoadingItems] = useState(true);
   const { resetTheme } = useTheme();
+  const { showToast } = useToast();
 
   const handleLogout = () => {
     resetTheme();
@@ -19,38 +26,14 @@ export default function AdminDashboardPage() {
   };
 
   const totalUsers = 7;
-  const lostItems = 4;
-  const foundItems = 2;
+  const lostItems = moderationItems.filter((item) => item.type === "Lost").length;
+  const foundItems = moderationItems.filter((item) => item.type === "Found").length;
   const totalItems = lostItems + foundItems;
-  const returnedItems =5;
+  const returnedItems = moderationItems.filter((item) => item.status === "Returned").length;
   const successRate = totalItems === 0 ? 0 : Math.round((returnedItems / totalItems) * 100);
 
-  const pendingPost = 3;
-  const approvedPost = 5;
-
-  {/* Test data */}
-  const moderationItems = [
-  {
-    id: 1,
-    type: "Lost",
-    status: "Approved",
-    title: "Silver Laptop - MacBook Pro",
-    description: 'Lost my MacBook Pro 16" with stickers on the lid. Contains important work files.',
-    author: "David Chen",
-    location: "Multimedia University (MMU) Library",
-    date: "Apr 4, 2026",
-  },
-  {
-    id: 2,
-    type: "Found",
-    status: "Matched",
-    title: "Student ID Card",
-    description: "Found a student ID card for Emily Watson.",
-    author: "John Doe",
-    location: "Universiti Putra Malaysia (UPM) Central Library",
-    date: "Apr 4, 2026",
-  },
-  ];
+  const pendingPost = moderationItems.filter((item) => item.status === "Pending").length;
+  const approvedPost = moderationItems.filter((item) => item.status === "Approved").length;
 
   const displayedItems = moderationItems.filter((item) => {
     if (moderationTab.toLowerCase() === "pending") {
@@ -80,7 +63,24 @@ export default function AdminDashboardPage() {
   };
 
   const handleViewDetails = (id) => {
-    console.log("View details:", id);
+    navigate(`/item/${id}`);
+  };
+
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      const response = await apiFetch(`/api/items/${itemToDelete.id}`, { method: "DELETE" });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || result.message || "Failed to delete post.");
+
+      setModerationItems((items) => items.filter((item) => item.id !== itemToDelete.id));
+      showToast("Post deleted successfully.", "success");
+    } catch (error) {
+      showToast(error.message || "Failed to delete post.", "error");
+    } finally {
+      setItemToDelete(null);
+    }
   };
 
   useEffect(() => {
@@ -88,8 +88,36 @@ export default function AdminDashboardPage() {
 
     if (!user) {
       navigate("/login", { replace: true });
+      return;
     }
-  }, [navigate]);
+
+    if (user.role !== "Admin") {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+
+    const fetchItems = async () => {
+      try {
+        const response = await apiFetch("/api/items");
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Failed to load posts.");
+
+        setModerationItems(result.data.map((item) => ({
+          ...item,
+          id: item._id,
+          author: item.reportedBy?.fullName || item.user || "Unknown user",
+          image: item.images?.[0],
+          date: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "",
+        })));
+      } catch (error) {
+        showToast(error.message || "Failed to load posts.", "error");
+      } finally {
+        setLoadingItems(false);
+      }
+    };
+
+    fetchItems();
+  }, [navigate, showToast]);
 
   return (
     <div className="flex min-h-screen bg-[var(--color-bg-base)] transition-colors duration-200 font-sans">
@@ -289,7 +317,11 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="space-y-4">
-              {displayedItems.length === 0 ? (
+              {loadingItems ? (
+                <div className="text-center py-10 text-[var(--color-text-secondary)] font-medium">
+                  Loading posts...
+                </div>
+              ) : displayedItems.length === 0 ? (
                 <div className="text-center py-10 text-[var(--color-text-secondary)] font-medium">
                   {emptyMessage}
                 </div>
@@ -301,6 +333,7 @@ export default function AdminDashboardPage() {
                     onApprove={handleApprove}
                     onReject={handleReject}
                     onViewDetails={handleViewDetails}
+                    onDelete={setItemToDelete}
                   />
                 ))
               )}
@@ -308,6 +341,14 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </main>
+      <ConfirmModal
+        isOpen={Boolean(itemToDelete)}
+        title="Delete Post"
+        message={`Delete “${itemToDelete?.title || "this post"}”? This action cannot be undone.`}
+        confirmText="Delete"
+        onConfirm={handleDelete}
+        onCancel={() => setItemToDelete(null)}
+      />
     </div>
   );
 }

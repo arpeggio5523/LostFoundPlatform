@@ -1,8 +1,8 @@
 import React from "react";
-import { FileText, CheckCircle, XCircle } from "lucide-react";
+import { FileText, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import StatusBadge from "../components/StatusBadge";
 
-function ModerationItemCard({ item, onApprove, onReject, onViewDetails }) {
+function ModerationItemCard({ item, onApprove, onReject, onViewDetails, onDelete }) {
 
   return (
     <div className="flex gap-6 border border-[var(--color-border)] rounded-2xl p-6 bg-white">
@@ -60,6 +60,14 @@ function ModerationItemCard({ item, onApprove, onReject, onViewDetails }) {
             className="border border-gray-300 px-4 py-1 rounded-lg font-semibold hover:bg-gray-100 transition"
           >
             View Details
+          </button>
+
+          <button
+            onClick={() => onDelete(item)}
+            className="flex items-center gap-2 bg-red-600 text-white px-4 py-1 rounded-lg font-semibold hover:bg-red-700 transition"
+          >
+            <Trash2 size={18} />
+            Delete
           </button>
         </div>
       </div>

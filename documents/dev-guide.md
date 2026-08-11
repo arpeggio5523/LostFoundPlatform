@@ -34,6 +34,23 @@ Then open these 3 and check if it shows success in setup
   - MongoDB test: http://localhost:3000/api/test-mongo → Shows JSON with test user if MongoDB is running
 - You do **not** need to run `npm run build` every time for development.
 
+## Create an administrator account
+
+Public signup always creates a `Student`. Create an administrator from a trusted
+terminal on the server instead. In PowerShell, run:
+
+```powershell
+$env:ADMIN_FULL_NAME="Platform Administrator"
+$env:ADMIN_EMAIL="admin@example.com"
+$env:ADMIN_PASSWORD="ReplaceWithAStrongPassword!1"
+npm run create-admin
+Remove-Item Env:ADMIN_FULL_NAME, Env:ADMIN_EMAIL, Env:ADMIN_PASSWORD
+```
+
+The command uses `MONGO_URI` from `.env`, validates the account through the normal
+user model, hashes the password, and marks the admin email as verified. It refuses
+to modify an existing account automatically.
+
 ## Production / Serve Frontend from Backend
 - Build the frontend (only after code changes):
   ```bash

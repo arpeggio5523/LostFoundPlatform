@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { getAuthUser } from "../services/authState";
 import { 
   Home, 
   Search, 
@@ -17,12 +18,16 @@ const NAV_ITEMS = [
   { label: "Found Items", path: "/found-items",   icon: Search },
   { label: "Lost Items",  path: "/lost-items",    icon: FileText },
   { label: "Profile",     path: "/profile",       icon: User },
-  { label: "Admin",       path: "/admin-dashboard", icon: Shield}
+  { label: "Admin",       path: "/admin-dashboard", icon: Shield, adminOnly: true }
 ];
 
 export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
   const navigate = useNavigate();
   const location = useLocation();
+  const currentUser = getAuthUser();
+  const visibleNavItems = NAV_ITEMS.filter(
+    (item) => !item.adminOnly || currentUser?.role === "Admin"
+  );
 
   return (
     <aside style={{
@@ -83,7 +88,7 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
 
       {/* Nav links */}
       <nav style={{ flex: 1, padding: "0 10px" }}>
-        {NAV_ITEMS.map(({ label, path, icon: Icon }) => {
+        {visibleNavItems.map(({ label, path, icon: Icon }) => {
           const isActive = location.pathname === path;
           return (
             <button

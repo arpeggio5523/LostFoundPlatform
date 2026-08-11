@@ -253,7 +253,7 @@ export const updateItem = async (req, res) => {
 
 /**
  * DELETE /api/items/:itemId
- * Delete an item (owner only).
+ * Delete an item (owner or administrator).
  */
 export const deleteItem = async (req, res) => {
   try {
@@ -263,7 +263,10 @@ export const deleteItem = async (req, res) => {
       return res.status(404).json({ error: "Item not found." });
     }
 
-    if (String(item.reportedBy) !== String(req.user.id)) {
+    const isOwner = String(item.reportedBy) === String(req.user.id);
+    const isAdmin = req.user.role === "Admin";
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ error: "You do not have permission to delete this item." });
     }
 

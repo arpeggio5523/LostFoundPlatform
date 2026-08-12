@@ -69,6 +69,11 @@ const userSchema = new mongoose.Schema({
         'Occupation can only contain letters, spaces, apostrophes, and hyphens'
     }
   },
+  role: {
+    type: String,
+    enum: ["User", "Admin"],
+    default: "User",
+  },
   isEmailVerified: {
     type: Boolean,
     default: false,

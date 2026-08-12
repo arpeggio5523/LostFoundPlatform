@@ -7,6 +7,7 @@ import { buildApiUrl, authHeaders, apiFetch } from "../services/apiClient";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../context/ToastContext";
 import StatusBadge from "../components/StatusBadge";
+import QRCodeModal from "../components/QRcode";
 
 
 export default function ItemDetailPage() {
@@ -21,6 +22,7 @@ export default function ItemDetailPage() {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [savingStatus, setSavingStatus] = useState(false);
   const { showToast } = useToast();
+  const [showQRModal, setShowQRModal] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -392,7 +394,9 @@ export default function ItemDetailPage() {
               </div>
 
               {/* QR Button */}
-              <button style={{
+              <button 
+                onClick={()=> setShowQRModal(true)}
+                style={{
                 width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
                 gap: 10, padding: 14, background: "var(--color-bg-surface)",
                 border: "1.5px solid var(--color-border)", borderRadius: 12,
@@ -418,6 +422,12 @@ export default function ItemDetailPage() {
         confirmText="Delete"
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteModal(false)}
+      />
+
+      <QRCodeModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        item={item}
       />
     </div>
   );

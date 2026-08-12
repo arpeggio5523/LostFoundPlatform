@@ -1,8 +1,8 @@
-export default function QRIcon() {
+export default function QRIcon({onClick}) {
   return (
     <button
       title="Show QR Code"
-      onClick={(e) => { e.stopPropagation(); alert("QR code feature coming soon!"); }}
+      onClick={onClick}
       className="absolute top-2.5 right-2.5 bg-gray-300 border-none rounded-lg w-9 h-9 flex items-center justify-center cursor-pointer shadow-sm hover:bg-gray-200 transition-colors"
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

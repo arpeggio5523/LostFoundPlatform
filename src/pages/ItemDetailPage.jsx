@@ -1,14 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2} from "lucide-react";
+import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getCurrentUserId } from "../services/authState";
-import { buildApiUrl, authHeaders, apiFetch } from "../services/apiClient";
+import { getAuthUser, isOwner, canEditItem } from "../services/authState";
+import { authHeaders, apiFetch } from "../services/apiClient";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../context/ToastContext";
 import StatusBadge from "../components/StatusBadge";
 import QRCodeModal from "../components/QRcode";
-
 
 export default function ItemDetailPage() {
   const { id } = useParams();
@@ -19,8 +18,6 @@ export default function ItemDetailPage() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [savingStatus, setSavingStatus] = useState(false);
   const { showToast } = useToast();
   const [showQRModal, setShowQRModal] = useState(false);
 
@@ -39,11 +36,6 @@ export default function ItemDetailPage() {
     };
     fetchItem();
   }, [id]);
-
-  useEffect(() => {
-    if (!item) return;
-    setSelectedStatus(item.status === "Returned" ? "Returned" : item.type);
-  }, [item]);
 
   const handleDelete = async () => {
     setShowDeleteModal(false);
@@ -95,39 +87,11 @@ export default function ItemDetailPage() {
     }
   };
 
-  const handleStatusUpdate = async () => {
-    if (!item || selectedStatus === "" || selectedStatus === (item.status === "Returned" ? "Returned" : item.type)) {
-      return;
-    }
-
-    setSavingStatus(true);
-    try {
-      const response = await apiFetch(`/api/items/${item._id}/status`, {
-        method: "PUT",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ status: selectedStatus }),
-      });
-
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to update item status.");
-      }
-
-      setItem(result.data);
-      setSelectedStatus(result.data.status === "Returned" ? "Returned" : result.data.type);
-      showToast("Item status updated successfully.", "success");
-    } catch (err) {
-      showToast(err.message || "Failed to update item status.", "error");
-    } finally {
-      setSavingStatus(false);
-    }
-  };
-
   const handleMarkAsMatched = async () => {
     showToast("Status updated to matched.", "success");
   };
 
-  const handleMarkAsReturned = async () =>{
+  const handleMarkAsReturned = async () => {
     showToast("Status updated to returned.", "success");
   };
 
@@ -135,19 +99,17 @@ export default function ItemDetailPage() {
   if (error || !item) return <div style={{ padding: 40, color: "#f87171" }}>Item not found.</div>;
 
   const isLost = item.type === "Lost";
-  const isOwner = String(item.reportedBy?._id || item.reportedBy) === String(getCurrentUserId());
+  const currentUser = getAuthUser();
+  const userIsOwner = isOwner(item);
+  const canEdit = canEditItem(item)
   const effectiveStatus = item.status === "Returned" ? "Returned" : item.type;
-  const statusOptions = isLost ? ["Lost", "Returned"] : ["Found", "Returned"];
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--color-bg-base)", transition: "background 0.2s ease" }}>
-      <Sidebar 
-        isCollapsed={isCollapsed} 
-        setIsCollapsed={setIsCollapsed} 
-      />
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
       <main style={{ marginLeft: isCollapsed ? 70 : 220, transition: "margin-left 0.3s ease", flex: 1, padding: "40px" }}>
-
+        
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
@@ -168,6 +130,7 @@ export default function ItemDetailPage() {
 
           {/* LEFT COLUMN */}
           <div>
+            {/* Item Card Details */}
             <div style={{
               background: "var(--color-bg-surface)",
               borderRadius: 24,
@@ -198,7 +161,6 @@ export default function ItemDetailPage() {
                 {/* Badges */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    {/* <Badge type={item.type} label={item.type} /> */}
                     <StatusBadge status={effectiveStatus} />
                   </div>
                 </div>
@@ -221,143 +183,77 @@ export default function ItemDetailPage() {
                 {/* Info Grid */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, borderTop: "1px solid var(--color-border)", paddingTop: 32, marginBottom: 48 }}>
                   <InfoBlock label="Category" icon={<Tag size={16} />} value={item.category} />
-                  <InfoBlock label="Colour"   icon={<Palette size={16} />} value={item.color} />
+                  <InfoBlock label="Colour" icon={<Palette size={16} />} value={item.color} />
                   <InfoBlock label="Location" icon={<MapPin size={16} />} value={item.location} />
                   <InfoBlock label="Exact Location" icon={<MapPin size={16} />} value={item.exactLocation || "Not specified"} />
-                  <InfoBlock label="Date"     icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString() : "N/A"} />
+                  <InfoBlock label="Date" icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString() : "N/A"} />
                 </div>
 
                 {/* Contact Owner CTA */}
-                {!isOwner && (
+                {!userIsOwner && (
                   <button 
                     onClick={handleContactOwner}
                     disabled={sendingEmail}
                     style={{
-                    width: "100%", padding: "16px", background: "var(--color-brand)",
-                    color: "var(--color-brand-text)", border: "none", borderRadius: 12,
-                    fontSize: 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
-                    transition: "background 0.15s", opacity: sendingEmail ? 0.7 : 1,
-                  }}
+                      width: "100%", padding: "16px", background: "var(--color-brand)",
+                      color: "var(--color-brand-text)", border: "none", borderRadius: 12,
+                      fontSize: 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
+                      transition: "background 0.15s", opacity: sendingEmail ? 0.7 : 1,
+                    }}
                     onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand-hover)")}
                     onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand)")}
                   >
                     {sendingEmail ? "Sending..." : "Contact owner"}
                   </button>
                 )}
-
-                {/* Owner Actions (Edit / Delete / Status Update) */}
-                {isOwner && (
-                  <div style={{ marginTop: 24, border: "1px solid var(--color-border)", borderRadius: 16, padding: 24 }}>
-                    <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 16 }}>Actions</h3>
-
-                    <div style={{ display: "grid", gap: 16 }}>
-                      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                        <button
-                          onClick={() => navigate(item.type === "Lost" ? `/report-lost?edit=${item._id}` : `/report-found?edit=${item._id}`)}
-                          style={{
-                            flex: 1, minWidth: 120, padding: "12px", background: "#2563eb", color: "#fff",
-                            border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer",
-                            transition: "background 0.15s",
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = "#1d4ed8"}
-                          onMouseLeave={e => e.currentTarget.style.background = "#2563eb"}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => setShowDeleteModal(true)}
-                          style={{
-                            flex: 1, minWidth: 120, padding: "12px", background: "#dc2626", color: "#fff",
-                            border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer",
-                            transition: "background 0.15s",
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = "#b91c1c"}
-                          onMouseLeave={e => e.currentTarget.style.background = "#dc2626"}
-                        >
-                          Delete
-                        </button>
-                      </div>
-
-                      <div style={{ display: "grid", gap: 12 }}>
-                        <div>
-                          <label htmlFor="status-select" style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 8 }}>Item Status</label>
-                          <select
-                            id="status-select"
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
-                            disabled={item.status === "Returned"}
-                            style={{
-                              width: "100%", padding: "12px 14px", borderRadius: 12,
-                              border: "1px solid var(--color-border)", background: "var(--color-bg-raised)",
-                              color: "var(--color-text-primary)", fontSize: 14, cursor: item.status === "Returned" ? "not-allowed" : "pointer",
-                            }}
-                          >
-                            {statusOptions.map((statusOption) => (
-                              <option key={statusOption} value={statusOption}>{statusOption}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <button
-                          onClick={handleStatusUpdate}
-                          disabled={savingStatus || item.status === "Returned" || selectedStatus === effectiveStatus}
-                          style={{
-                            width: "100%", padding: "12px", background: "#10b981", color: "#fff",
-                            border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: savingStatus || item.status === "Returned" || selectedStatus === effectiveStatus ? "not-allowed" : "pointer",
-                            transition: "background 0.15s",
-                          }}
-                          onMouseEnter={e => {
-                            if (!savingStatus && item.status !== "Returned" && selectedStatus !== effectiveStatus) {
-                              e.currentTarget.style.background = "#059669";
-                            }
-                          }}
-                          onMouseLeave={e => {
-                            if (!savingStatus && item.status !== "Returned" && selectedStatus !== effectiveStatus) {
-                              e.currentTarget.style.background = "#10b981";
-                            }
-                          }}
-                        >
-                          {savingStatus ? "Saving..." : "Update status"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
-            <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 cursor-pointer transition-all duration-300 mt-6">
-                <div className= "text-[var(--color-text-primary), text-2xl, font-bold">
+            {/* Actions Block for Owner/Admin */}
+            {canEdit && (
+              <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 transition-all duration-300 mt-6">
+                <div className="text-[var(--color-text-primary)] text-2xl font-bold">
                   Actions
                 </div>
-                <div className= "grid grid-cols-4 gap-6" >
+
+                <div className="grid grid-cols-4 gap-6">
                   <button
+                    onClick={() => 
+                      navigate(
+                        item.type === "Lost"
+                          ? `/report-lost?edit=${item._id}`
+                          : `/report-found?edit=${item._id}`
+                      )
+                    }
                     className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
                   >
-                      Edit
+                    Edit
                   </button>
+
                   <button
                     onClick={handleMarkAsMatched}
                     className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
                   >
-                      Mark as matched
+                    Mark as matched
                   </button>
+                  
                   <button
-                      onClick={handleMarkAsReturned}
-                      className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
+                    onClick={handleMarkAsReturned}
+                    className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
                   >
-                      Mark as returned
+                    Mark as returned
                   </button>
+                  
                   <button
-                      onClick={handleDelete}
-                      className="flex mt-6 w-full rounded-lg items-center justify-center gap-2 bg-red-600 border border-[var(--color-border)] py-2 font-semibold text-[var(--color-brand-text)] transition hover:bg-red-700"
+                    onClick={() => setShowDeleteModal(true)}
+                    className="flex mt-6 w-full rounded-lg items-center justify-center gap-2 bg-red-600 border border-[var(--color-border)] py-2 font-semibold text-white transition hover:bg-red-700"
                   >
-                      <Trash2 size={20} />
-                      Delete
+                    <Trash2 size={20} />
+                    Delete
                   </button>
                 </div>
-                
-            </div>
+              </div>
+            )}
           </div>
 
           {/* RIGHT COLUMN */}
@@ -395,14 +291,14 @@ export default function ItemDetailPage() {
 
               {/* QR Button */}
               <button 
-                onClick={()=> setShowQRModal(true)}
+                onClick={() => setShowQRModal(true)}
                 style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-                gap: 10, padding: 14, background: "var(--color-bg-surface)",
-                border: "1.5px solid var(--color-border)", borderRadius: 12,
-                fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
-                cursor: "pointer", marginBottom: 16, transition: "background 0.2s",
-              }}
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                  gap: 10, padding: 14, background: "var(--color-bg-surface)",
+                  border: "1.5px solid var(--color-border)", borderRadius: 12,
+                  fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
+                  cursor: "pointer", transition: "background 0.2s",
+                }}
                 onMouseEnter={e => e.currentTarget.style.background = "var(--color-bg-hover)"}
                 onMouseLeave={e => e.currentTarget.style.background = "var(--color-bg-surface)"}
               >
@@ -432,8 +328,6 @@ export default function ItemDetailPage() {
     </div>
   );
 }
-
-
 
 // InfoBlock Component
 function InfoBlock({ label, icon, value }) {

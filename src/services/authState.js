@@ -36,12 +36,41 @@ export function clearAuth() {
   localStorage.removeItem(USER_KEY);
 }
 
+// export function isOwner(item) {
+//   const userId = getCurrentUserId();
+//   if (!userId || !item) return false;
+
+//   const ownerId = item.owner || item.ownerId || item.userId;
+//   if (!ownerId) return false;
+
+//   return String(ownerId) === String(userId);
+// }
+
 export function isOwner(item) {
   const userId = getCurrentUserId();
   if (!userId || !item) return false;
 
-  const ownerId = item.owner || item.ownerId || item.userId;
+  const ownerId =
+    item.owner?._id ||
+    item.owner ||
+    item.ownerId ||
+    item.userId ||
+    item.reportedBy?._id ||
+    item.reportedBy;
+
   if (!ownerId) return false;
 
   return String(ownerId) === String(userId);
+}
+
+export function isAdmin() {
+  const user = getAuthUser();
+  if (!user) return false;
+
+  const role = user.role || user.user?.role || "";
+  return String(role).toLowerCase() === "admin";
+}
+
+export function canEditItem(item) {
+  return isOwner(item) || isAdmin();
 }

@@ -221,11 +221,15 @@ export const updateItem = async (req, res) => {
       return res.status(404).json({ error: "Item not found." });
     }
 
-    if (String(item.reportedBy) !== String(req.user.id)) {
+    const userId = req.user.id || req.user._id || req.user.userId;
+    const isOwner = String(item.reportedBy) === String(req.user.id);
+    const isAdmin = String(req.user.role).toLowerCase() === "admin";
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ error: "You do not have permission to update this item." });
     }
 
-    const { title, description, category, type, location, exactLocation, date, color, distMark, images, user } = req.body;
+    const { title, description, category, type, location, exactLocation, date, color, distMark, images } = req.body;
 
     if (title)       item.title       = title;
     if (description) item.description = description;
@@ -237,7 +241,6 @@ export const updateItem = async (req, res) => {
     if (color  !== undefined) item.color    = color;
     if (distMark !== undefined) item.distMark = distMark;
     if (images !== undefined) item.images   = images;
-    if (user)        item.user        = user;
 
     const updated = await item.save();
     return res.status(200).json({ message: "Item updated.", data: updated });

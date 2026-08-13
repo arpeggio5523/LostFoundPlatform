@@ -109,10 +109,10 @@ export default function AdminDashboardPage() {
 
       {/* Main Content */}
       <main 
-        className="flex-1 p-6 md:p-12 overflow-y-auto transition-[margin] duration-300 ease-in-out"
-        style={{ marginLeft: isCollapsed ? 70 : 220 }}
+        className="flex-1 overflow-y-auto transition-[margin] duration-300 ease-in-out"
+        style={{ marginLeft: isCollapsed ? 70 : 220, padding: "36px 40px" }}
       >
-        <div className="max-w-6xl mx-auto space-y-10">
+        <div className="space-y-7">
           
           {/* Header with Title and Logout */}
           <div
@@ -120,7 +120,6 @@ export default function AdminDashboardPage() {
               display: "flex",
               alignItems: "flex-start",
               justifyContent: "space-between",
-              marginBottom: 28,
             }}
           >
             <div>
@@ -161,7 +160,7 @@ export default function AdminDashboardPage() {
             
             {/* Card 1: Report Lost */}
             <div 
-              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
+              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
             >
               <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
                 <Users size={100} />
@@ -176,7 +175,7 @@ export default function AdminDashboardPage() {
 
             {/* Card 2: Report Found */}
             <div 
-              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
+              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
             >
               <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
                 <Search size={100} />
@@ -191,7 +190,7 @@ export default function AdminDashboardPage() {
 
             {/* Card 3: Found items */}
             <div 
-              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
+              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
             >
               <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
                 <FileText size={100} />
@@ -206,7 +205,7 @@ export default function AdminDashboardPage() {
 
             {/* Card 4: Returned Items */}
             <div 
-              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
+              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
             >
               <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
                 <TrendingUp size={100} />
@@ -222,7 +221,7 @@ export default function AdminDashboardPage() {
 
           {/* Secondary Action: Success Rate */}
           <div 
-            className="group bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 transition-all duration-300"
+            className="group bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 transition-all duration-300"
           >
             <div className="flex items-center gap-6 mb-6">
               <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 duration-300">
@@ -251,7 +250,7 @@ export default function AdminDashboardPage() {
           </div>
         {/* Third Action: Content Moderation */}
           <div 
-            className="group bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 transition-all duration-300"
+            className="group bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 transition-all duration-300"
           >
             <div className="flex items-center gap-6 mb-6">
               <div>

@@ -6,6 +6,7 @@ import Navbar2 from "../components/Navbar2";
 import { getAuthUser, getCurrentUserId } from "../services/authState";
 import { fetchConversations, fetchMessages, sendMessage } from "../services/messagesApi";
 import { useSocket } from "../context/SocketContext";
+import { useToast } from "../context/ToastContext";
 
 function Avatar({ initials }) {
   return (
@@ -49,6 +50,7 @@ export default function MessagesPage() {
 
   const scrollRef = useRef(null);
   const socket = useSocket();
+  const { showToast } = useToast();
 
   // Auth guard, same pattern as ProfilePage
   useEffect(() => {
@@ -109,10 +111,41 @@ export default function MessagesPage() {
       });
     };
 
+    const handleMessageSent = ({ data }) => {
+      setSending(false);
+      setDraft("");
+      
+      setMessages((prev) => {
+        if (selectedId === data.conversation) {
+          if (prev.some((m) => m._id === data._id)) return prev;
+          return [...prev, data];
+        }
+        return prev;
+      });
+
+      setConversations((prev) => {
+        const next = prev.map((c) =>
+          c._id === data.conversation
+            ? { ...c, lastMessage: data.text, lastMessageAt: data.createdAt }
+            : c
+        );
+        return next.sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
+      });
+    };
+
+    const handleMessageError = ({ message }) => {
+      setSending(false);
+      showToast(message || "Failed to send message", "error");
+    };
+
     socket.on("message_received", handleMessageReceived);
+    socket.on("message_sent", handleMessageSent);
+    socket.on("message_error", handleMessageError);
 
     return () => {
       socket.off("message_received", handleMessageReceived);
+      socket.off("message_sent", handleMessageSent);
+      socket.off("message_error", handleMessageError);
     };
   }, [socket, selectedId]);
 
@@ -137,24 +170,31 @@ export default function MessagesPage() {
     const text = draft.trim();
     if (!text || !selectedId || sending) return;
 
-    setSending(true);
-    try {
-      const data = await sendMessage(selectedId, text);
-      if (data.data) {
-        setMessages((prev) => [...prev, data.data]);
-        setDraft("");
-        setConversations((prev) =>
-          prev.map((c) =>
-            c._id === selectedId
-              ? { ...c, lastMessage: text, lastMessageAt: new Date().toISOString() }
-              : c
-          )
-        );
+    if (socket && socket.connected) {
+      setSending(true);
+      socket.emit("send_message", { conversationId: selectedId, text });
+    } else {
+      // Fallback to HTTP if socket is disconnected
+      setSending(true);
+      try {
+        const data = await sendMessage(selectedId, text);
+        if (data.data) {
+          setMessages((prev) => [...prev, data.data]);
+          setDraft("");
+          setConversations((prev) => {
+            const next = prev.map((c) =>
+              c._id === selectedId
+                ? { ...c, lastMessage: text, lastMessageAt: new Date().toISOString() }
+                : c
+            );
+            return next.sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
+          });
+        }
+      } catch (err) {
+        showToast("Failed to send message", "error");
+      } finally {
+        setSending(false);
       }
-    } catch {
-      // silently ignore for now — could hook into Toast.jsx here
-    } finally {
-      setSending(false);
     }
   };
 

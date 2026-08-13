@@ -28,43 +28,36 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (location.pathname === "/messages") {
-      localStorage.setItem("lastReadMessages", new Date().toISOString());
-      setUnreadCount(0);
-    }
-  }, [location.pathname]);
-
-  useEffect(() => {
-    if (location.pathname === "/messages") return;
-
     let isMounted = true;
-    const lastRead = localStorage.getItem("lastReadMessages") || new Date(0).toISOString();
-
     const checkUnread = async () => {
       try {
         const res = await fetchConversations();
         const convos = Array.isArray(res.data) ? res.data : [];
-        const count = convos.filter(c => new Date(c.lastMessageAt) > new Date(lastRead)).length;
+        let count = 0;
+        convos.forEach(c => {
+          const lastReadStr = localStorage.getItem(`lastRead_${c._id}`);
+          // If no lastRead is set, treat it as read until we receive a new message
+          const lastRead = lastReadStr ? new Date(lastReadStr).getTime() : new Date(c.lastMessageAt).getTime();
+          if (new Date(c.lastMessageAt).getTime() > lastRead) {
+            count++;
+          }
+        });
         if (isMounted) setUnreadCount(count);
-      } catch (err) {
-        // ignore
-      }
+      } catch (err) {}
     };
 
     checkUnread();
-    return () => { isMounted = false; };
-  }, [location.pathname]);
+    const interval = setInterval(checkUnread, 10000);
+    const handleStorage = () => checkUnread();
+    
+    window.addEventListener("updateUnread", handleStorage);
 
-  useEffect(() => {
-    if (!socket) return;
-    const handleNewMessage = () => {
-      if (location.pathname !== "/messages") {
-        setUnreadCount(prev => prev + 1);
-      }
+    return () => { 
+      isMounted = false; 
+      clearInterval(interval);
+      window.removeEventListener("updateUnread", handleStorage);
     };
-    socket.on("message_received", handleNewMessage);
-    return () => socket.off("message_received", handleNewMessage);
-  }, [socket, location.pathname]);
+  }, []);
 
   return (
     <aside style={{

@@ -86,6 +86,10 @@ export default function MessagesPage() {
   useEffect(() => {
     if (!selectedId) return;
 
+    // Mark as read immediately when opened
+    localStorage.setItem(`lastRead_${selectedId}`, new Date().toISOString());
+    window.dispatchEvent(new Event("updateUnread"));
+
     setLoadingMessages(true);
     fetchMessages(selectedId)
       .then((data) => setMessages(Array.isArray(data.data) ? data.data : []))
@@ -110,6 +114,7 @@ export default function MessagesPage() {
         if (res.data && Array.isArray(res.data)) {
           setConversations((prev) => {
             if (prev.length !== res.data.length || (prev[0] && res.data[0] && prev[0].lastMessageAt !== res.data[0].lastMessageAt)) {
+              window.dispatchEvent(new Event("updateUnread"));
               return res.data;
             }
             return prev;
@@ -121,7 +126,12 @@ export default function MessagesPage() {
         fetchMessages(selectedId).then((res) => {
           if (res.data && Array.isArray(res.data)) {
             setMessages((prev) => {
-              if (prev.length !== res.data.length) return res.data;
+              if (prev.length !== res.data.length) {
+                // Mark active as read since we just fetched new messages while looking at it
+                localStorage.setItem(`lastRead_${selectedId}`, new Date().toISOString());
+                window.dispatchEvent(new Event("updateUnread"));
+                return res.data;
+              }
               return prev;
             });
           }
@@ -141,6 +151,9 @@ export default function MessagesPage() {
       setMessages((prev) => {
         if (selectedId && String(selectedId) === convIdStr) {
           if (prev.some((m) => String(m._id) === String(data._id))) return prev;
+          
+          // We are actively viewing this conversation, mark it read
+          localStorage.setItem(`lastRead_${selectedId}`, new Date().toISOString());
           return [...prev, data];
         }
         return prev;
@@ -148,6 +161,8 @@ export default function MessagesPage() {
 
       setConversations((prev) => {
         const exists = prev.some((c) => String(c._id) === convIdStr);
+        window.dispatchEvent(new Event("updateUnread"));
+        
         if (!exists) {
           fetchConversations().then((res) => setConversations(Array.isArray(res.data) ? res.data : []));
           return prev;
@@ -292,52 +307,60 @@ export default function MessagesPage() {
 
             <div className="flex-1 overflow-y-auto">
               {loadingConvos ? (
-                <p className="px-5 pt-6 text-sm text-gray-400 dark:text-[var(--color-text-muted)]">
-                  Loading conversations…
-                </p>
+                <div className="flex flex-1 items-center justify-center">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--color-brand)] border-t-transparent"></div>
+                </div>
               ) : filteredConversations.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-2 px-8 pt-16 text-center">
-                  <MessageSquare
-                    size={28}
-                    className="text-gray-300 dark:text-[var(--color-text-muted)]"
-                  />
-                  <p className="text-sm font-medium text-gray-600 dark:text-[var(--color-text-secondary)]">
-                    No messages yet
-                  </p>
-                  <p className="text-xs text-[var(--color-brand)]">
-                    Start a conversation by contacting item owners
-                  </p>
+                <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
+                  <MessageSquare size={32} className="mb-3 text-gray-300 dark:text-[var(--color-text-muted)]" />
+                  <p className="text-sm font-medium text-gray-500 dark:text-[var(--color-text-secondary)]">No conversations found</p>
                 </div>
               ) : (
                 filteredConversations.map((c) => {
+                  const isActive = selectedId === c._id;
                   const other = otherParticipant(c);
-                  const isActive = c._id === selectedId;
+                  
+                  const lastReadStr = localStorage.getItem(`lastRead_${c._id}`);
+                  const lastRead = lastReadStr ? new Date(lastReadStr).getTime() : new Date(c.lastMessageAt).getTime();
+                  const isUnread = !isActive && new Date(c.lastMessageAt).getTime() > lastRead;
+
                   return (
                     <button
                       key={c._id}
-                      onClick={() => setSelectedId(c._id)}
+                      onClick={() => {
+                        setSelectedId(c._id);
+                        localStorage.setItem(`lastRead_${c._id}`, new Date().toISOString());
+                        window.dispatchEvent(new Event("updateUnread"));
+                      }}
                       className={`flex w-full items-start gap-3 px-5 py-3 text-left transition-colors ${
                         isActive
                           ? "bg-gray-100 dark:bg-[var(--color-bg-raised)]"
+                          : isUnread
+                          ? "bg-[var(--color-brand-active-bg)] dark:bg-[var(--color-brand-active-bg)] hover:bg-[var(--color-brand-hover-bg)]"
                           : "hover:bg-gray-50 dark:hover:bg-[var(--color-bg-hover)]"
                       }`}
                     >
                       <Avatar initials={initialsFor(other?.fullName)} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="truncate text-sm font-semibold text-gray-900 dark:text-[var(--color-text-primary)]">
+                          <span className={`truncate text-sm ${isUnread ? "font-bold text-[var(--color-brand)]" : "font-semibold text-gray-900 dark:text-[var(--color-text-primary)]"}`}>
                             {other?.fullName || "Unknown user"}
                           </span>
-                          <span className="shrink-0 text-xs text-gray-400 dark:text-[var(--color-text-muted)]">
+                          <span className={`shrink-0 text-xs ${isUnread ? "font-bold text-[var(--color-brand)]" : "text-gray-400 dark:text-[var(--color-text-muted)]"}`}>
                             {formatTime(c.lastMessageAt)}
                           </span>
                         </div>
                         {c.item?.title && (
                           <p className="truncate text-xs text-[var(--color-brand)]">{c.item.title}</p>
                         )}
-                        <p className="truncate text-xs text-gray-500 dark:text-[var(--color-text-secondary)]">
-                          {c.lastMessage || "No messages yet"}
-                        </p>
+                        <div className="flex items-center justify-between">
+                          <p className={`truncate text-xs ${isUnread ? "font-semibold text-gray-900 dark:text-[var(--color-text-primary)]" : "text-gray-500 dark:text-[var(--color-text-secondary)]"}`}>
+                            {c.lastMessage || "No messages yet"}
+                          </p>
+                          {isUnread && (
+                            <div className="ml-2 flex h-2 w-2 shrink-0 rounded-full bg-[var(--color-brand)]" />
+                          )}
+                        </div>
                       </div>
                     </button>
                   );

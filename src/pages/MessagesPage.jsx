@@ -86,8 +86,13 @@ export default function MessagesPage() {
   useEffect(() => {
     if (!selectedId) return;
 
-    // Mark as read immediately when opened
-    localStorage.setItem(`lastRead_${selectedId}`, new Date().toISOString());
+    // Mark as read immediately when opened using exact server timestamp to avoid clock skew
+    const convo = conversations.find(c => c._id === selectedId);
+    if (convo && convo.lastMessageAt) {
+      localStorage.setItem(`lastRead_${selectedId}`, convo.lastMessageAt);
+    } else {
+      localStorage.setItem(`lastRead_${selectedId}`, new Date().toISOString());
+    }
     window.dispatchEvent(new Event("updateUnread"));
 
     setLoadingMessages(true);
@@ -114,6 +119,13 @@ export default function MessagesPage() {
         if (res.data && Array.isArray(res.data)) {
           setConversations((prev) => {
             if (prev.length !== res.data.length || (prev[0] && res.data[0] && prev[0].lastMessageAt !== res.data[0].lastMessageAt)) {
+              
+              // If we are actively viewing a conversation, ensure its exact new server timestamp is marked read
+              const activeConvo = res.data.find(c => c._id === selectedId);
+              if (activeConvo && activeConvo.lastMessageAt) {
+                localStorage.setItem(`lastRead_${selectedId}`, activeConvo.lastMessageAt);
+              }
+              
               window.dispatchEvent(new Event("updateUnread"));
               return res.data;
             }
@@ -127,8 +139,11 @@ export default function MessagesPage() {
           if (res.data && Array.isArray(res.data)) {
             setMessages((prev) => {
               if (prev.length !== res.data.length) {
-                // Mark active as read since we just fetched new messages while looking at it
-                localStorage.setItem(`lastRead_${selectedId}`, new Date().toISOString());
+                // The conversation polling will handle marking it read, but just in case:
+                const convo = conversations.find(c => c._id === selectedId);
+                if (convo && convo.lastMessageAt) {
+                  localStorage.setItem(`lastRead_${selectedId}`, convo.lastMessageAt);
+                }
                 window.dispatchEvent(new Event("updateUnread"));
                 return res.data;
               }
@@ -152,8 +167,8 @@ export default function MessagesPage() {
         if (selectedId && String(selectedId) === convIdStr) {
           if (prev.some((m) => String(m._id) === String(data._id))) return prev;
           
-          // We are actively viewing this conversation, mark it read
-          localStorage.setItem(`lastRead_${selectedId}`, new Date().toISOString());
+          // We are actively viewing this conversation, mark it read using server timestamp
+          localStorage.setItem(`lastRead_${selectedId}`, data.createdAt || new Date().toISOString());
           return [...prev, data];
         }
         return prev;
@@ -185,6 +200,9 @@ export default function MessagesPage() {
       setMessages((prev) => {
         if (selectedId && String(selectedId) === convIdStr) {
           if (prev.some((m) => String(m._id) === String(data._id))) return prev;
+          
+          // Update read timestamp to include our own sent message
+          localStorage.setItem(`lastRead_${selectedId}`, data.createdAt || new Date().toISOString());
           return [...prev, data];
         }
         return prev;
@@ -192,6 +210,7 @@ export default function MessagesPage() {
 
       setConversations((prev) => {
         const exists = prev.some((c) => String(c._id) === convIdStr);
+        window.dispatchEvent(new Event("updateUnread"));
         if (!exists) {
           fetchConversations().then((res) => setConversations(Array.isArray(res.data) ? res.data : []));
           return prev;
@@ -251,12 +270,16 @@ export default function MessagesPage() {
       try {
         const data = await sendMessage(selectedId, text);
         if (data.data) {
+          const sentDate = data.data.createdAt || new Date().toISOString();
+          localStorage.setItem(`lastRead_${selectedId}`, sentDate);
+          window.dispatchEvent(new Event("updateUnread"));
+
           setMessages((prev) => [...prev, data.data]);
           setDraft("");
           setConversations((prev) => {
             const next = prev.map((c) =>
               c._id === selectedId
-                ? { ...c, lastMessage: text, lastMessageAt: new Date().toISOString() }
+                ? { ...c, lastMessage: text, lastMessageAt: sentDate }
                 : c
             );
             return next.sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
@@ -329,7 +352,7 @@ export default function MessagesPage() {
                       key={c._id}
                       onClick={() => {
                         setSelectedId(c._id);
-                        localStorage.setItem(`lastRead_${c._id}`, new Date().toISOString());
+                        localStorage.setItem(`lastRead_${c._id}`, c.lastMessageAt || new Date().toISOString());
                         window.dispatchEvent(new Event("updateUnread"));
                       }}
                       className={`flex w-full items-start gap-3 px-5 py-3 text-left transition-colors ${

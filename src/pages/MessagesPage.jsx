@@ -103,6 +103,35 @@ export default function MessagesPage() {
     };
   }, [selectedId, socket]);
 
+  // Fallback Polling Mechanism to ensure messages arrive even if Socket.IO fails
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchConversations().then((res) => {
+        if (res.data && Array.isArray(res.data)) {
+          setConversations((prev) => {
+            if (prev.length !== res.data.length || (prev[0] && res.data[0] && prev[0].lastMessageAt !== res.data[0].lastMessageAt)) {
+              return res.data;
+            }
+            return prev;
+          });
+        }
+      });
+
+      if (selectedId) {
+        fetchMessages(selectedId).then((res) => {
+          if (res.data && Array.isArray(res.data)) {
+            setMessages((prev) => {
+              if (prev.length !== res.data.length) return res.data;
+              return prev;
+            });
+          }
+        });
+      }
+    }, 3000); // Check every 3 seconds
+
+    return () => clearInterval(intervalId);
+  }, [selectedId]);
+
   useEffect(() => {
     if (!socket) return;
 

@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode } from "lucide-react";
+import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, MessageSquare } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getCurrentUserId } from "../services/authState";
 import { buildApiUrl, authHeaders, apiFetch } from "../services/apiClient";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../context/ToastContext";
+import { startConversation } from "../services/messagesApi";
 
 
 export default function ItemDetailPage() {
@@ -19,6 +20,7 @@ export default function ItemDetailPage() {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [savingStatus, setSavingStatus] = useState(false);
+  const [startingChat, setStartingChat] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -89,6 +91,27 @@ export default function ItemDetailPage() {
       showToast(err.message || "Failed to send email.", "error");
     } finally {
       setSendingEmail(false);
+    }
+  };
+
+  const handleStartChat = async () => {
+    if (!item) return;
+    const ownerId = item.reportedBy?._id || item.reportedBy;
+    if (!ownerId) {
+      showToast("Cannot start chat: unknown owner.", "error");
+      return;
+    }
+    
+    setStartingChat(true);
+    try {
+      const res = await startConversation(ownerId, item._id);
+      if (res.data) {
+        navigate(`/messages?conversationId=${res.data._id}`);
+      }
+    } catch (err) {
+      showToast("Failed to start conversation.", "error");
+    } finally {
+      setStartingChat(false);
     }
   };
 
@@ -218,20 +241,39 @@ export default function ItemDetailPage() {
 
                 {/* Contact Owner CTA */}
                 {!isOwner && (
-                  <button 
-                    onClick={handleContactOwner}
-                    disabled={sendingEmail}
-                    style={{
-                    width: "100%", padding: "16px", background: "var(--color-brand)",
-                    color: "var(--color-brand-text)", border: "none", borderRadius: 12,
-                    fontSize: 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
-                    transition: "background 0.15s", opacity: sendingEmail ? 0.7 : 1,
-                  }}
-                    onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand-hover)")}
-                    onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand)")}
-                  >
-                    {sendingEmail ? "Sending..." : "Contact owner"}
-                  </button>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <button 
+                      onClick={handleContactOwner}
+                      disabled={sendingEmail}
+                      style={{
+                        width: "100%", padding: "16px", background: "var(--color-brand)",
+                        color: "var(--color-brand-text)", border: "none", borderRadius: 12,
+                        fontSize: 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
+                        transition: "background 0.15s", opacity: sendingEmail ? 0.7 : 1,
+                      }}
+                      onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand-hover)")}
+                      onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand)")}
+                    >
+                      {sendingEmail ? "Sending..." : "Email owner"}
+                    </button>
+
+                    <button 
+                      onClick={handleStartChat}
+                      disabled={startingChat}
+                      style={{
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                        width: "100%", padding: "16px", background: "var(--color-bg-raised)",
+                        color: "var(--color-text-primary)", border: "1px solid var(--color-border)", borderRadius: 12,
+                        fontSize: 15, fontWeight: 700, cursor: startingChat ? "not-allowed" : "pointer", 
+                        transition: "background 0.15s", opacity: startingChat ? 0.7 : 1,
+                      }}
+                      onMouseEnter={e => !startingChat && (e.currentTarget.style.background = "var(--color-bg-hover)")}
+                      onMouseLeave={e => !startingChat && (e.currentTarget.style.background = "var(--color-bg-raised)")}
+                    >
+                      <MessageSquare size={18} />
+                      {startingChat ? "Starting chat..." : `Chat with ${item.user || "owner"}`}
+                    </button>
+                  </div>
                 )}
 
                 {/* Owner Actions (Edit / Delete / Status Update) */}

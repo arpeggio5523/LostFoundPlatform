@@ -242,9 +242,14 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      // Use setTimeout to ensure the DOM has fully painted the new messages before scrolling
+      setTimeout(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+      }, 10);
     }
-  }, [messages.length, selectedId]);
+  }, [messages, selectedId, loadingMessages]);
 
   const selectedConvo = conversations.find((c) => c._id === selectedId) || null;
 

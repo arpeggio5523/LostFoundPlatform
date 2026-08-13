@@ -1,15 +1,22 @@
 import Conversation from "../models/Conversation.js";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
+import { encrypt, decrypt } from "../utils/cryptoUtils.js";
 
 export const getConversations = async (req, res) => {
   try {
     const conversations = await Conversation.find({ participants: req.user.id })
       .populate("participants", "_id fullName email")
       .populate("item", "_id title type images")
-      .sort({ lastMessageAt: -1 });
+      .sort({ lastMessageAt: -1 })
+      .lean();
 
-    res.json({ data: conversations });
+    const decryptedConversations = conversations.map(c => ({
+      ...c,
+      lastMessage: decrypt(c.lastMessage)
+    }));
+
+    res.json({ data: decryptedConversations });
   } catch (error) {
     res.status(500).json({ message: "Failed to load conversations", error: error.message });
   }
@@ -28,9 +35,15 @@ export const getConversationMessages = async (req, res) => {
 
     const messages = await Message.find({ conversation: conversation._id })
       .populate("sender", "_id fullName")
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: 1 })
+      .lean();
 
-    res.json({ data: messages });
+    const decryptedMessages = messages.map(m => ({
+      ...m,
+      text: decrypt(m.text)
+    }));
+
+    res.json({ data: decryptedMessages });
   } catch (error) {
     res.status(500).json({ message: "Failed to load messages", error: error.message });
   }
@@ -53,24 +66,29 @@ export const sendMessage = async (req, res) => {
       return res.status(404).json({ message: "Conversation not found" });
     }
 
+    const encryptedText = encrypt(text.trim());
+
     const message = await Message.create({
       conversation: conversation._id,
       sender: req.user.id,
-      text: text.trim(),
+      text: encryptedText,
     });
 
-    conversation.lastMessage = text.trim();
+    conversation.lastMessage = encryptedText;
     conversation.lastMessageAt = new Date();
     await conversation.save();
 
     const populated = await Message.findById(message._id).populate("sender", "_id fullName");
+    const populatedObj = populated.toObject();
+    populatedObj.text = decrypt(populatedObj.text);
+    
     const io = req.app.get("io");
 
     if (io) {
-      io.to(String(conversation._id)).emit("message_received", { data: populated });
+      io.to(String(conversation._id)).emit("message_received", { data: populatedObj });
     }
 
-    res.status(201).json({ data: populated });
+    res.status(201).json({ data: populatedObj });
   } catch (error) {
     res.status(500).json({ message: "Failed to send message", error: error.message });
   }

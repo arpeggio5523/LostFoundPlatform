@@ -2,20 +2,14 @@ stages:
   - test
   - deploy
 
-default:
-  tags:
-    - saas-linux-small-amd64  # Routes jobs to GitLab's official managed Linux runners
-
 test:
   stage: test
-  image: node:22
   script:
     - npm ci
     - npx vitest run
 
 deploy:
   stage: deploy
-  image: node:20
   script:
     - echo "Add your deployment commands here"
   only:

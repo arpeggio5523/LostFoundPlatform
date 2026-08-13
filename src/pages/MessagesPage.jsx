@@ -440,7 +440,7 @@ export default function MessagesPage() {
                       Loading messages…
                     </p>
                   ) : (
-                    messages.map((m) => {
+                    [...messages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((m) => {
                       const isMine = String(m.sender?._id || m.sender) === String(currentUserId);
                       return (
                         <div key={m._id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>

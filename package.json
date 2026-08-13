@@ -20,6 +20,7 @@
     "express": "^4.22.2",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.14.0",
+    "mapbox-gl": "^3.28.1",
     "mongodb": "^7.2.0",
     "mongoose": "^9.6.2",
     "node": "^22.22.3",

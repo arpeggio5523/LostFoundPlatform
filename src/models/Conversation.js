@@ -14,6 +14,10 @@ const conversationSchema = new mongoose.Schema(
       ref: "Item",
       default: null,
     },
+    /**
+     * @description Stores AES-256-GCM encrypted ciphertext of the last message at rest.
+     * Must be encrypted before saving and decrypted before sending to client.
+     */
     lastMessage: {
       type: String,
       default: "",

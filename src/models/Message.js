@@ -12,6 +12,10 @@ const messageSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    /**
+     * @description Stores AES-256-GCM encrypted ciphertext at rest.
+     * Must be encrypted before saving and decrypted before sending to client.
+     */
     text: {
       type: String,
       required: true,

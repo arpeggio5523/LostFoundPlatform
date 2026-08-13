@@ -15,6 +15,7 @@ export const connectSocket = (token) => {
       token,
     },
     transports: ["websocket", "polling"],
+    forceNew: true,
   });
 
   return socket;

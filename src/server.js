@@ -150,6 +150,16 @@ app.get("*", (req, res) => {
 });
 
 const startServer = async () => {
+    const key = process.env.MESSAGE_ENCRYPTION_KEY;
+    if (!key || key.length !== 64 || !/^[0-9a-fA-F]+$/.test(key)) {
+        console.warn("\n==========================================================");
+        console.warn("⚠️  WARNING: MESSAGE_ENCRYPTION_KEY is missing or invalid!");
+        console.warn("⚠️  It must be a 64-character hex string (32 bytes).");
+        console.warn("⚠️  Direct messaging will fall back to plaintext mode.");
+        console.warn("⚠️  Add it to your .env file to enable secure encryption.");
+        console.warn("==========================================================\n");
+    }
+
     try {
         await connectDB();
         app.listen(PORT, () => {

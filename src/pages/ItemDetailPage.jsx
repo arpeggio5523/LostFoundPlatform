@@ -211,12 +211,12 @@ export default function ItemDetailPage() {
 
             {/* Actions Block for Owner/Admin */}
             {canEdit && (
-              <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 transition-all duration-300 mt-6">
-                <div className="text-[var(--color-text-primary)] text-2xl font-bold">
+              <div className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 sm:p-6 transition-all duration-300">
+                <div className="mb-4 text-xl font-bold text-[var(--color-text-primary)]">
                   Actions
                 </div>
 
-                <div className="grid grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <button
                     onClick={() => 
                       navigate(
@@ -225,31 +225,31 @@ export default function ItemDetailPage() {
                           : `/report-found?edit=${item._id}`
                       )
                     }
-                    className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
+                    className="flex min-h-11 w-full items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
                   >
                     Edit
                   </button>
 
                   <button
+                    onClick={() => setShowDeleteModal(true)}
+                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-red-600 bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:border-red-700 hover:bg-red-700"
+                  >
+                    <Trash2 size={18} />
+                    Delete
+                  </button>
+
+                  <button
                     onClick={handleMarkAsMatched}
-                    className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
+                    className="flex min-h-11 w-full items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
                   >
                     Mark as matched
                   </button>
-                  
+
                   <button
                     onClick={handleMarkAsReturned}
-                    className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
+                    className="flex min-h-11 w-full items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
                   >
                     Mark as returned
-                  </button>
-                  
-                  <button
-                    onClick={() => setShowDeleteModal(true)}
-                    className="flex mt-6 w-full rounded-lg items-center justify-center gap-2 bg-red-600 border border-[var(--color-border)] py-2 font-semibold text-white transition hover:bg-red-700"
-                  >
-                    <Trash2 size={20} />
-                    Delete
                   </button>
                 </div>
               </div>

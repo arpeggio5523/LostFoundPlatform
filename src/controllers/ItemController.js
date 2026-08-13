@@ -104,6 +104,9 @@ export const createItem = async (req, res) => {
     if (!location)    missing.push("location");
     if (!date)        missing.push("date");
     if (!user)        missing.push("user");
+    if (latitude === undefined || latitude === null) missing.push("latitude");
+    if (longitude === undefined || latitude === null) missing.push("longitude");
+    if (!locationName) missing.push("location name")
 
     if (missing.length > 0) {
       return res.status(400).json({ error: `Missing required fields: ${missing.join(", ")}` });
@@ -123,6 +126,14 @@ export const createItem = async (req, res) => {
 
     if (isNaN(new Date(date).getTime())) {
       return res.status(400).json({ error: "Invalid date format." });
+    }
+
+    if (isNaN(latitude) || Math.abs(latitude) > 90){
+      return res.status(400).json({error: "Invalid latitude, Latitude must be in range [-90, 90]"})
+    }
+
+    if (isNaN(longitude) || Math.abs(longitude) > 180){
+      return res.status(400).json({error: "Invalid latitude, Latitude must be in range [-180, 180]"})
     }
 
     if (images && images.length > 5) {

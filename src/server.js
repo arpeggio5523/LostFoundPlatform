@@ -128,7 +128,9 @@ io.on("connection", (socket) => {
       const populatedObj = populated.toObject();
       populatedObj.text = decrypt(populatedObj.text);
 
-      io.to(String(conversation._id)).emit("message_received", { data: populatedObj });
+      conversation.participants.forEach((participantId) => {
+        io.to(String(participantId)).emit("message_received", { data: populatedObj });
+      });
       socket.emit("message_sent", { data: populatedObj });
     } catch (error) {
       socket.emit("message_error", { message: error.message });

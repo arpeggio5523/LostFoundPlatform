@@ -74,9 +74,20 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
   socket.join(String(socket.user.id));
 
-  socket.on("join_conversation", (conversationId) => {
+  socket.on("join_conversation", async (conversationId) => {
     if (conversationId) {
-      socket.join(String(conversationId));
+      try {
+        const conversation = await Conversation.findOne({
+          _id: conversationId,
+          participants: socket.user.id,
+        });
+
+        if (conversation) {
+          socket.join(String(conversationId));
+        }
+      } catch (error) {
+        // Silent catch to prevent leaking valid vs invalid IDs
+      }
     }
   });
 

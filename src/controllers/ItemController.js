@@ -93,7 +93,7 @@ const buildItemPayload = (body, userId) => ({
  */
 export const createItem = async (req, res) => {
   try {
-    const { title, description, category, type, location, date, images, user } = req.body;
+    const { title, description, category, type, location, date, images, user, latitude, longitude, locationName} = req.body;
 
     // Required field check
     const missing = [];
@@ -105,7 +105,7 @@ export const createItem = async (req, res) => {
     if (!date)        missing.push("date");
     if (!user)        missing.push("user");
     if (latitude === undefined || latitude === null) missing.push("latitude");
-    if (longitude === undefined || latitude === null) missing.push("longitude");
+    if (longitude === undefined || longitude === null) missing.push("longitude");
     if (!locationName) missing.push("location name")
 
     if (missing.length > 0) {
@@ -128,12 +128,12 @@ export const createItem = async (req, res) => {
       return res.status(400).json({ error: "Invalid date format." });
     }
 
-    if (isNaN(latitude) || Math.abs(latitude) > 90){
-      return res.status(400).json({error: "Invalid latitude, Latitude must be in range [-90, 90]"})
+    if (isNaN(Number(latitude)) || Math.abs(Number(latitude)) > 90) {
+      return res.status(400).json({ error: "Invalid latitude, Latitude must be in range [-90, 90]." });
     }
 
-    if (isNaN(longitude) || Math.abs(longitude) > 180){
-      return res.status(400).json({error: "Invalid latitude, Latitude must be in range [-180, 180]"})
+    if (isNaN(Number(longitude)) || Math.abs(Number(longitude)) > 180) {
+      return res.status(400).json({ error: "Invalid longitude, Longitude must be in range [-180, 180]." });
     }
 
     if (images && images.length > 5) {

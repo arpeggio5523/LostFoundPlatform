@@ -53,7 +53,7 @@ export default function ItemDetailPage() {
       }
 
       showToast("Item deleted successfully.", "success");
-      navigate(item.type === "Lost" ? "/lost-items" : "/found-items");
+      navigate(returnTo);
     } catch (err) {
       showToast(err.message || "Failed to delete item.", "error");
     }

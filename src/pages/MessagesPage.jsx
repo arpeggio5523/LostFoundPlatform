@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Send, MessageSquare, ArrowLeft, Paperclip } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar2 from "../components/Navbar2";
@@ -35,6 +35,7 @@ const formatTime = (isoString) => {
 
 export default function MessagesPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const currentUserId = getCurrentUserId();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -67,6 +68,19 @@ export default function MessagesPage() {
       .catch(() => setConversations([]))
       .finally(() => setLoadingConvos(false));
   }, []);
+
+  // Auto-select conversation from query param
+  useEffect(() => {
+    const convId = searchParams.get("conversationId");
+    if (convId && !loadingConvos) {
+      const exists = conversations.find((c) => c._id === convId);
+      if (exists) {
+        setSelectedId(convId);
+        // Clear the param so refreshing doesn't force re-selection
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, conversations, loadingConvos, setSearchParams]);
 
   // Load messages when a conversation is selected
   useEffect(() => {

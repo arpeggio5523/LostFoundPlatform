@@ -85,7 +85,9 @@ export const sendMessage = async (req, res) => {
     const io = req.app.get("io");
 
     if (io) {
-      io.to(String(conversation._id)).emit("message_received", { data: populatedObj });
+      conversation.participants.forEach((participantId) => {
+        io.to(String(participantId)).emit("message_received", { data: populatedObj });
+      });
     }
 
     res.status(201).json({ data: populatedObj });

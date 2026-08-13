@@ -107,17 +107,24 @@ export default function MessagesPage() {
     if (!socket) return;
 
     const handleMessageReceived = ({ data }) => {
+      const convIdStr = String(data.conversation?._id || data.conversation);
+
       setMessages((prev) => {
-        if (selectedId === data.conversation) {
-          if (prev.some((m) => m._id === data._id)) return prev;
+        if (selectedId && String(selectedId) === convIdStr) {
+          if (prev.some((m) => String(m._id) === String(data._id))) return prev;
           return [...prev, data];
         }
         return prev;
       });
 
       setConversations((prev) => {
+        const exists = prev.some((c) => String(c._id) === convIdStr);
+        if (!exists) {
+          fetchConversations().then((res) => setConversations(Array.isArray(res.data) ? res.data : []));
+          return prev;
+        }
         const next = prev.map((c) =>
-          c._id === data.conversation
+          String(c._id) === convIdStr
             ? { ...c, lastMessage: data.text, lastMessageAt: data.createdAt }
             : c
         );
@@ -129,17 +136,24 @@ export default function MessagesPage() {
       setSending(false);
       setDraft("");
       
+      const convIdStr = String(data.conversation?._id || data.conversation);
+
       setMessages((prev) => {
-        if (selectedId === data.conversation) {
-          if (prev.some((m) => m._id === data._id)) return prev;
+        if (selectedId && String(selectedId) === convIdStr) {
+          if (prev.some((m) => String(m._id) === String(data._id))) return prev;
           return [...prev, data];
         }
         return prev;
       });
 
       setConversations((prev) => {
+        const exists = prev.some((c) => String(c._id) === convIdStr);
+        if (!exists) {
+          fetchConversations().then((res) => setConversations(Array.isArray(res.data) ? res.data : []));
+          return prev;
+        }
         const next = prev.map((c) =>
-          c._id === data.conversation
+          String(c._id) === convIdStr
             ? { ...c, lastMessage: data.text, lastMessageAt: data.createdAt }
             : c
         );

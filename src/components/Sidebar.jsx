@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { fetchConversations } from "../services/messagesApi";
+import { useSocket } from "../context/SocketContext";
 import { 
   Home, 
   Search, 
@@ -22,6 +24,47 @@ const NAV_ITEMS = [
 export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
   const navigate = useNavigate();
   const location = useLocation();
+  const socket = useSocket();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (location.pathname === "/messages") {
+      localStorage.setItem("lastReadMessages", new Date().toISOString());
+      setUnreadCount(0);
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (location.pathname === "/messages") return;
+
+    let isMounted = true;
+    const lastRead = localStorage.getItem("lastReadMessages") || new Date(0).toISOString();
+
+    const checkUnread = async () => {
+      try {
+        const res = await fetchConversations();
+        const convos = Array.isArray(res.data) ? res.data : [];
+        const count = convos.filter(c => new Date(c.lastMessageAt) > new Date(lastRead)).length;
+        if (isMounted) setUnreadCount(count);
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    checkUnread();
+    return () => { isMounted = false; };
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleNewMessage = () => {
+      if (location.pathname !== "/messages") {
+        setUnreadCount(prev => prev + 1);
+      }
+    };
+    socket.on("message_received", handleNewMessage);
+    return () => socket.off("message_received", handleNewMessage);
+  }, [socket, location.pathname]);
 
   return (
     <aside style={{
@@ -106,12 +149,43 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
                 marginBottom: 2,
                 textAlign: "left",
                 transition: "background 0.15s, color 0.15s",
+                position: "relative",
               }}
               onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--color-bg-hover)"; }}
               onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
             >
               <Icon size={isCollapsed ? 22 : 16} strokeWidth={2} style={{ flexShrink: 0 }} />
               {!isCollapsed && label}
+              
+              {label === "Messages" && unreadCount > 0 && !isCollapsed && (
+                <div style={{
+                  marginLeft: "auto",
+                  background: "var(--color-brand)",
+                  color: "var(--color-brand-text)",
+                  fontSize: 10,
+                  fontWeight: 800,
+                  height: 18,
+                  minWidth: 18,
+                  borderRadius: 9,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "0 5px",
+                }}>
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </div>
+              )}
+              {label === "Messages" && unreadCount > 0 && isCollapsed && (
+                <div style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  background: "var(--color-brand)",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                }} />
+              )}
             </button>
           );
         })}

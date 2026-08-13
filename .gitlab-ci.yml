@@ -2,6 +2,10 @@ stages:
   - test
   - deploy
 
+default:
+  tags:
+    - saas-linux-small-amd64  # Routes jobs to GitLab's official managed Linux runners
+
 test:
   stage: test
   image: node:22

@@ -5,6 +5,7 @@ import Sidebar from "../components/Sidebar";
 import Navbar2 from "../components/Navbar2";
 import { getAuthUser, getCurrentUserId } from "../services/authState";
 import { fetchConversations, fetchMessages, sendMessage } from "../services/messagesApi";
+import { useSocket } from "../context/SocketContext";
 
 function Avatar({ initials }) {
   return (
@@ -47,6 +48,7 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
 
   const scrollRef = useRef(null);
+  const socket = useSocket();
 
   // Auth guard, same pattern as ProfilePage
   useEffect(() => {
@@ -73,7 +75,46 @@ export default function MessagesPage() {
       .then((data) => setMessages(Array.isArray(data.data) ? data.data : []))
       .catch(() => setMessages([]))
       .finally(() => setLoadingMessages(false));
-  }, [selectedId]);
+
+    if (socket) {
+      socket.emit("join_conversation", selectedId);
+    }
+    
+    return () => {
+      if (socket) {
+        socket.emit("leave_conversation", selectedId);
+      }
+    };
+  }, [selectedId, socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleMessageReceived = ({ data }) => {
+      setMessages((prev) => {
+        if (selectedId === data.conversation) {
+          if (prev.some((m) => m._id === data._id)) return prev;
+          return [...prev, data];
+        }
+        return prev;
+      });
+
+      setConversations((prev) => {
+        const next = prev.map((c) =>
+          c._id === data.conversation
+            ? { ...c, lastMessage: data.text, lastMessageAt: data.createdAt }
+            : c
+        );
+        return next.sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
+      });
+    };
+
+    socket.on("message_received", handleMessageReceived);
+
+    return () => {
+      socket.off("message_received", handleMessageReceived);
+    };
+  }, [socket, selectedId]);
 
   useEffect(() => {
     if (scrollRef.current) {

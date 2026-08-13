@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -12,6 +12,7 @@ import QRCodeModal from "../components/QRcode";
 export default function ItemDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -98,11 +99,18 @@ export default function ItemDetailPage() {
   if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>Loading...</div>;
   if (error || !item) return <div style={{ padding: 40, color: "#f87171" }}>Item not found.</div>;
 
-  const isLost = item.type === "Lost";
   const currentUser = getAuthUser();
   const userIsOwner = isOwner(item);
   const canEdit = canEditItem(item)
   const effectiveStatus = item.status === "Returned" ? "Returned" : item.type;
+  const requestedReturnTo = searchParams.get("returnTo");
+  const allowedReturnPages = ["/admin-dashboard", "/lost-items", "/found-items"];
+  const returnTo = allowedReturnPages.includes(requestedReturnTo)
+    ? requestedReturnTo
+    : item.type === "Lost" ? "/lost-items" : "/found-items";
+  const backLabel = returnTo === "/admin-dashboard"
+    ? "Admin Dashboard"
+    : returnTo === "/lost-items" ? "Lost Items" : "Found Items";
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--color-bg-base)", transition: "background 0.2s ease" }}>
@@ -112,7 +120,7 @@ export default function ItemDetailPage() {
         
         {/* Back Button */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(returnTo)}
           style={{
             display: "flex", alignItems: "center", gap: 8, marginBottom: 32,
             color: "var(--color-text-muted)", fontSize: 14, fontWeight: 600,
@@ -122,7 +130,7 @@ export default function ItemDetailPage() {
           onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-muted)"}
         >
           <ArrowLeft size={16} />
-          Back to {isLost ? "Lost" : "Found"} Items
+          Back to {backLabel}
         </button>
 
         {/* Two Column Layout */}
@@ -221,8 +229,8 @@ export default function ItemDetailPage() {
                     onClick={() => 
                       navigate(
                         item.type === "Lost"
-                          ? `/report-lost?edit=${item._id}`
-                          : `/report-found?edit=${item._id}`
+                          ? `/report-lost?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
+                          : `/report-found?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
                       )
                     }
                     className="flex min-h-11 w-full items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"

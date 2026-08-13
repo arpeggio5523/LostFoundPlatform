@@ -243,7 +243,7 @@ export default function LostItemsPage() {
         ) : (
           <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
             {filtered.map(item => (
-              <ItemCard key={item._id} item={item} dateLabel="Lost On" />
+              <ItemCard key={item._id} item={item} dateLabel="Lost On" returnTo="/lost-items" />
             ))}
           </div>
         )}

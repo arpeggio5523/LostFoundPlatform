@@ -61,7 +61,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleViewDetails = (id) => {
-    navigate(`/item/${id}`);
+    navigate(`/item/${id}?returnTo=${encodeURIComponent("/admin-dashboard")}`);
   };
 
   useEffect(() => {

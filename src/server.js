@@ -14,6 +14,7 @@ import connectDB from "./config/db.js";
 import { verifyAccessToken } from "./utils/authSession.js";
 import Conversation from "./models/Conversation.js";
 import Message from "./models/Message.js";
+import { encrypt, decrypt } from "./utils/cryptoUtils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -100,19 +101,24 @@ io.on("connection", (socket) => {
         return;
       }
 
+      const encryptedText = encrypt(text.trim());
+
       const message = await Message.create({
         conversation: conversation._id,
         sender: socket.user.id,
-        text: text.trim(),
+        text: encryptedText,
       });
 
-      conversation.lastMessage = text.trim();
+      conversation.lastMessage = encryptedText;
       conversation.lastMessageAt = new Date();
       await conversation.save();
 
       const populated = await Message.findById(message._id).populate("sender", "_id fullName");
-      io.to(String(conversation._id)).emit("message_received", { data: populated });
-      socket.emit("message_sent", { data: populated });
+      const populatedObj = populated.toObject();
+      populatedObj.text = decrypt(populatedObj.text);
+
+      io.to(String(conversation._id)).emit("message_received", { data: populatedObj });
+      socket.emit("message_sent", { data: populatedObj });
     } catch (error) {
       socket.emit("message_error", { message: error.message });
     }

@@ -246,7 +246,7 @@ export default function FoundItemsPage() {
           </div>
         ) : (
           <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
-            {filtered.map(item => <ItemCard key={item.id} item={item} />)}
+            {filtered.map(item => <ItemCard key={item.id} item={item} returnTo="/found-items" />)}
           </div>
         )}
       </main>

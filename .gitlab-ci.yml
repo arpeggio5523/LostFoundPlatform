@@ -1,0 +1,18 @@
+stages:
+  - test
+  - deploy
+
+test:
+  stage: test
+  image: node:22
+  script:
+    - npm ci
+    - npx vitest run
+
+deploy:
+  stage: deploy
+  image: node:20
+  script:
+    - echo "Add your deployment commands here"
+  only:
+    - main

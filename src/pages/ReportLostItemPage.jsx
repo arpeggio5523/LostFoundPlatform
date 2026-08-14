@@ -49,6 +49,10 @@ export default function ReportLostItemPage() {
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const editId = searchParams.get("edit"); // gets the ID if editing
+  const requestedReturnTo = searchParams.get("returnTo");
+  const returnTo = ["/admin-dashboard", "/lost-items", "/found-items"].includes(requestedReturnTo)
+    ? requestedReturnTo
+    : "/lost-items";
   const fileInputRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -209,7 +213,11 @@ export default function ReportLostItemPage() {
       }
 
       showToast(editId ? "Item updated successfully!" : "Report submitted successfully!", "success");
-      navigate("/lost-items");
+      navigate(
+        editId
+          ? `/item/${editId}?returnTo=${encodeURIComponent(returnTo)}`
+          : "/lost-items"
+      );
     } catch (error) {
       setSubmitError(error.message || "Failed to submit report");
     }

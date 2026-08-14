@@ -15,6 +15,8 @@ import { verifyAccessToken } from "./utils/authSession.js";
 import Conversation from "./models/Conversation.js";
 import Message from "./models/Message.js";
 import { encrypt, decrypt } from "./utils/cryptoUtils.js";
+import userRoutes from "./routes/userRoutes.js";
+import { maskUserForViewer } from "./utils/privacy.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -124,14 +126,42 @@ io.on("connection", (socket) => {
       conversation.lastMessageAt = new Date();
       await conversation.save();
 
-      const populated = await Message.findById(message._id).populate("sender", "_id fullName");
+      // const populated = await Message.findById(message._id).populate("sender", "_id fullName");
+      // const populatedObj = populated.toObject();
+      // populatedObj.text = decrypt(populatedObj.text);
+
+      // conversation.participants.forEach((participantId) => {
+      //   io.to(String(participantId)).emit("message_received", { data: populatedObj });
+      // });
+      // socket.emit("message_sent", { data: populatedObj });
+    
+      const populated = await Message.findById(message._id).populate(
+        "sender",
+        "_id fullName privacyMode"
+      );
       const populatedObj = populated.toObject();
       populatedObj.text = decrypt(populatedObj.text);
 
+      // Each participant gets their own masked view — sender sees their own
+      // real name, everyone else sees "Anonymous" if privacyMode is on.
       conversation.participants.forEach((participantId) => {
-        io.to(String(participantId)).emit("message_received", { data: populatedObj });
+        const viewForParticipant = {
+          ...populatedObj,
+          sender: maskUserForViewer(populatedObj.sender, participantId),
+        };
+        io.to(String(participantId)).emit("message_received", { data: viewForParticipant });
       });
-      socket.emit("message_sent", { data: populatedObj });
+
+      socket.emit("message_sent", {
+        data: {
+          ...populatedObj,
+          sender: maskUserForViewer(populatedObj.sender, socket.user.id),
+        },
+      });
+    
+    
+    
+    
     } catch (error) {
       socket.emit("message_error", { message: error.message });
     }
@@ -141,6 +171,7 @@ io.on("connection", (socket) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/items", itemsRouter);
 app.use("/api/messages", messageRoutes);
+app.use("/api/users", userRoutes);
 
 // Serve Vite build in production
 app.use(express.static(distPath));

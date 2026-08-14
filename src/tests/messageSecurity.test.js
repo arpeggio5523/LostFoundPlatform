@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert";
 import { encrypt, decrypt } from "../utils/cryptoUtils.js";
+import { maskUserForViewer } from "../utils/privacy.js";
 
 // Ensure a key is set for testing
 process.env.MESSAGE_ENCRYPTION_KEY = "7e8b9f1d2c3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c";
@@ -42,5 +43,25 @@ test("Message Security & Encryption Smoke Tests", async (t) => {
   await t.test("startConversation rejects self-message", () => {
     // Validation: controller checks String(recipientId) === String(req.user.id)
     assert.ok(true, "Controller returns 400 when attempting to message oneself");
+  });
+
+  await t.test("privacy mode hides a sender's identity from other users", () => {
+    const privateUser = {
+      _id: "private-user",
+      fullName: "Private User",
+      email: "private@example.com",
+      privacyMode: true,
+    };
+
+    assert.deepStrictEqual(maskUserForViewer(privateUser, "private-user"), {
+      _id: "private-user",
+      fullName: "Private User",
+      email: "private@example.com",
+    });
+    assert.deepStrictEqual(maskUserForViewer(privateUser, "other-user"), {
+      _id: "private-user",
+      fullName: "Anonymous",
+      email: undefined,
+    });
   });
 });

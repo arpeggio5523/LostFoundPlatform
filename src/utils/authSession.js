@@ -67,6 +67,7 @@ const sanitizeUser = (user) => ({
   email: user.email,
   createdAt: user.createdAt, 
   phoneNumber: user.phoneNumber,
+  privacyMode: Boolean(user.privacyMode),
   ...(typeof user.role !== "undefined" ? { role: user.role } : {}),
   ...(typeof user.isEmailVerified !== "undefined"
     ? { isEmailVerified: user.isEmailVerified }

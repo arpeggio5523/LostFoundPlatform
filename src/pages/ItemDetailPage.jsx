@@ -2,7 +2,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getAuthUser, isOwner, canEditItem } from "../services/authState";
+import { isOwner, isAdmin, canEditItem } from "../services/authState";
 import { authHeaders, apiFetch } from "../services/apiClient";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../context/ToastContext";
@@ -99,8 +99,8 @@ export default function ItemDetailPage() {
   if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>Loading...</div>;
   if (error || !item) return <div style={{ padding: 40, color: "#f87171" }}>Item not found.</div>;
 
-  const currentUser = getAuthUser();
   const userIsOwner = isOwner(item);
+  const userIsAdmin = isAdmin();
   const canEdit = canEditItem(item)
   const effectiveStatus = item.status === "Returned" ? "Returned" : item.type;
   const requestedReturnTo = searchParams.get("returnTo");
@@ -214,6 +214,16 @@ export default function ItemDetailPage() {
                     {sendingEmail ? "Sending..." : "Contact owner"}
                   </button>
                 )}
+
+                {canEdit && (
+                  <button
+                    onClick={() => setShowDeleteModal(true)}
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-none bg-red-600 p-4 text-[15px] font-bold text-white transition hover:bg-red-700"
+                  >
+                    <Trash2 size={18} />
+                    Delete item
+                  </button>
+                )}
               </div>
             </div>
 
@@ -224,38 +234,32 @@ export default function ItemDetailPage() {
                   Actions
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <button
-                    onClick={() => 
-                      navigate(
-                        item.type === "Lost"
-                          ? `/report-lost?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
-                          : `/report-found?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
-                      )
-                    }
-                    className="flex min-h-11 w-full items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() => setShowDeleteModal(true)}
-                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-red-600 bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:border-red-700 hover:bg-red-700"
-                  >
-                    <Trash2 size={18} />
-                    Delete
-                  </button>
+                <div className={`grid grid-cols-1 gap-3 ${userIsAdmin ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+                  {userIsAdmin && (
+                    <button
+                      onClick={() =>
+                        navigate(
+                          item.type === "Lost"
+                            ? `/report-lost?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
+                            : `/report-found?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
+                        )
+                      }
+                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
+                    >
+                      Edit
+                    </button>
+                  )}
 
                   <button
                     onClick={handleMarkAsMatched}
-                    className="flex min-h-11 w-full items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
+                    className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
                   >
                     Mark as matched
                   </button>
 
                   <button
                     onClick={handleMarkAsReturned}
-                    className="flex min-h-11 w-full items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
+                    className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
                   >
                     Mark as returned
                   </button>

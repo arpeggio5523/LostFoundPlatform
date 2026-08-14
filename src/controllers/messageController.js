@@ -2,19 +2,34 @@ import Conversation from "../models/Conversation.js";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 import { encrypt, decrypt } from "../utils/cryptoUtils.js";
+import { maskUserForViewer } from "../utils/privacy.js";
+
+const maskConversationForViewer = (conversation, viewerId) => ({
+  ...conversation,
+  participants: conversation.participants.map((participant) =>
+    maskUserForViewer(participant, viewerId)
+  ),
+});
+
+const maskMessageForViewer = (message, viewerId) => ({
+  ...message,
+  sender: maskUserForViewer(message.sender, viewerId),
+});
 
 export const getConversations = async (req, res) => {
   try {
     const conversations = await Conversation.find({ participants: req.user.id })
-      .populate("participants", "_id fullName email")
+      .populate("participants", "_id fullName email privacyMode")
       .populate("item", "_id title type images")
       .sort({ lastMessageAt: -1 })
       .lean();
 
-    const decryptedConversations = conversations.map(c => ({
-      ...c,
-      lastMessage: decrypt(c.lastMessage)
-    }));
+    const decryptedConversations = conversations.map((conversation) =>
+      maskConversationForViewer(
+        { ...conversation, lastMessage: decrypt(conversation.lastMessage) },
+        req.user.id
+      )
+    );
 
     res.json({ data: decryptedConversations });
   } catch (error) {
@@ -34,14 +49,16 @@ export const getConversationMessages = async (req, res) => {
     }
 
     const messages = await Message.find({ conversation: conversation._id })
-      .populate("sender", "_id fullName")
+      .populate("sender", "_id fullName privacyMode")
       .sort({ createdAt: 1 })
       .lean();
 
-    const decryptedMessages = messages.map(m => ({
-      ...m,
-      text: decrypt(m.text)
-    }));
+    const decryptedMessages = messages.map((message) =>
+      maskMessageForViewer(
+        { ...message, text: decrypt(message.text) },
+        req.user.id
+      )
+    );
 
     res.json({ data: decryptedMessages });
   } catch (error) {
@@ -78,7 +95,10 @@ export const sendMessage = async (req, res) => {
     conversation.lastMessageAt = new Date();
     await conversation.save();
 
-    const populated = await Message.findById(message._id).populate("sender", "_id fullName");
+    const populated = await Message.findById(message._id).populate(
+      "sender",
+      "_id fullName privacyMode"
+    );
     const populatedObj = populated.toObject();
     populatedObj.text = decrypt(populatedObj.text);
     
@@ -86,11 +106,13 @@ export const sendMessage = async (req, res) => {
 
     if (io) {
       conversation.participants.forEach((participantId) => {
-        io.to(String(participantId)).emit("message_received", { data: populatedObj });
+        io.to(String(participantId)).emit("message_received", {
+          data: maskMessageForViewer(populatedObj, participantId),
+        });
       });
     }
 
-    res.status(201).json({ data: populatedObj });
+    res.status(201).json({ data: maskMessageForViewer(populatedObj, req.user.id) });
   } catch (error) {
     res.status(500).json({ message: "Failed to send message", error: error.message });
   }
@@ -126,10 +148,11 @@ export const startConversation = async (req, res) => {
     }
 
     const populated = await Conversation.findById(conversation._id)
-      .populate("participants", "_id fullName email")
-      .populate("item", "_id title type images");
+      .populate("participants", "_id fullName email privacyMode")
+      .populate("item", "_id title type images")
+      .lean();
 
-    res.status(201).json({ data: populated });
+    res.status(201).json({ data: maskConversationForViewer(populated, req.user.id) });
   } catch (error) {
     res.status(500).json({ message: "Failed to start conversation", error: error.message });
   }

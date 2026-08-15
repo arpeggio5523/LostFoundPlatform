@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, MessageSquare } from "lucide-react";
+import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, MessageSquare, Search, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getCurrentUserId } from "../services/authState";
 import { buildApiUrl, authHeaders, apiFetch } from "../services/apiClient";
@@ -23,6 +23,11 @@ export default function ItemDetailPage() {
   const [startingChat, setStartingChat] = useState(false);
   const { showToast } = useToast();
 
+  // Possible matches
+  const [matchesChecked, setMatchesChecked] = useState(false);
+  const [matchesLoading, setMatchesLoading] = useState(false);
+  const [matches, setMatches] = useState([]);
+
   useEffect(() => {
     const fetchItem = async () => {
       try {
@@ -43,6 +48,13 @@ export default function ItemDetailPage() {
     if (!item) return;
     setSelectedStatus(item.status === "Returned" ? "Returned" : item.type);
   }, [item]);
+
+  // Reset match results whenever we land on a different item
+  useEffect(() => {
+    setMatchesChecked(false);
+    setMatchesLoading(false);
+    setMatches([]);
+  }, [id]);
 
   const handleDelete = async () => {
     setShowDeleteModal(false);
@@ -141,6 +153,25 @@ export default function ItemDetailPage() {
     } finally {
       setSavingStatus(false);
     }
+  };
+
+  // TODO: replace with a real API call once the matching backend exists,
+  // e.g. GET /api/items/${item._id}/matches
+  const handleViewPossibleMatches = async () => {
+    setMatchesLoading(true);
+    try {
+      // Placeholder: no backend endpoint yet, so we just simulate a lookup
+      // and always come back empty for now.
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      setMatches([]);
+    } finally {
+      setMatchesLoading(false);
+      setMatchesChecked(true);
+    }
+  };
+
+  const handleMatchClick = (matchId) => {
+    navigate(`/items/${matchId}`);
   };
 
   if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>Loading...</div>;
@@ -359,7 +390,7 @@ export default function ItemDetailPage() {
           </div>
 
           {/* RIGHT COLUMN */}
-          <aside style={{ position: "sticky", top: 40, alignSelf: "start" }}>
+          <aside style={{ position: "sticky", top: 40, alignSelf: "start", display: "flex", flexDirection: "column", gap: 20 }}>
             <div style={{
               background: "var(--color-bg-surface)",
               border: "1px solid var(--color-border)",
@@ -397,7 +428,7 @@ export default function ItemDetailPage() {
                 gap: 10, padding: 14, background: "var(--color-bg-surface)",
                 border: "1.5px solid var(--color-border)", borderRadius: 12,
                 fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
-                cursor: "pointer", marginBottom: 16, transition: "background 0.2s",
+                cursor: "pointer", transition: "background 0.2s",
               }}
                 onMouseEnter={e => e.currentTarget.style.background = "var(--color-bg-hover)"}
                 onMouseLeave={e => e.currentTarget.style.background = "var(--color-bg-surface)"}
@@ -406,6 +437,102 @@ export default function ItemDetailPage() {
                 View QR Code
               </button>
             </div>
+
+            {/* View Possible Matches Button */}
+            <button
+              onClick={handleViewPossibleMatches}
+              disabled={matchesLoading}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 10, padding: 14, background: "var(--color-bg-surface)",
+                border: "1.5px solid var(--color-border)", borderRadius: 12,
+                fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
+                cursor: matchesLoading ? "not-allowed" : "pointer", transition: "background 0.2s",
+                opacity: matchesLoading ? 0.7 : 1,
+              }}
+              onMouseEnter={e => !matchesLoading && (e.currentTarget.style.background = "var(--color-bg-hover)")}
+              onMouseLeave={e => !matchesLoading && (e.currentTarget.style.background = "var(--color-bg-surface)")}
+            >
+              {matchesLoading ? (
+                <Loader2 size={18} className="spin" style={{ animation: "spin 1s linear infinite" }} />
+              ) : (
+                <Search size={18} />
+              )}
+              {matchesLoading ? "Searching..." : "View possible matches"}
+            </button>
+
+            {/* Possible Matches Panel */}
+            {matchesChecked && (
+              <div style={{
+                background: "var(--color-bg-surface)",
+                border: "1px solid var(--color-border)",
+                borderRadius: 20,
+                padding: 24,
+                boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)",
+              }}>
+                <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: "var(--color-text-primary)" }}>
+                  Possible Matches
+                </h3>
+
+                {matches.length === 0 ? (
+                  <div style={{
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    justifyContent: "center", gap: 10, padding: "24px 8px",
+                    color: "var(--color-text-muted)", textAlign: "center",
+                  }}>
+                    <Search size={28} style={{ opacity: 0.4 }} />
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>No matches found</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                      We couldn't find any potential matches for this item yet. Check back later.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gap: 12 }}>
+                    {matches.map((match) => (
+                      <button
+                        key={match._id}
+                        onClick={() => handleMatchClick(match._id)}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 12, width: "100%",
+                          padding: 12, background: "var(--color-bg-raised)",
+                          border: "1px solid var(--color-border)", borderRadius: 12,
+                          cursor: "pointer", textAlign: "left", transition: "background 0.15s",
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = "var(--color-bg-hover)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "var(--color-bg-raised)"}
+                      >
+                        {match.images?.[0] ? (
+                          <img
+                            src={match.images[0]}
+                            alt={match.title}
+                            style={{ width: 48, height: 48, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: 48, height: 48, borderRadius: 8, flexShrink: 0,
+                            background: "var(--color-bg-surface)", display: "flex",
+                            alignItems: "center", justifyContent: "center",
+                          }}>
+                            <Tag size={18} style={{ opacity: 0.3 }} />
+                          </div>
+                        )}
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{
+                            fontSize: 14, fontWeight: 700, color: "var(--color-text-primary)",
+                            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                          }}>
+                            {match.title}
+                          </div>
+                          <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
+                            {match.matchScore ? `${Math.round(match.matchScore * 100)}% match` : "Possible match"}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </aside>
 
         </div>

@@ -1,10 +1,71 @@
-import React from "react";
-import { X } from "lucide-react";
+import React, { useRef, useState } from "react";
+import { Check, Download, Share2, X } from "lucide-react";
+import { QRCodeCanvas } from "qrcode.react";
 
 export default function QRCodeModal({ isOpen, onClose, item }) {
+  const qrCanvasRef = useRef(null);
+  const [shareStatus, setShareStatus] = useState("");
+
   if (!isOpen || !item) return null;
 
-  const qrImage = item.qrCode || item.qrCodeUrl || item.qrImage;
+  const itemId = item._id || item.id;
+  const itemUrl = itemId
+    ? `${window.location.origin}/item/${encodeURIComponent(itemId)}`
+    : null;
+
+  const fileName = `qr-${itemId || "item"}.png`;
+
+  const getQrBlob = () =>
+    new Promise((resolve, reject) => {
+      const canvas = qrCanvasRef.current;
+      if (!canvas) {
+        reject(new Error("QR code is not ready"));
+        return;
+      }
+
+      canvas.toBlob(
+        (blob) => blob ? resolve(blob) : reject(new Error("Could not create QR image")),
+        "image/png"
+      );
+    });
+
+  const handleDownload = async () => {
+    const blob = await getQrBlob();
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(downloadUrl);
+  };
+
+  const handleShare = async () => {
+    setShareStatus("");
+
+    try {
+      const blob = await getQrBlob();
+      const file = new File([blob], fileName, { type: "image/png" });
+      const shareData = {
+        title: `${item.title || "Item"} QR code`,
+        text: `View the details for ${item.title || "this item"}`,
+        url: itemUrl,
+      };
+
+      if (navigator.share) {
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ ...shareData, files: [file] });
+        } else {
+          await navigator.share(shareData);
+        }
+        return;
+      }
+
+      await navigator.clipboard.writeText(itemUrl);
+      setShareStatus("Link copied");
+    } catch (error) {
+      if (error.name !== "AbortError") setShareStatus("Unable to share");
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
@@ -17,25 +78,55 @@ export default function QRCodeModal({ isOpen, onClose, item }) {
         </button>
 
         <h2 className="mb-6 text-xl font-bold text-[var(--color-text-primary)]">
-          Item QR Code
+          QR Code
         </h2>
 
         <div className="flex flex-col items-center">
-          {qrImage ? (
-            <img
-              src={qrImage}
-              alt="Item QR Code"
-              className="h-[250px] w-[250px] object-contain"
-            />
+          {itemUrl ? (
+            <div
+              className="rounded-xl bg-white p-3"
+              role="img"
+              aria-label={`QR code for ${item.title || "item"}`}
+            >
+              <QRCodeCanvas
+                ref={qrCanvasRef}
+                value={itemUrl}
+                size={250}
+                level="H"
+                marginSize={2}
+                title={`Open ${item.title || "item"} details`}
+              />
+            </div>
           ) : (
             <div className="flex h-[250px] w-[250px] items-center justify-center rounded-xl bg-gray-100 text-sm text-gray-500">
               No QR code available
             </div>
           )}
 
-          <p className="mt-4 text-sm text-[var(--color-text-secondary)]">
-            QR-{item.type?.toUpperCase()}-
+          <p className="mt-2 text-center text-sm text-[var(--color-text-secondary)]">
+            Scan to open the details for {item.title || "this item"}.
           </p>
+
+          {itemUrl && (
+            <div className="mt-6 flex w-full gap-3">
+              <button
+                type="button"
+                onClick={handleDownload}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-gray-100"
+              >
+                <Download size={17} />
+                Download
+              </button>
+              <button
+                type="button"
+                onClick={handleShare}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--color-brand)] px-4 py-3 text-sm font-semibold text-[var(--color-brand-text)] transition hover:bg-[var(--color-brand-hover)]"
+              >
+                {shareStatus === "Link copied" ? <Check size={17} /> : <Share2 size={17} />}
+                {shareStatus || "Share"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

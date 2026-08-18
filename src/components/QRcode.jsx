@@ -78,7 +78,7 @@ export default function QRCodeModal({ isOpen, onClose, item }) {
         </button>
 
         <h2 className="mb-6 text-xl font-bold text-[var(--color-text-primary)]">
-          Item QR Code
+          QR Code
         </h2>
 
         <div className="flex flex-col items-center">
@@ -103,7 +103,7 @@ export default function QRCodeModal({ isOpen, onClose, item }) {
             </div>
           )}
 
-          <p className="mt-4 text-center text-sm text-[var(--color-text-secondary)]">
+          <p className="mt-2 text-center text-sm text-[var(--color-text-secondary)]">
             Scan to open the details for {item.title || "this item"}.
           </p>
 

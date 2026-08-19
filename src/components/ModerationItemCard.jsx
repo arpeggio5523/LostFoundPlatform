@@ -84,32 +84,34 @@ function ModerationItemCard({ item, onApprove, onReject, onViewDetails, moderati
             <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
           </span>
 
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={isModerating}
-              onClick={(event) => {
-                event.stopPropagation();
-                onReject(item.id);
-              }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-100 px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
-            >
-              <XCircle size={17} />
-              {moderationStatus === "Rejected" ? "Rejecting..." : "Reject"}
-            </button>
-            <button
-              type="button"
-              disabled={isModerating}
-              onClick={(event) => {
-                event.stopPropagation();
-                onApprove(item.id);
-              }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-100 px-4 py-2 text-sm font-semibold text-green-700 transition-colors hover:bg-green-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
-            >
-              <CheckCircle size={17} />
-              {moderationStatus === "Approved" ? "Approving..." : "Approve"}
-            </button>
-          </div>
+          {!(["Approved", "Rejected"].includes(item.status)) && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={isModerating}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onReject(item.id);
+                }}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-100 px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+              >
+                <XCircle size={17} />
+                {moderationStatus === "Rejected" ? "Rejecting..." : "Reject"}
+              </button>
+              <button
+                type="button"
+                disabled={isModerating}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onApprove(item.id);
+                }}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-100 px-4 py-2 text-sm font-semibold text-green-700 transition-colors hover:bg-green-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+              >
+                <CheckCircle size={17} />
+                {moderationStatus === "Approved" ? "Approving..." : "Approve"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

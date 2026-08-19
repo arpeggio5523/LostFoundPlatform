@@ -7,9 +7,10 @@ import { sendContactOwnerEmail } from "../utils/emailService.js";
 
 const PUBLIC_STATUSES = ["Approved", "Matched", "Returned"];
 const MODERATION_STATUSES = ["Pending", "Approved", "Rejected"];
-const ALLOWED_STATUSES = [...MODERATION_STATUSES, "Matched", "Returned"];
-const ALLOWED_ADMIN_STATUS_UPDATES = MODERATION_STATUSES;
-const ALLOWED_OWNER_STATUS_UPDATES = ["Returned"];
+const LIFECYCLE_STATUSES = ["Matched", "Returned"];
+const ALLOWED_STATUSES = [...MODERATION_STATUSES, ...LIFECYCLE_STATUSES];
+const ALLOWED_ADMIN_STATUS_UPDATES = ALLOWED_STATUSES;
+const ALLOWED_OWNER_STATUS_UPDATES = LIFECYCLE_STATUSES;
 
 const isAdminUser = (user) => String(user?.role || "").toLowerCase() === "admin";
 
@@ -51,8 +52,12 @@ export const updateItemStatus = async (req, res) => {
       });
     }
 
-    if (!isAdmin && !PUBLIC_STATUSES.includes(item.status)) {
-      return res.status(400).json({ error: "Only approved items can be marked as returned." });
+    if (LIFECYCLE_STATUSES.includes(status) && !PUBLIC_STATUSES.includes(item.status)) {
+      return res.status(400).json({ error: "Only approved items can be marked as matched or returned." });
+    }
+
+    if (status === "Matched" && item.status !== "Approved") {
+      return res.status(400).json({ error: "Only approved items can be marked as matched." });
     }
 
     item.status = status;

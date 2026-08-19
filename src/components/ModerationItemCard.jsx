@@ -84,7 +84,7 @@ function ModerationItemCard({ item, onApprove, onReject, onViewDetails, moderati
             <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
           </span>
 
-          {!(["Approved", "Rejected"].includes(item.status)) && (
+          {item.status === "Pending" && (
             <div className="flex gap-2">
               <button
                 type="button"

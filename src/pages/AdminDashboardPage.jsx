@@ -324,18 +324,6 @@ export default function AdminDashboardPage() {
 
               <button
                 type="button"
-                onClick={() => setModerationTab("all")}
-                className={`py-1 rounded-xl font-semibold transition-all duration-200 ${
-                  moderationTab === "all"
-                    ? "bg-white shadow-sm text-[var(--color-text-primary)]"
-                    : "text-[var(--color-text-secondary)]"
-                }`}
-              >
-                All Items ({totalItems})
-              </button>
-
-              <button
-                type="button"
                 onClick={() => setModerationTab("rejected")}
                 className={`py-1 rounded-xl font-semibold transition-all duration-200 ${
                   moderationTab === "rejected"
@@ -344,6 +332,18 @@ export default function AdminDashboardPage() {
                 }`}
               >
                 Rejected ({rejectedPost})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setModerationTab("all")}
+                className={`py-1 rounded-xl font-semibold transition-all duration-200 ${
+                  moderationTab === "all"
+                    ? "bg-white shadow-sm text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)]"
+                }`}
+              >
+                All Items ({totalItems})
               </button>
             </div>
 

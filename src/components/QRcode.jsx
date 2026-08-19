@@ -1,10 +1,51 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Check, Download, Share2, X } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 
 export default function QRCodeModal({ isOpen, onClose, item }) {
   const qrCanvasRef = useRef(null);
+  const modalRef = useRef(null);
+  const closeButtonRef = useRef(null);
   const [shareStatus, setShareStatus] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const previouslyFocusedElement = document.activeElement;
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusableElements = modalRef.current?.querySelectorAll(
+        'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusableElements?.length) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previouslyFocusedElement?.focus?.();
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen || !item) return null;
 
@@ -68,16 +109,28 @@ export default function QRCodeModal({ isOpen, onClose, item }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
-      <div className="relative w-[480px] rounded-2xl bg-white p-10 shadow-xl">
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4"
+      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
+    >
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="qr-modal-title"
+        className="relative max-h-[calc(100vh-2rem)] w-full max-w-[480px] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl sm:p-10"
+      >
         <button
+          ref={closeButtonRef}
+          type="button"
           onClick={onClose}
+          aria-label="Close QR code dialog"
           className="absolute right-4 top-4 rounded-md border p-1 hover:bg-gray-100"
         >
           <X size={15} />
         </button>
 
-        <h2 className="mb-6 text-xl font-bold text-[var(--color-text-primary)]">
+        <h2 id="qr-modal-title" className="mb-6 pr-8 text-xl font-bold text-[var(--color-text-primary)]">
           QR Code
         </h2>
 
@@ -95,6 +148,7 @@ export default function QRCodeModal({ isOpen, onClose, item }) {
                 level="H"
                 marginSize={2}
                 title={`Open ${item.title || "item"} details`}
+                className="h-auto max-w-full"
               />
             </div>
           ) : (
@@ -108,7 +162,7 @@ export default function QRCodeModal({ isOpen, onClose, item }) {
           </p>
 
           {itemUrl && (
-            <div className="mt-6 flex w-full gap-3">
+            <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row">
               <button
                 type="button"
                 onClick={handleDownload}

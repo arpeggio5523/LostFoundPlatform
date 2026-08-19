@@ -9,18 +9,18 @@ import {
   deleteItem,
   contactOwner,
 } from "../controllers/ItemController.js";
-import { requireAuth } from "../middleware/authMiddleware.js";
+import { optionalAuth, requireAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // GET /api/items          — list all items (optionally filtered by ?type=Lost|Found)
-router.get("/", getItems);
+router.get("/", optionalAuth, getItems);
 
 // GET /api/items/my       — items reported by the logged-in user (must be before /:itemId)
 router.get("/my", requireAuth, getMyItems);
 
 // GET /api/items/:itemId  — single item detail
-router.get("/:itemId", getItemById);
+router.get("/:itemId", optionalAuth, getItemById);
 
 // POST /api/items         — create a new Lost or Found item report
 router.post("/", requireAuth, createItem);

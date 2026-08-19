@@ -228,7 +228,7 @@ export default function ItemDetailPage() {
             </div>
 
             {/* Actions Block for Owner/Admin */}
-            {canEdit && (
+            {canEdit && !["Pending", "Rejected"].includes(item.status) && (
               <div className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 sm:p-6 transition-all duration-300">
                 <div className="mb-4 text-xl font-bold text-[var(--color-text-primary)]">
                   Actions

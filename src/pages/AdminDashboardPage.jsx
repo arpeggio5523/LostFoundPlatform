@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { LogOut, Users, FileText, Search, Trophy, ArrowRight, TrendingUp} from "lucide-react";
@@ -8,12 +8,21 @@ import ModerationItemCard from "../components/ModerationItemCard";
 import { apiFetch } from "../services/apiClient";
 import { useToast } from "../context/ToastContext";
 
+const formatModerationItem = (item) => ({
+  ...item,
+  id: item._id,
+  author: item.reportedBy?.fullName || item.user || "Unknown user",
+  image: item.images?.[0],
+  date: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "",
+});
+
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [moderationTab, setModerationTab] = useState("pending");
   const [moderationItems, setModerationItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(true);
+  const [moderatingItem, setModeratingItem] = useState(null);
   const { resetTheme } = useTheme();
   const { showToast } = useToast();
 
@@ -32,6 +41,7 @@ export default function AdminDashboardPage() {
 
   const pendingPost = moderationItems.filter((item) => item.status === "Pending").length;
   const approvedPost = moderationItems.filter((item) => item.status === "Approved").length;
+  const rejectedPost = moderationItems.filter((item) => item.status === "Rejected").length;
 
   const displayedItems = moderationItems.filter((item) => {
     if (moderationTab.toLowerCase() === "pending") {
@@ -42,22 +52,61 @@ export default function AdminDashboardPage() {
       return item.status === "Approved";
     }
 
+    if (moderationTab.toLowerCase() === "rejected") {
+      return item.status === "Rejected";
+    }
+
     return true;
   });
 
   const emptyMessage =
     moderationTab === "approved"
       ? "There is no approved post."
+      : moderationTab === "rejected"
+      ? "There is no rejected post."
       : moderationTab === "pending"
       ? "There is no pending post."
       : "There are no items.";
 
-  const handleApprove = (id) => {
-    console.log("Approved item:", id);
+  const fetchModerationItems = useCallback(async () => {
+    const response = await apiFetch("/api/items");
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Failed to load posts.");
+
+    setModerationItems(result.data.map(formatModerationItem));
+  }, []);
+
+  const updateModerationStatus = async (id, status) => {
+    setModeratingItem({ id, status });
+
+    try {
+      const response = await apiFetch(`/api/items/${id}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || result.message || `Failed to ${status.toLowerCase()} post.`);
+      }
+
+      await fetchModerationItems();
+      showToast(`Post ${status.toLowerCase()} successfully.`, "success");
+    } catch (error) {
+      showToast(error.message || `Failed to ${status.toLowerCase()} post.`, "error");
+    } finally {
+      setModeratingItem(null);
+    }
   };
 
-  const handleReject = (id) => {
-    console.log("Rejected item:", id);
+  const handleApprove = async (id) => {
+    await updateModerationStatus(id, "Approved");
+  };
+
+  const handleReject = async (id) => {
+    await updateModerationStatus(id, "Rejected");
   };
 
   const handleViewDetails = (id) => {
@@ -77,19 +126,9 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    const fetchItems = async () => {
+    const loadItems = async () => {
       try {
-        const response = await apiFetch("/api/items");
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "Failed to load posts.");
-
-        setModerationItems(result.data.map((item) => ({
-          ...item,
-          id: item._id,
-          author: item.reportedBy?.fullName || item.user || "Unknown user",
-          image: item.images?.[0],
-          date: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "",
-        })));
+        await fetchModerationItems();
       } catch (error) {
         showToast(error.message || "Failed to load posts.", "error");
       } finally {
@@ -97,8 +136,8 @@ export default function AdminDashboardPage() {
       }
     };
 
-    fetchItems();
-  }, [navigate, showToast]);
+    loadItems();
+  }, [fetchModerationItems, navigate, showToast]);
 
   return (
     <div className="flex min-h-screen bg-[var(--color-bg-base)] transition-colors duration-200 font-sans">
@@ -258,7 +297,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 bg-gray-200 rounded-2xl p-1 mb-6">
+            <div className="grid grid-cols-4 bg-gray-200 rounded-2xl p-1 mb-6">
               <button
                 type="button"
                 onClick={() => setModerationTab("pending")}
@@ -281,6 +320,18 @@ export default function AdminDashboardPage() {
                 }`}
               >
                 Approved ({approvedPost})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setModerationTab("rejected")}
+                className={`py-1 rounded-xl font-semibold transition-all duration-200 ${
+                  moderationTab === "rejected"
+                    ? "bg-white shadow-sm text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)]"
+                }`}
+              >
+                Rejected ({rejectedPost})
               </button>
 
               <button
@@ -313,6 +364,9 @@ export default function AdminDashboardPage() {
                     onApprove={handleApprove}
                     onReject={handleReject}
                     onViewDetails={handleViewDetails}
+                    moderationStatus={
+                      moderatingItem?.id === item.id ? moderatingItem.status : null
+                    }
                   />
                 ))
               )}

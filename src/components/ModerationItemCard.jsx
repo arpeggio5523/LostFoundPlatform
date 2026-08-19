@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 import StatusBadge from "../components/StatusBadge";
 
-function ModerationItemCard({ item, onApprove, onReject, onViewDetails }) {
+function ModerationItemCard({ item, onApprove, onReject, onViewDetails, moderationStatus }) {
   const openDetails = () => onViewDetails(item.id);
+  const isModerating = Boolean(moderationStatus);
 
   const handleKeyDown = (event) => {
     if (event.target !== event.currentTarget) return;
@@ -86,25 +87,27 @@ function ModerationItemCard({ item, onApprove, onReject, onViewDetails }) {
           <div className="flex gap-2">
             <button
               type="button"
+              disabled={isModerating}
               onClick={(event) => {
                 event.stopPropagation();
                 onReject(item.id);
               }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-100 px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-700 hover:text-white sm:flex-none"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-100 px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
             >
               <XCircle size={17} />
-              Reject
+              {moderationStatus === "Rejected" ? "Rejecting..." : "Reject"}
             </button>
             <button
               type="button"
+              disabled={isModerating}
               onClick={(event) => {
                 event.stopPropagation();
                 onApprove(item.id);
               }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-100 px-4 py-2 text-sm font-semibold text-green-700 transition-colors hover:bg-green-700 hover:text-white sm:flex-none"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-100 px-4 py-2 text-sm font-semibold text-green-700 transition-colors hover:bg-green-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
             >
               <CheckCircle size={17} />
-              Approve
+              {moderationStatus === "Approved" ? "Approving..." : "Approve"}
             </button>
           </div>
         </div>

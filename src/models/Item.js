@@ -118,11 +118,12 @@ const itemSchema = new mongoose.Schema(
           "Pending",
           "Approved",
           "Matched",
+          "Rejected",
         ],
         message:
-          "Status must be one of [Lost, Found, Returned, Pending, Approved, Matched]",
+          "Status must be one of [Lost, Found, Returned, Pending, Approved, Matched, Rejected]",
       },
-      default: "Approved",
+      default: "Pending",
     },
 
     user: {

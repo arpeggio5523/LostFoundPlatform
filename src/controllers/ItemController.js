@@ -264,7 +264,7 @@ export const getMyItems = async (req, res) => {
 
 /**
  * PUT /api/items/:itemId
- * Update an existing item (owner only).
+ * Update an existing item (owner or admin).
  */
 export const updateItem = async (req, res) => {
   try {
@@ -282,7 +282,21 @@ export const updateItem = async (req, res) => {
       return res.status(403).json({ error: "You do not have permission to update this item." });
     }
 
-    const { title, description, category, type, location, exactLocation, date, color, distMark, images } = req.body;
+    const { title, description, category, type, location, exactLocation, date, color, distMark, images, status } = req.body;
+
+    if (status !== undefined) {
+      if (!isAdmin) {
+        return res.status(403).json({ error: "Only administrators can change an item's status while editing." });
+      }
+
+      if (!ALLOWED_STATUSES.includes(status)) {
+        return res.status(400).json({
+          error: `Invalid status. Must be one of: ${ALLOWED_STATUSES.join(", ")}.`,
+        });
+      }
+
+      item.status = status;
+    }
 
     if (title)       item.title       = title;
     if (description) item.description = description;

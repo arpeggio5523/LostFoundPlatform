@@ -1,6 +1,9 @@
 import { clearAuth } from "./authState";
 
-const API_BASE_URL = "http://localhost:3000";
+const configuredApiUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const API_BASE_URL = configuredApiUrl
+  ? configuredApiUrl.replace(/\/$/, "")
+  : import.meta.env.DEV ? "http://localhost:3000" : "";
 
 export function getToken() {
   return (
@@ -25,7 +28,7 @@ export function authHeaders(extraHeaders = {}) {
 
 export function buildApiUrl(path) {
   if (!path) {
-    return API_BASE_URL;
+    return API_BASE_URL || window.location.origin;
   }
 
   if (path.startsWith("http://") || path.startsWith("https://")) {

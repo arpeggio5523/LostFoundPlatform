@@ -32,7 +32,7 @@ test:e2e:
   stage: e2e
   script:
     - npm ci
-    - npx playwright install --with-deps
+    - npx playwright install chromium
     - npm run test:e2e
   after_script:
     - mkdir -p reports

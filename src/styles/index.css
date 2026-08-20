@@ -45,6 +45,7 @@
 
 /* ─── Base defaults ─────────────────────────────────────────────────────── */
 html {
+  scrollbar-gutter: stable;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 

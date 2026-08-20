@@ -12,7 +12,11 @@ export default defineConfig({
     exclude: ['tests/e2e/**', 'node_modules/**'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'cobertura'],
+    },
+    reporters: ['default', 'junit'],
+    outputFile: {
+      junit: 'vitest-junit.xml'
     },
   },
 });

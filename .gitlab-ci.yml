@@ -20,6 +20,8 @@ test:unit:
     expire_in: 14 days
     paths:
       - reports/
+      - html/
+      - coverage/
     reports:
       junit: reports/*_junit.xml
       coverage_report:
@@ -42,6 +44,7 @@ test:e2e:
     expire_in: 14 days
     paths:
       - reports/
+      - playwright-report/
     reports:
       junit: reports/*_junit.xml
 

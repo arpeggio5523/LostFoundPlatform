@@ -5,7 +5,7 @@ import ItemCard from "../components/ItemCard";
 import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { LogOut, X } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
-import { getAuthUser, clearAuth } from "../services/authState";
+import { getAuthUser, clearAuth, isAdmin } from "../services/authState";
 
 const CATEGORIES = [
     "All Categories",
@@ -30,12 +30,15 @@ const LOCATIONS = [
   "Taylor's University",
   "Sunway University",
 ];
-const STATUSES = ["All Status", "approved", "pending", "returned"];
+const STATUSES = ["All Status", "Approved", "Pending", "Returned"];
 
 export default function FoundItemsPage() {
 
   const navigate = useNavigate();
   const { resetTheme } = useTheme();
+  const statusOptions = isAdmin()
+    ? STATUSES
+    : STATUSES.filter(option => option.toLowerCase() !== "pending");
 
   const handleLogout = () => {
     resetTheme();
@@ -210,7 +213,7 @@ export default function FoundItemsPage() {
             {[
               { value: category, onChange: setCategory, options: CATEGORIES },
               { value: location, onChange: setLocation, options: LOCATIONS },
-              { value: status,   onChange: setStatus,   options: STATUSES },
+              { value: status,   onChange: setStatus,   options: statusOptions },
             ].map(({ value, onChange, options }, i) => (
               <select key={i} value={value} onChange={e => onChange(e.target.value)}
                 style={{

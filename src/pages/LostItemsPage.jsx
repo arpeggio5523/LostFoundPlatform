@@ -5,7 +5,7 @@ import ItemCard from "../components/ItemCard";
 import { Funnel, LogOut, X } from "lucide-react";
 import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { useTheme } from "../context/ThemeContext";
-import { getAuthUser, clearAuth } from "../services/authState";
+import { getAuthUser, clearAuth, isAdmin } from "../services/authState";
 
 const CATEGORIES = [
   "All Categories",
@@ -39,6 +39,9 @@ const LOCATIONS = [
 export default function LostItemsPage() {
   const navigate = useNavigate();
   const { resetTheme } = useTheme();
+  const statusOptions = isAdmin()
+    ? STATUSES
+    : STATUSES.filter(option => option !== "Pending");
 
   const handleLogout = () => {
     resetTheme();
@@ -224,7 +227,7 @@ export default function LostItemsPage() {
             {/* Status */}
             <select value={status} onChange={e => setStatus(e.target.value)}
               style={{ ...inputStyle, padding: "9px 36px 9px 14px", appearance: "none", cursor: "pointer", minWidth: 150 }}>
-              {STATUSES.map(s => <option key={s}>{s}</option>)}
+              {statusOptions.map(s => <option key={s}>{s}</option>)}
             </select>
 
           </div>

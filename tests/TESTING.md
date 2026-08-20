@@ -37,10 +37,10 @@ npx playwright install chromium
 ```
 
 > [!IMPORTANT]
-> **Running Playwright on a Native Linux Runner (No Docker)**
-> If you are running Playwright natively on a Linux machine (e.g., via a shell runner) instead of inside a Docker container, the runner must have the underlying OS libraries installed to launch the browser.
+> **Native Linux Dependencies**
+> If you are running Playwright on a Native Linux machine, the machine must have the underlying OS libraries installed to launch the browser.
 > 
-> You must SSH into the Linux machine with an account that has `sudo` privileges, navigate to the project, and run:
+> You must run the following command with an account that has `sudo` privileges:
 > ```bash
 > npx playwright install-deps
 > ```

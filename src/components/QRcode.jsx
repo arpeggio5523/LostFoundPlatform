@@ -50,8 +50,11 @@ export default function QRCodeModal({ isOpen, onClose, item }) {
   if (!isOpen || !item) return null;
 
   const itemId = item._id || item.id;
+  const publicAppUrl = (import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin)
+    .trim()
+    .replace(/\/$/, "");
   const itemUrl = itemId
-    ? `${window.location.origin}/item/${encodeURIComponent(itemId)}`
+    ? `${publicAppUrl}/item/${encodeURIComponent(itemId)}`
     : null;
 
   const fileName = `qr-${itemId || "item"}.png`;

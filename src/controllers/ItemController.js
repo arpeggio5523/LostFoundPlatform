@@ -7,9 +7,10 @@ import { sendContactOwnerEmail } from "../utils/emailService.js";
 
 const PUBLIC_STATUSES = ["Approved", "Matched", "Returned"];
 const MODERATION_STATUSES = ["Pending", "Approved", "Rejected"];
-const ALLOWED_STATUSES = [...MODERATION_STATUSES, "Matched", "Returned"];
-const ALLOWED_ADMIN_STATUS_UPDATES = MODERATION_STATUSES;
-const ALLOWED_OWNER_STATUS_UPDATES = ["Returned"];
+const LIFECYCLE_STATUSES = ["Matched", "Returned"];
+const ALLOWED_STATUSES = [...MODERATION_STATUSES, ...LIFECYCLE_STATUSES];
+const ALLOWED_ADMIN_STATUS_UPDATES = ALLOWED_STATUSES;
+const ALLOWED_OWNER_STATUS_UPDATES = LIFECYCLE_STATUSES;
 
 const isAdminUser = (user) => String(user?.role || "").toLowerCase() === "admin";
 
@@ -51,8 +52,12 @@ export const updateItemStatus = async (req, res) => {
       });
     }
 
-    if (!isAdmin && !PUBLIC_STATUSES.includes(item.status)) {
-      return res.status(400).json({ error: "Only approved items can be marked as returned." });
+    if (LIFECYCLE_STATUSES.includes(status) && !PUBLIC_STATUSES.includes(item.status)) {
+      return res.status(400).json({ error: "Only approved items can be marked as matched or returned." });
+    }
+
+    if (status === "Matched" && item.status !== "Approved") {
+      return res.status(400).json({ error: "Only approved items can be marked as matched." });
     }
 
     item.status = status;
@@ -259,7 +264,7 @@ export const getMyItems = async (req, res) => {
 
 /**
  * PUT /api/items/:itemId
- * Update an existing item (owner only).
+ * Update an existing item (owner or admin).
  */
 export const updateItem = async (req, res) => {
   try {
@@ -277,7 +282,21 @@ export const updateItem = async (req, res) => {
       return res.status(403).json({ error: "You do not have permission to update this item." });
     }
 
-    const { title, description, category, type, location, exactLocation, date, color, distMark, images } = req.body;
+    const { title, description, category, type, location, exactLocation, date, color, distMark, images, status } = req.body;
+
+    if (status !== undefined) {
+      if (!isAdmin) {
+        return res.status(403).json({ error: "Only administrators can change an item's status while editing." });
+      }
+
+      if (!ALLOWED_STATUSES.includes(status)) {
+        return res.status(400).json({
+          error: `Invalid status. Must be one of: ${ALLOWED_STATUSES.join(", ")}.`,
+        });
+      }
+
+      item.status = status;
+    }
 
     if (title)       item.title       = title;
     if (description) item.description = description;

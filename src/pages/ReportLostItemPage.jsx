@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { authHeaders, buildApiUrl, apiFetch } from "../services/apiClient";
-import { getAuthUser } from "../services/authState";
+import { getAuthUser, isAdmin } from "../services/authState";
 import { useToast } from "../context/ToastContext";
 
 const CATEGORIES = [
@@ -57,7 +57,7 @@ export default function ReportLostItemPage() {
 
   const [form, setForm] = useState({
     title: "", description: "", category: "",
-    color: "", marks: "", location: "", exactLocation: "", date: "",
+    color: "", marks: "", location: "", exactLocation: "", date: "", status: "",
   });
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [images, setImages] = useState([]);
@@ -82,6 +82,7 @@ export default function ReportLostItemPage() {
           location: item.location || "",
           exactLocation: item.exactLocation || "",
           date: item.date ? item.date.split("T")[0] : "",
+          status: item.status || "Pending",
         });
         if (item.user === "Anonymous") setIsAnonymous(true);
         else setIsAnonymous(false);
@@ -195,6 +196,7 @@ export default function ReportLostItemPage() {
           images: imageUrls,
           type: "Lost",
           user: isAnonymous ? "Anonymous" : (authUser.fullName || "Anonymous"),
+          ...(editId && isAdmin() ? { status: form.status } : {}),
         }),
       });
 
@@ -337,6 +339,23 @@ export default function ReportLostItemPage() {
             className={errors.date ? inputErrorClass : inputClass}
           />
         </Field>
+
+        {editId && isAdmin() && (
+          <Field label="Status" required>
+            <select
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+              className={`${inputClass} appearance-none cursor-pointer`}
+            >
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Matched">Matched</option>
+              <option value="Returned">Returned</option>
+            </select>
+          </Field>
+        )}
 
         {/* Image Upload */}
         <div className="mb-3">

@@ -32,7 +32,7 @@ Tests live in the `tests/` folder, split by type:
 ## Install Dependencies
 
 ```bash
-npm install -D vitest @playwright/test @testing-library/jest-dom
+npm install -D vitest @vitest/ui @playwright/test @testing-library/jest-dom
 npx playwright install chromium
 ```
 

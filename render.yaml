@@ -11,6 +11,8 @@ services:
         value: production
       - key: MONGO_URI
         sync: false
+      - key: MONGO_URI_SRV
+        sync: false
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
@@ -24,9 +26,9 @@ services:
       - key: EMAIL_VERIFY_TOKEN_EXPIRES_MINUTES
         value: "30"
       - key: JWT_ACCESS_SECRET
-        generateValue: true
+        sync: false
       - key: JWT_REFRESH_SECRET
-        generateValue: true
+        sync: false
       - key: JWT_ACCESS_EXPIRES_IN
         value: 15m
       - key: JWT_REFRESH_EXPIRES_DAYS

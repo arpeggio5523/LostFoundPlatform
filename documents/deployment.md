@@ -9,3 +9,5 @@ To overcome the Monash FIT GitLab Private server restrictions, the actual group 
 **Deployed Repository Mirror:** https://git.infotech.monash.edu/fit3170_project1_2026/fit3170_project1/-/settings/repository#js-push-remote-settings
 
 **Current Deployed Branch:** test/deployment
+
+To accomodate the Render Inactive App cold restarts, a CRON Job is setup to hit the deployed URL every **10 minutes** (Render inactivity timeout is **15 minutes**). This keeps the app alive and backend ready for requests.

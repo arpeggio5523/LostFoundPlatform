@@ -14,7 +14,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'cobertura', 'html'],
     },
-    reporters: ['default', 'junit', 'html'],
+    reporters: ['default', 'junit', 'html', 'vitest-markdown-reporter'],
     outputFile: {
       junit: 'vitest-junit.xml'
     },

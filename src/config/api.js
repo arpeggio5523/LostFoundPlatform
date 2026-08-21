@@ -1,7 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
-
-export const buildApiUrl = (path) => {
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${API_BASE_URL}${normalizedPath}`;
-};
+// Production Frontend and API served by the same Express.js service.
+// Remove hardcoded backend API URL.
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 

@@ -3,7 +3,7 @@ services:
     name: lostfoundmy
     runtime: node
     plan: free
-    buildCommand: npm ci && npm run build
+    buildCommand: npm i --production=false && npm run build
     startCommand: npm start
     healthCheckPath: /
     envVars:

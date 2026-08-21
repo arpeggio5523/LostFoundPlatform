@@ -35,3 +35,5 @@ services:
         value: "7"
       - key: REFRESH_TOKEN_COOKIE_NAME
         value: refreshToken
+      - key: VITE_MAPBOX_TOKEN
+        sync: false

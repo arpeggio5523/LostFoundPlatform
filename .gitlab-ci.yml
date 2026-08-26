@@ -14,6 +14,7 @@ test:unit:
     - export REPORT_NAME="vitest_${CI_PIPELINE_SOURCE:-unknown}_${GITLAB_USER_LOGIN:-unknown}_${CI_COMMIT_REF_SLUG:-unknown}_pipeline-${CI_PIPELINE_IID:-unknown}_${CI_COMMIT_SHORT_SHA:-unknown}_${TIMESTAMP}"
     - mv vitest-junit.xml reports/${REPORT_NAME}_junit.xml || true
     - mv coverage/cobertura-coverage.xml reports/${REPORT_NAME}_cobertura.xml || true
+    - mv reports/vitest-report.md reports/${REPORT_NAME}_report.md || true
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
     when: always
@@ -39,6 +40,7 @@ test:e2e:
     - export TIMESTAMP=$(date +%Y%m%d_%H%M%S)
     - export REPORT_NAME="playwright_${CI_PIPELINE_SOURCE:-unknown}_${GITLAB_USER_LOGIN:-unknown}_${CI_COMMIT_REF_SLUG:-unknown}_pipeline-${CI_PIPELINE_IID:-unknown}_${CI_COMMIT_SHORT_SHA:-unknown}_${TIMESTAMP}"
     - mv playwright-junit.xml reports/${REPORT_NAME}_junit.xml || true
+    - mv reports/playwright-report.md reports/${REPORT_NAME}_report.md || true
   artifacts:
     when: always
     expire_in: 14 days

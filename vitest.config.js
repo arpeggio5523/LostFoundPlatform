@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import { VitestMarkdownReporter } from 'vitest-markdown-reporter';
 
 export default defineConfig({
   test: {
@@ -14,9 +15,10 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'cobertura', 'html'],
     },
-    reporters: ['default', 'junit', 'html', 'vitest-markdown-reporter'],
+    reporters: ['default', 'junit', 'html', new VitestMarkdownReporter()],
     outputFile: {
-      junit: 'vitest-junit.xml'
+      junit: 'vitest-junit.xml',
+      markdown: 'reports/vitest-report.md'
     },
   },
 });

@@ -189,7 +189,7 @@ export default function ItemDetailPage() {
   };
 
   const handleMatchClick = (matchId) => {
-    navigate(`/items/${matchId}`);
+    navigate(`/item/${matchId}`);
   };
 
   if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>Loading...</div>;

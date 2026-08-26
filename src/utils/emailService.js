@@ -49,7 +49,7 @@ const buildVerificationEmailHtml = ({ fullName, verificationUrl, email, apiVerif
 `;
 
 export const sendVerificationEmail = async ({ email, fullName, verificationUrl }) => {
-  const apiBaseUrl = process.env.API_BASE_URL || "http://localhost:3000";
+  const apiBaseUrl = process.env.API_BASE_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:3000";
   const apiVerificationUrl = `${apiBaseUrl.replace(/\/$/, "")}/api/auth/verify-email`;
 
   const transporter = await getTransporter();

@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: lostfoundmy
+    runtime: node
+    plan: free
+    buildCommand: npm i --production=false && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_URI_SRV
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: EMAIL_VERIFY_TOKEN_EXPIRES_MINUTES
+        value: "30"
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_ACCESS_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_DAYS
+        value: "7"
+      - key: REFRESH_TOKEN_COOKIE_NAME
+        value: refreshToken
+      - key: VITE_MAPBOX_TOKEN
+        sync: false

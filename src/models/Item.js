@@ -153,6 +153,12 @@ const itemSchema = new mongoose.Schema(
       trim: true,
     },
 
+    qrCodePath: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+
     reportedBy: {
         type: mongoose.Schema.Types.ObjectId,
         // To match the name in the schema "User"

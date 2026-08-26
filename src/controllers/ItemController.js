@@ -4,6 +4,13 @@
 import Item from "../models/Item.js";
 import User from "../models/User.js";
 import { sendContactOwnerEmail } from "../utils/emailService.js";
+import QRCode from "qrcode";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PUBLIC_STATUSES = ["Approved", "Matched", "Returned"];
 const MODERATION_STATUSES = ["Pending", "Approved", "Rejected"];
@@ -156,6 +163,29 @@ export const createItem = async (req, res) => {
  
     const newItem = new Item(buildItemPayload(req.body, req.user.id));
     const savedItem = await newItem.save();
+
+    // Create QR code folder if it does not exist
+    const qrDirectory = path.join(__dirname, "../../uploads/qrcodes");
+
+    if (!fs.existsSync(qrDirectory)) {
+      fs.mkdirSync(qrDirectory, { recursive: true });
+    }
+
+    // URL encoded in the QR code
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const itemUrl = `${frontendUrl}/item/${savedItem._id}`;
+
+    // QR image filename and physical path
+    const qrFileName = `qr-${savedItem._id}.png`;
+    const qrFilePath = path.join(qrDirectory, qrFileName);
+
+    // Generate and save QR image
+    await QRCode.toFile(qrFilePath, itemUrl);
+
+    // Save the image path in MongoDB
+    savedItem.qrCodePath = `/uploads/qrcodes/${qrFileName}`;
+
+    await savedItem.save();
  
     return res.status(201).json({
       message: `${type} item report submitted successfully.`,

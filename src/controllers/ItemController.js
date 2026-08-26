@@ -5,28 +5,59 @@ import Item from "../models/Item.js";
 import User from "../models/User.js";
 import { sendContactOwnerEmail } from "../utils/emailService.js";
 
+const PUBLIC_STATUSES = ["Approved", "Matched", "Returned"];
+const MODERATION_STATUSES = ["Pending", "Approved", "Rejected"];
+const LIFECYCLE_STATUSES = ["Matched", "Returned"];
+const ALLOWED_STATUSES = [...MODERATION_STATUSES, ...LIFECYCLE_STATUSES];
+const ALLOWED_ADMIN_STATUS_UPDATES = ALLOWED_STATUSES;
+const ALLOWED_OWNER_STATUS_UPDATES = LIFECYCLE_STATUSES;
+
+const isAdminUser = (user) => String(user?.role || "").toLowerCase() === "admin";
+
+const isItemOwner = (item, user) =>
+  Boolean(user?.id && String(item.reportedBy?._id || item.reportedBy) === String(user.id));
+
 export const updateItemStatus = async (req, res) => {
   try {
     const { itemId } = req.params;
     const { status } = req.body;
+
+    if (!ALLOWED_STATUSES.includes(status)) {
+      return res.status(400).json({
+        error: `Invalid status. Must be one of: ${ALLOWED_STATUSES.join(", ")}.`,
+      });
+    }
 
     const item = await Item.findById(itemId);
     if (!item) {
       return res.status(404).json({ error: "Item not found." });
     }
 
-    if (String(item.reportedBy) !== String(req.user.id)) {
+    const isAdmin = isAdminUser(req.user);
+    const isOwner = isItemOwner(item, req.user);
+
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({ error: "You do not have permission to update this item." });
     }
 
-    const allowedStatuses = item.type === "Lost" ? ["Lost", "Returned"] : ["Found", "Returned"];
-
-    if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({ error: `Invalid status for this item. Allowed statuses are: ${allowedStatuses.join(", ")}.` });
+    if (isAdmin && !ALLOWED_ADMIN_STATUS_UPDATES.includes(status)) {
+      return res.status(400).json({
+        error: `Administrators can only set moderation statuses: ${ALLOWED_ADMIN_STATUS_UPDATES.join(", ")}.`,
+      });
     }
 
-    if (item.status === "Returned" && status !== "Returned") {
-      return res.status(400).json({ error: "Returned items cannot be changed back to another status." });
+    if (!isAdmin && !ALLOWED_OWNER_STATUS_UPDATES.includes(status)) {
+      return res.status(400).json({
+        error: `Item owners can only set statuses: ${ALLOWED_OWNER_STATUS_UPDATES.join(", ")}.`,
+      });
+    }
+
+    if (LIFECYCLE_STATUSES.includes(status) && !PUBLIC_STATUSES.includes(item.status)) {
+      return res.status(400).json({ error: "Only approved items can be marked as matched or returned." });
+    }
+
+    if (status === "Matched" && item.status !== "Approved") {
+      return res.status(400).json({ error: "Only approved items can be marked as matched." });
     }
 
     item.status = status;
@@ -62,7 +93,6 @@ const ALLOWED_LOCATIONS = [
   "Multimedia University (MMU)",
 ];
  
-const ALLOWED_STATUSES = ["Pending", "Approved", "Matched", "Returned"];
 const ALLOWED_TYPES    = ["Lost", "Found"];
  
  
@@ -77,7 +107,7 @@ const buildItemPayload = (body, userId) => ({
   color:       body.color       || undefined,
   distMark:    body.distMark    || undefined,
   images:      body.images      || [],
-  status:      "Approved",             
+  status:      "Pending",
   reportedBy:  userId,                  // from auth middleware
   user:        body.user,               // display name passed from client
 });
@@ -149,6 +179,7 @@ export const createItem = async (req, res) => {
 export const getItems = async (req, res) => {
   try {
     const filter = {};
+    const isAdmin = isAdminUser(req.user);
  
     if (req.query.type) {
       if (!ALLOWED_TYPES.includes(req.query.type)) {
@@ -157,7 +188,20 @@ export const getItems = async (req, res) => {
       filter.type = req.query.type;
     }
  
-    if (req.query.status)   filter.status   = req.query.status;
+    if (req.query.status) {
+      if (!ALLOWED_STATUSES.includes(req.query.status)) {
+        return res.status(400).json({ error: `Invalid status filter.` });
+      }
+
+      filter.status = req.query.status;
+    }
+
+    if (!isAdmin) {
+      filter.status = req.query.status && PUBLIC_STATUSES.includes(req.query.status)
+        ? req.query.status
+        : { $in: PUBLIC_STATUSES };
+    }
+
     if (req.query.category) filter.category = req.query.category;
     if (req.query.location) filter.location = new RegExp(req.query.location, "i"); // partial match
  
@@ -181,6 +225,15 @@ export const getItemById = async (req, res) => {
     const item = await Item.findById(req.params.itemId).populate("reportedBy", "fullName email");
  
     if (!item) {
+      return res.status(404).json({ error: "Item not found." });
+    }
+
+    const canViewModeratedItem =
+      PUBLIC_STATUSES.includes(item.status) ||
+      isAdminUser(req.user) ||
+      isItemOwner(item, req.user);
+
+    if (!canViewModeratedItem) {
       return res.status(404).json({ error: "Item not found." });
     }
  
@@ -211,7 +264,7 @@ export const getMyItems = async (req, res) => {
 
 /**
  * PUT /api/items/:itemId
- * Update an existing item (owner only).
+ * Update an existing item (owner or admin).
  */
 export const updateItem = async (req, res) => {
   try {
@@ -229,7 +282,21 @@ export const updateItem = async (req, res) => {
       return res.status(403).json({ error: "You do not have permission to update this item." });
     }
 
-    const { title, description, category, type, location, exactLocation, date, color, distMark, images } = req.body;
+    const { title, description, category, type, location, exactLocation, date, color, distMark, images, status } = req.body;
+
+    if (status !== undefined) {
+      if (!isAdmin) {
+        return res.status(403).json({ error: "Only administrators can change an item's status while editing." });
+      }
+
+      if (!ALLOWED_STATUSES.includes(status)) {
+        return res.status(400).json({
+          error: `Invalid status. Must be one of: ${ALLOWED_STATUSES.join(", ")}.`,
+        });
+      }
+
+      item.status = status;
+    }
 
     if (title)       item.title       = title;
     if (description) item.description = description;
@@ -290,6 +357,10 @@ export const contactOwner = async (req, res) => {
     const item = await Item.findById(req.params.itemId).populate("reportedBy", "fullName email");
 
     if (!item) {
+      return res.status(404).json({ error: "Item not found." });
+    }
+
+    if (!PUBLIC_STATUSES.includes(item.status)) {
       return res.status(404).json({ error: "Item not found." });
     }
 

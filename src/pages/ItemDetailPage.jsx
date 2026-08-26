@@ -1,8 +1,8 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getAuthUser, isOwner, canEditItem } from "../services/authState";
+import { isOwner, isAdmin, canEditItem } from "../services/authState";
 import { authHeaders, apiFetch } from "../services/apiClient";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../context/ToastContext";
@@ -12,12 +12,14 @@ import QRCodeModal from "../components/QRcode";
 export default function ItemDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(null);
   const { showToast } = useToast();
   const [showQRModal, setShowQRModal] = useState(false);
 
@@ -52,7 +54,7 @@ export default function ItemDetailPage() {
       }
 
       showToast("Item deleted successfully.", "success");
-      navigate(item.type === "Lost" ? "/lost-items" : "/found-items");
+      navigate(returnTo);
     } catch (err) {
       showToast(err.message || "Failed to delete item.", "error");
     }
@@ -87,22 +89,48 @@ export default function ItemDetailPage() {
     }
   };
 
-  const handleMarkAsMatched = async () => {
-    showToast("Status updated to matched.", "success");
+  const updateItemStatus = async (status) => {
+    setUpdatingStatus(status);
+
+    try {
+      const response = await apiFetch(`/api/items/${item._id}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || result.message || "Failed to update item status.");
+      }
+
+      setItem(result.data || ((currentItem) => ({ ...currentItem, status })));
+      showToast(`Status updated to ${status.toLowerCase()}.`, "success");
+    } catch (err) {
+      showToast(err.message || "Failed to update item status.", "error");
+    } finally {
+      setUpdatingStatus(null);
+    }
   };
 
-  const handleMarkAsReturned = async () => {
-    showToast("Status updated to returned.", "success");
-  };
+  const handleMarkAsMatched = () => updateItemStatus("Matched");
+  const handleMarkAsReturned = () => updateItemStatus("Returned");
 
   if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>Loading...</div>;
   if (error || !item) return <div style={{ padding: 40, color: "#f87171" }}>Item not found.</div>;
 
-  const isLost = item.type === "Lost";
-  const currentUser = getAuthUser();
   const userIsOwner = isOwner(item);
+  const userIsAdmin = isAdmin();
   const canEdit = canEditItem(item)
-  const effectiveStatus = item.status === "Returned" ? "Returned" : item.type;
+  const effectiveStatus = ["Matched", "Returned"].includes(item.status) ? item.status : item.type;
+  const requestedReturnTo = searchParams.get("returnTo");
+  const allowedReturnPages = ["/admin-dashboard", "/lost-items", "/found-items"];
+  const returnTo = allowedReturnPages.includes(requestedReturnTo)
+    ? requestedReturnTo
+    : item.type === "Lost" ? "/lost-items" : "/found-items";
+  const backLabel = returnTo === "/admin-dashboard"
+    ? "Admin Dashboard"
+    : returnTo === "/lost-items" ? "Lost Items" : "Found Items";
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--color-bg-base)", transition: "background 0.2s ease" }}>
@@ -112,7 +140,7 @@ export default function ItemDetailPage() {
         
         {/* Back Button */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(returnTo)}
           style={{
             display: "flex", alignItems: "center", gap: 8, marginBottom: 32,
             color: "var(--color-text-muted)", fontSize: 14, fontWeight: 600,
@@ -122,7 +150,7 @@ export default function ItemDetailPage() {
           onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-muted)"}
         >
           <ArrowLeft size={16} />
-          Back to {isLost ? "Lost" : "Found"} Items
+          Back to {backLabel}
         </button>
 
         {/* Two Column Layout */}
@@ -206,51 +234,62 @@ export default function ItemDetailPage() {
                     {sendingEmail ? "Sending..." : "Contact owner"}
                   </button>
                 )}
+
+                {canEdit && (
+                  <button
+                    onClick={() => setShowDeleteModal(true)}
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-none bg-red-600 p-4 text-[15px] font-bold text-white transition hover:bg-red-700"
+                  >
+                    <Trash2 size={18} />
+                    Delete item
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Actions Block for Owner/Admin */}
-            {canEdit && (
-              <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 transition-all duration-300 mt-6">
-                <div className="text-[var(--color-text-primary)] text-2xl font-bold">
+            {canEdit && !["Pending", "Rejected"].includes(item.status) &&
+              (userIsAdmin || ["Approved", "Matched"].includes(item.status)) && (
+              <div className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 sm:p-6 transition-all duration-300">
+                <div className="mb-4 text-xl font-bold text-[var(--color-text-primary)]">
                   Actions
                 </div>
 
-                <div className="grid grid-cols-4 gap-6">
-                  <button
-                    onClick={() => 
-                      navigate(
-                        item.type === "Lost"
-                          ? `/report-lost?edit=${item._id}`
-                          : `/report-found?edit=${item._id}`
-                      )
-                    }
-                    className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
-                  >
-                    Edit
-                  </button>
+                <div className={`grid grid-cols-1 gap-3 ${userIsAdmin ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+                  {userIsAdmin && (
+                    <button
+                      onClick={() =>
+                        navigate(
+                          item.type === "Lost"
+                            ? `/report-lost?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
+                            : `/report-found?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
+                        )
+                      }
+                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
+                    >
+                      Edit
+                    </button>
+                  )}
 
-                  <button
-                    onClick={handleMarkAsMatched}
-                    className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
-                  >
-                    Mark as matched
-                  </button>
-                  
-                  <button
-                    onClick={handleMarkAsReturned}
-                    className="mt-6 w-full rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border)] py-2 font-semibold transition hover:bg-slate-100"
-                  >
-                    Mark as returned
-                  </button>
-                  
-                  <button
-                    onClick={() => setShowDeleteModal(true)}
-                    className="flex mt-6 w-full rounded-lg items-center justify-center gap-2 bg-red-600 border border-[var(--color-border)] py-2 font-semibold text-white transition hover:bg-red-700"
-                  >
-                    <Trash2 size={20} />
-                    Delete
-                  </button>
+                  {item.status === "Approved" && (
+                    <button
+                      onClick={handleMarkAsMatched}
+                      disabled={Boolean(updatingStatus)}
+                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {updatingStatus === "Matched" ? "Updating..." : "Mark as matched"}
+                    </button>
+                  )}
+
+                  {["Approved", "Matched"].includes(item.status) && (
+                    <button
+                      onClick={handleMarkAsReturned}
+                      disabled={Boolean(updatingStatus)}
+                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {updatingStatus === "Returned" ? "Updating..." : "Mark as returned"}
+                    </button>
+                  )}
                 </div>
               </div>
             )}

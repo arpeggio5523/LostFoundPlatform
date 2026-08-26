@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
 import { buildApiUrl, apiFetch } from "../services/apiClient";
-import { LogOut } from "lucide-react";
+import { LogOut, X } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
-import { getAuthUser, clearAuth } from "../services/authState";
+import { getAuthUser, clearAuth, isAdmin } from "../services/authState";
 
 const CATEGORIES = [
     "All Categories",
@@ -30,12 +30,15 @@ const LOCATIONS = [
   "Taylor's University",
   "Sunway University",
 ];
-const STATUSES = ["All Status", "approved", "pending", "returned"];
+const STATUSES = ["All Status", "Approved", "Pending", "Returned"];
 
 export default function FoundItemsPage() {
 
   const navigate = useNavigate();
   const { resetTheme } = useTheme();
+  const statusOptions = isAdmin()
+    ? STATUSES
+    : STATUSES.filter(option => option.toLowerCase() !== "pending");
 
   const handleLogout = () => {
     resetTheme();
@@ -50,6 +53,16 @@ export default function FoundItemsPage() {
   const [location, setLocation] = useState("All Locations");
   const [status, setStatus]     = useState("All Status");
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const hasActiveFilters = search !== "" || category !== "All Categories" ||
+    location !== "All Locations" || status !== "All Status";
+
+  const clearFilters = () => {
+    setSearch("");
+    setCategory("All Categories");
+    setLocation("All Locations");
+    setStatus("All Status");
+  };
 
   useEffect(() => {
     const user = getAuthUser();
@@ -200,7 +213,7 @@ export default function FoundItemsPage() {
             {[
               { value: category, onChange: setCategory, options: CATEGORIES },
               { value: location, onChange: setLocation, options: LOCATIONS },
-              { value: status,   onChange: setStatus,   options: STATUSES },
+              { value: status,   onChange: setStatus,   options: statusOptions },
             ].map(({ value, onChange, options }, i) => (
               <select key={i} value={value} onChange={e => onChange(e.target.value)}
                 style={{
@@ -217,14 +230,34 @@ export default function FoundItemsPage() {
                 {options.map(o => <option key={o}>{o}</option>)}
               </select>
             ))}
+
           </div>
 
           {/* Result count */}
-          <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--color-text-muted)" }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-            </svg>
-            {filtered.length} item{filtered.length !== 1 ? "s" : ""} found
+          <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--color-text-muted)" }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              {filtered.length} item{filtered.length !== 1 ? "s" : ""} found
+            </div>
+            <button
+              type="button"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+              aria-hidden={!hasActiveFilters}
+              style={{
+                display: "flex", alignItems: "center", gap: 4,
+                padding: "4px 8px", borderRadius: 6,
+                border: "1px solid var(--color-border)",
+                background: "transparent", color: "var(--color-text-secondary)",
+                fontSize: 12, fontWeight: 600,
+                cursor: hasActiveFilters ? "pointer" : "default",
+                visibility: hasActiveFilters ? "visible" : "hidden",
+              }}
+            >
+              <X size={12} /> Clear
+            </button>
           </div>
         </div>
 
@@ -246,7 +279,7 @@ export default function FoundItemsPage() {
           </div>
         ) : (
           <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
-            {filtered.map(item => <ItemCard key={item.id} item={item} />)}
+            {filtered.map(item => <ItemCard key={item.id} item={item} returnTo="/found-items" />)}
           </div>
         )}
       </main>

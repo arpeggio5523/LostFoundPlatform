@@ -1,21 +1,28 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { LogOut, Users, FileText, Search, Trophy, ArrowRight, TrendingUp} from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { getAuthUser, clearAuth } from "../services/authState";
 import ModerationItemCard from "../components/ModerationItemCard";
-import ConfirmModal from "../components/ConfirmModal";
 import { apiFetch } from "../services/apiClient";
 import { useToast } from "../context/ToastContext";
+
+const formatModerationItem = (item) => ({
+  ...item,
+  id: item._id,
+  author: item.reportedBy?.fullName || item.user || "Unknown user",
+  image: item.images?.[0],
+  date: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "",
+});
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [moderationTab, setModerationTab] = useState("pending");
   const [moderationItems, setModerationItems] = useState([]);
-  const [itemToDelete, setItemToDelete] = useState(null);
   const [loadingItems, setLoadingItems] = useState(true);
+  const [moderatingItem, setModeratingItem] = useState(null);
   const { resetTheme } = useTheme();
   const { showToast } = useToast();
 
@@ -34,6 +41,7 @@ export default function AdminDashboardPage() {
 
   const pendingPost = moderationItems.filter((item) => item.status === "Pending").length;
   const approvedPost = moderationItems.filter((item) => item.status === "Approved").length;
+  const rejectedPost = moderationItems.filter((item) => item.status === "Rejected").length;
 
   const displayedItems = moderationItems.filter((item) => {
     if (moderationTab.toLowerCase() === "pending") {
@@ -44,43 +52,65 @@ export default function AdminDashboardPage() {
       return item.status === "Approved";
     }
 
+    if (moderationTab.toLowerCase() === "rejected") {
+      return item.status === "Rejected";
+    }
+
     return true;
   });
 
   const emptyMessage =
     moderationTab === "approved"
       ? "There is no approved post."
+      : moderationTab === "rejected"
+      ? "There is no rejected post."
       : moderationTab === "pending"
       ? "There is no pending post."
       : "There are no items.";
 
-  const handleApprove = (id) => {
-    console.log("Approved item:", id);
+  const fetchModerationItems = useCallback(async () => {
+    const response = await apiFetch("/api/items");
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Failed to load posts.");
+
+    setModerationItems(result.data.map(formatModerationItem));
+  }, []);
+
+  const updateModerationStatus = async (id, status) => {
+    setModeratingItem({ id, status });
+
+    try {
+      const response = await apiFetch(`/api/items/${id}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || result.message || `Failed to ${status.toLowerCase()} post.`);
+      }
+
+      await fetchModerationItems();
+      showToast(`Post ${status.toLowerCase()} successfully.`, "success");
+    } catch (error) {
+      showToast(error.message || `Failed to ${status.toLowerCase()} post.`, "error");
+    } finally {
+      setModeratingItem(null);
+    }
   };
 
-  const handleReject = (id) => {
-    console.log("Rejected item:", id);
+  const handleApprove = async (id) => {
+    await updateModerationStatus(id, "Approved");
+  };
+
+  const handleReject = async (id) => {
+    await updateModerationStatus(id, "Rejected");
   };
 
   const handleViewDetails = (id) => {
-    navigate(`/item/${id}`);
-  };
-
-  const handleDelete = async () => {
-    if (!itemToDelete) return;
-
-    try {
-      const response = await apiFetch(`/api/items/${itemToDelete.id}`, { method: "DELETE" });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || result.message || "Failed to delete post.");
-
-      setModerationItems((items) => items.filter((item) => item.id !== itemToDelete.id));
-      showToast("Post deleted successfully.", "success");
-    } catch (error) {
-      showToast(error.message || "Failed to delete post.", "error");
-    } finally {
-      setItemToDelete(null);
-    }
+    navigate(`/item/${id}?returnTo=${encodeURIComponent("/admin-dashboard")}`);
   };
 
   useEffect(() => {
@@ -96,19 +126,9 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    const fetchItems = async () => {
+    const loadItems = async () => {
       try {
-        const response = await apiFetch("/api/items");
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "Failed to load posts.");
-
-        setModerationItems(result.data.map((item) => ({
-          ...item,
-          id: item._id,
-          author: item.reportedBy?.fullName || item.user || "Unknown user",
-          image: item.images?.[0],
-          date: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "",
-        })));
+        await fetchModerationItems();
       } catch (error) {
         showToast(error.message || "Failed to load posts.", "error");
       } finally {
@@ -116,8 +136,8 @@ export default function AdminDashboardPage() {
       }
     };
 
-    fetchItems();
-  }, [navigate, showToast]);
+    loadItems();
+  }, [fetchModerationItems, navigate, showToast]);
 
   return (
     <div className="flex min-h-screen bg-[var(--color-bg-base)] transition-colors duration-200 font-sans">
@@ -128,10 +148,10 @@ export default function AdminDashboardPage() {
 
       {/* Main Content */}
       <main 
-        className="flex-1 p-6 md:p-12 overflow-y-auto transition-[margin] duration-300 ease-in-out"
-        style={{ marginLeft: isCollapsed ? 70 : 220 }}
+        className="flex-1 overflow-y-auto transition-[margin] duration-300 ease-in-out"
+        style={{ marginLeft: isCollapsed ? 70 : 220, padding: "36px 40px" }}
       >
-        <div className="max-w-6xl mx-auto space-y-10">
+        <div className="space-y-7">
           
           {/* Header with Title and Logout */}
           <div
@@ -139,7 +159,6 @@ export default function AdminDashboardPage() {
               display: "flex",
               alignItems: "flex-start",
               justifyContent: "space-between",
-              marginBottom: 28,
             }}
           >
             <div>
@@ -180,7 +199,7 @@ export default function AdminDashboardPage() {
             
             {/* Card 1: Report Lost */}
             <div 
-              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
+              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
             >
               <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
                 <Users size={100} />
@@ -195,7 +214,7 @@ export default function AdminDashboardPage() {
 
             {/* Card 2: Report Found */}
             <div 
-              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
+              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
             >
               <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
                 <Search size={100} />
@@ -210,7 +229,7 @@ export default function AdminDashboardPage() {
 
             {/* Card 3: Found items */}
             <div 
-              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
+              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
             >
               <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
                 <FileText size={100} />
@@ -225,7 +244,7 @@ export default function AdminDashboardPage() {
 
             {/* Card 4: Returned Items */}
             <div 
-              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
+              className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
             >
               <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
                 <TrendingUp size={100} />
@@ -241,7 +260,7 @@ export default function AdminDashboardPage() {
 
           {/* Secondary Action: Success Rate */}
           <div 
-            className="group bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 cursor-pointer transition-all duration-300"
+            className="group bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 transition-all duration-300"
           >
             <div className="flex items-center gap-6 mb-6">
               <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 duration-300">
@@ -270,7 +289,7 @@ export default function AdminDashboardPage() {
           </div>
         {/* Third Action: Content Moderation */}
           <div 
-            className="group bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 cursor-pointer transition-all duration-300"
+            className="group bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 transition-all duration-300"
           >
             <div className="flex items-center gap-6 mb-6">
               <div>
@@ -278,7 +297,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 bg-gray-200 rounded-2xl p-1 mb-6">
+            <div className="grid grid-cols-4 bg-gray-200 rounded-2xl p-1 mb-6">
               <button
                 type="button"
                 onClick={() => setModerationTab("pending")}
@@ -301,6 +320,18 @@ export default function AdminDashboardPage() {
                 }`}
               >
                 Approved ({approvedPost})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setModerationTab("rejected")}
+                className={`py-1 rounded-xl font-semibold transition-all duration-200 ${
+                  moderationTab === "rejected"
+                    ? "bg-white shadow-sm text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)]"
+                }`}
+              >
+                Rejected ({rejectedPost})
               </button>
 
               <button
@@ -333,7 +364,9 @@ export default function AdminDashboardPage() {
                     onApprove={handleApprove}
                     onReject={handleReject}
                     onViewDetails={handleViewDetails}
-                    onDelete={setItemToDelete}
+                    moderationStatus={
+                      moderatingItem?.id === item.id ? moderatingItem.status : null
+                    }
                   />
                 ))
               )}
@@ -341,14 +374,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </main>
-      <ConfirmModal
-        isOpen={Boolean(itemToDelete)}
-        title="Delete Post"
-        message={`Delete “${itemToDelete?.title || "this post"}”? This action cannot be undone.`}
-        confirmText="Delete"
-        onConfirm={handleDelete}
-        onCancel={() => setItemToDelete(null)}
-      />
     </div>
   );
 }

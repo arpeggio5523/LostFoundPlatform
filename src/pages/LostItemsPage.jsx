@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
-import { Funnel, LogOut } from "lucide-react";
+import { Funnel, LogOut, X } from "lucide-react";
 import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { useTheme } from "../context/ThemeContext";
-import { getAuthUser, clearAuth } from "../services/authState";
+import { getAuthUser, clearAuth, isAdmin } from "../services/authState";
 
 const CATEGORIES = [
   "All Categories",
@@ -39,6 +39,9 @@ const LOCATIONS = [
 export default function LostItemsPage() {
   const navigate = useNavigate();
   const { resetTheme } = useTheme();
+  const statusOptions = isAdmin()
+    ? STATUSES
+    : STATUSES.filter(option => option !== "Pending");
 
   const handleLogout = () => {
     resetTheme();
@@ -53,6 +56,16 @@ export default function LostItemsPage() {
   const [error, setError]       = useState(null);
   const [items, setItems]       = useState([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const hasActiveFilters = search !== "" || category !== "All Categories" ||
+    location !== "All Locations" || status !== "All Status";
+
+  const clearFilters = () => {
+    setSearch("");
+    setCategory("All Categories");
+    setLocation("All Locations");
+    setStatus("All Status");
+  };
 
   useEffect(() => {
     const user = getAuthUser();
@@ -214,12 +227,32 @@ export default function LostItemsPage() {
             {/* Status */}
             <select value={status} onChange={e => setStatus(e.target.value)}
               style={{ ...inputStyle, padding: "9px 36px 9px 14px", appearance: "none", cursor: "pointer", minWidth: 150 }}>
-              {STATUSES.map(s => <option key={s}>{s}</option>)}
+              {statusOptions.map(s => <option key={s}>{s}</option>)}
             </select>
+
           </div>
 
-          <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--color-text-muted)" }}>
-            <Funnel size={14} /> {filtered.length} item{filtered.length !== 1 ? "s" : ""} found
+          <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--color-text-muted)" }}>
+              <Funnel size={14} /> {filtered.length} item{filtered.length !== 1 ? "s" : ""} found
+            </div>
+            <button
+              type="button"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+              aria-hidden={!hasActiveFilters}
+              style={{
+                display: "flex", alignItems: "center", gap: 4,
+                padding: "4px 8px", borderRadius: 6,
+                border: "1px solid var(--color-border)",
+                background: "transparent", color: "var(--color-text-secondary)",
+                fontSize: 12, fontWeight: 600,
+                cursor: hasActiveFilters ? "pointer" : "default",
+                visibility: hasActiveFilters ? "visible" : "hidden",
+              }}
+            >
+              <X size={12} /> Clear
+            </button>
           </div>
         </div>
 
@@ -243,7 +276,7 @@ export default function LostItemsPage() {
         ) : (
           <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
             {filtered.map(item => (
-              <ItemCard key={item._id} item={item} dateLabel="Lost On" />
+              <ItemCard key={item._id} item={item} dateLabel="Lost On" returnTo="/lost-items" />
             ))}
           </div>
         )}

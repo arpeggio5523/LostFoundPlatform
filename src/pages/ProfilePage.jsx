@@ -5,6 +5,7 @@ import { getAuthUser, clearAuth } from "../services/authState";
 import { buildApiUrl, authHeaders, apiFetch } from "../services/apiClient";
 import { LogOut } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
+import StatusBadge from "../components/StatusBadge";
 
 
 function ProfilePage() {
@@ -40,21 +41,6 @@ function ProfilePage() {
   const lostPosts = userPosts.filter((i) => i.type === "Lost");
   const foundPosts = userPosts.filter((i) => i.type === "Found");
   const returnedPosts = userPosts.filter((i) => i.status === "Returned");
-
-  const statusStyle = (status) => {
-    switch (status) {
-      case "Approved":
-        return "bg-[var(--color-bg-raised)] text-[var(--color-text-primary)]";
-      case "Pending":
-        return "bg-[var(--color-bg-raised)] text-[var(--color-text-secondary)]";
-      case "Matched":
-        return "bg-[var(--color-bg-raised)] text-[var(--color-brand)]";
-      case "Returned":
-        return "bg-[var(--color-bg-raised)] text-[var(--color-text-muted)]";
-      default:
-        return "bg-[var(--color-bg-raised)] text-[var(--color-text-secondary)]";
-    }
-  };
 
   const userName = currentUser?.fullName || "Unknown User";
   const userInitial = userName.charAt(0).toUpperCase();
@@ -282,13 +268,7 @@ function ProfilePage() {
                         {item.title}
                       </span>
 
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-md font-medium ${statusStyle(
-                          item.status
-                        )}`}
-                      >
-                        {item.status}
-                      </span>
+                      <StatusBadge status={item.status} />
                     </div>
 
                     <p className="text-xs text-[var(--color-text-secondary)] truncate mb-2">

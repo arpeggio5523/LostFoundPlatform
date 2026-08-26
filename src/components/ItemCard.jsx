@@ -7,11 +7,12 @@ import { getCurrentUserId } from "../services/authState";
 import { useState } from "react";
 import QRCodeModal from "./QRcode";
 
-export default function ItemCard({ item, dateLabel }) {
+export default function ItemCard({ item, dateLabel, returnTo }) {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    navigate(`/item/${item._id || item.id}`);
+    const returnQuery = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : "";
+    navigate(`/item/${item._id || item.id}${returnQuery}`);
   }
 
   const currentUserId = getCurrentUserId();

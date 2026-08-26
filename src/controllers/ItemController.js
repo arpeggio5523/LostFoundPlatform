@@ -262,7 +262,11 @@ export const getMyItems = async (req, res) => {
 
 export const findSimilarItems = async (req, res) => {
   try {
-    const { embedding, type, limit = 10 } = req.body;
+    // Support both body params (POST) and query params (GET) for type and limit.
+    const embedding = req.body.embedding;
+    const type = req.body.type || req.query.type;
+    const limit = req.body.limit || req.query.limit || 10;
+    const excludeId = req.body.excludeId || req.query.excludeId; // exclude the source item
 
     if (type && !ALLOWED_TYPES.includes(type)) {
       return res.status(400).json({ error: "Invalid type. Must be Lost or Found." });
@@ -272,14 +276,14 @@ export const findSimilarItems = async (req, res) => {
     const queryVector = validateImageEmbedding(embedding);
     const filter = type ? { type: { $eq: type } } : undefined;
 
-    const items = await Item.aggregate([
+    const pipeline = [
       {
         $vectorSearch: {
           index: process.env.MONGODB_VECTOR_INDEX || "item_image_vector_index",
           path: "imageEmbedding",
           queryVector,
           numCandidates: Math.max(numericLimit * 10, 100),
-          limit: numericLimit,
+          limit: numericLimit + (excludeId ? 1 : 0), // fetch extra in case we exclude one
           ...(filter ? { filter } : {}),
         },
       },
@@ -289,7 +293,17 @@ export const findSimilarItems = async (req, res) => {
         },
       },
       { $project: { imageEmbedding: 0 } },
-    ]);
+    ];
+
+    let items = await Item.aggregate(pipeline);
+
+    // Exclude the source item itself from results (it would always be a 100% match)
+    if (excludeId) {
+      items = items.filter((i) => String(i._id) !== String(excludeId));
+    }
+
+    // Trim to requested limit after exclusion
+    items = items.slice(0, numericLimit);
 
     return res.status(200).json({ count: items.length, data: items });
   } catch (err) {
@@ -303,11 +317,17 @@ export const findSimilarItemsById = async (req, res) => {
     const item = await Item.findById(req.params.itemId).select("+imageEmbedding");
     if (!item) return res.status(404).json({ error: "Item not found." });
 
-    if (!item.imageEmbedding) {
+    if (!item.imageEmbedding || item.imageEmbedding.length === 0) {
       return res.status(400).json({ error: "This item has no image embedding to compare." });
     }
 
-    req.body = { ...req.body, embedding: item.imageEmbedding };
+    // Forward query params (type, limit) and inject the stored embedding + excludeId
+    // so the source item doesn't appear in its own results.
+    req.body = {
+      ...req.body,
+      embedding: item.imageEmbedding,
+      excludeId: item._id,
+    };
     return findSimilarItems(req, res);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -430,3 +450,34 @@ export const contactOwner = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+/**
+ * POST /api/items/embed-image
+ * Proxy endpoint: accepts a base64 image from the browser, calls Jina AI, and
+ * returns the embedding vector. This lets the frontend perform image-based search
+ * without exposing the Jina API key to the client.
+ *
+ * Body: { imageBase64: string }   — a data URL ("data:image/...;base64,...")
+ * Returns: { embedding: number[] }
+ *
+ * Requires authentication to prevent abuse.
+ */
+export const embedImage = async (req, res) => {
+  try {
+    const { imageBase64 } = req.body;
+
+    if (!imageBase64 || !isBase64DataUrl(imageBase64)) {
+      return res.status(400).json({
+        error: "imageBase64 must be a valid base64 data URL (e.g. \"data:image/png;base64,...\").",
+      });
+    }
+
+    const embedding = await generateImageEmbedding(imageBase64);
+    return res.status(200).json({ embedding });
+  } catch (err) {
+    console.error("[embed-image] Error:", err.message);
+    return res.status(502).json({
+      error: `Failed to generate image embedding: ${err.message}`,
+    });
+  }
+};

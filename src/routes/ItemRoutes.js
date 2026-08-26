@@ -10,6 +10,7 @@ import {
   contactOwner,
   findSimilarItems,
   findSimilarItemsById,
+  embedImage,
 } from "../controllers/ItemController.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 
@@ -21,8 +22,11 @@ router.get("/", getItems);
 // GET /api/items/my       — items reported by the logged-in user (must be before /:itemId)
 router.get("/my", requireAuth, getMyItems);
 
-// POST /api/items/similar — find items similar to an uploaded image
+// POST /api/items/similar — find items similar to an uploaded image embedding
 router.post("/similar", requireAuth, findSimilarItems);
+
+// POST /api/items/embed-image — generate an embedding for a base64 image (browse-page search proxy)
+router.post("/embed-image", requireAuth, embedImage);
 
 // GET /api/items/:itemId  — single item detail
 router.get("/:itemId", getItemById);

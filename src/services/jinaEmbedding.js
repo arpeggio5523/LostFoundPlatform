@@ -36,13 +36,12 @@ export async function generateImageEmbedding(imageDataUrlOrUrl) {
     );
   }
 
-  // Jina CLIP-v2 accepts images as { type: "image_url", image_url: "<url or data URL>" }
+  // Jina CLIP-v2 expects images as { "image": "<base64 data URL>" }
   const payload = {
     model: JINA_MODEL,
     input: [
       {
-        type: "image_url",
-        image_url: imageDataUrlOrUrl,
+        image: imageDataUrlOrUrl,
       },
     ],
   };

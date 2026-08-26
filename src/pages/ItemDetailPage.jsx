@@ -155,14 +155,32 @@ export default function ItemDetailPage() {
     }
   };
 
-  // TODO: replace with a real API call once the matching backend exists,
-  // e.g. GET /api/items/${item._id}/matches
+  // Fetch visually similar items using the stored imageEmbedding.
+  // We search the opposite type: a Lost item finds similar Found items, and vice versa.
   const handleViewPossibleMatches = async () => {
     setMatchesLoading(true);
     try {
-      // Placeholder: no backend endpoint yet, so we just simulate a lookup
-      // and always come back empty for now.
-      await new Promise((resolve) => setTimeout(resolve, 400));
+      const oppositeType = item.type === "Lost" ? "Found" : "Lost";
+      const res = await apiFetch(
+        `/api/items/${item._id}/similar?type=${oppositeType}&limit=5`,
+        { headers: authHeaders() }
+      );
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        // 400 means no embedding stored — show friendly empty state, not an error toast
+        if (res.status === 400) {
+          setMatches([]);
+          setMatchesChecked(true);
+          return;
+        }
+        throw new Error(body.error || "Failed to load matches");
+      }
+
+      const data = await res.json();
+      setMatches(data.data || []);
+    } catch (err) {
+      showToast(err.message || "Could not load possible matches.", "error");
       setMatches([]);
     } finally {
       setMatchesLoading(false);
@@ -524,7 +542,9 @@ export default function ItemDetailPage() {
                             {match.title}
                           </div>
                           <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
-                            {match.matchScore ? `${Math.round(match.matchScore * 100)}% match` : "Possible match"}
+                            {match.similarityScore
+                              ? `${Math.round(match.similarityScore * 100)}% match`
+                              : "Possible match"}
                           </div>
                         </div>
                       </button>

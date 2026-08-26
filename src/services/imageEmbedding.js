@@ -1,3 +1,5 @@
+// Default must match: Jina CLIP-v2 output (1024) and your MongoDB Atlas Vector Search index numDimensions.
+// Override via MONGODB_VECTOR_DIMENSIONS env var if you change embedding models.
 const DEFAULT_DIMENSIONS = 1024;
 
 export const validateImageEmbedding = (embedding) => {

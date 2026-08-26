@@ -4,6 +4,16 @@
 import Item from "../models/Item.js";
 import User from "../models/User.js";
 import { sendContactOwnerEmail } from "../utils/emailService.js";
+import { validateImageEmbedding } from "../services/imageEmbedding.js";
+
+const updateImageEmbedding = (item, embedding) => {
+  if (!embedding) {
+    item.imageEmbedding = undefined;
+    return;
+  }
+
+  item.imageEmbedding = validateImageEmbedding(embedding);
+};
 
 export const updateItemStatus = async (req, res) => {
   try {
@@ -88,7 +98,7 @@ const buildItemPayload = (body, userId) => ({
  */
 export const createItem = async (req, res) => {
   try {
-    const { title, description, category, type, location, date, images, user } = req.body;
+    const { title, description, category, type, location, date, images, user, embedding } = req.body;
  
     // Required field check
     const missing = [];
@@ -125,6 +135,7 @@ export const createItem = async (req, res) => {
     }
  
     const newItem = new Item(buildItemPayload(req.body, req.user.id));
+    updateImageEmbedding(newItem, embedding);
     const savedItem = await newItem.save();
  
     return res.status(201).json({
@@ -209,6 +220,60 @@ export const getMyItems = async (req, res) => {
   }
 };
 
+export const findSimilarItems = async (req, res) => {
+  try {
+    const { embedding, type, limit = 10 } = req.body;
+
+    if (type && !ALLOWED_TYPES.includes(type)) {
+      return res.status(400).json({ error: "Invalid type. Must be Lost or Found." });
+    }
+
+    const numericLimit = Math.min(Math.max(Number(limit) || 10, 1), 50);
+    const queryVector = validateImageEmbedding(embedding);
+    const filter = type ? { type: { $eq: type } } : undefined;
+
+    const items = await Item.aggregate([
+      {
+        $vectorSearch: {
+          index: process.env.MONGODB_VECTOR_INDEX || "item_image_vector_index",
+          path: "imageEmbedding",
+          queryVector,
+          numCandidates: Math.max(numericLimit * 10, 100),
+          limit: numericLimit,
+          ...(filter ? { filter } : {}),
+        },
+      },
+      {
+        $set: {
+          similarityScore: { $meta: "vectorSearchScore" },
+        },
+      },
+      { $project: { imageEmbedding: 0 } },
+    ]);
+
+    return res.status(200).json({ count: items.length, data: items });
+  } catch (err) {
+    console.error("Similar item search error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const findSimilarItemsById = async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.itemId).select("+imageEmbedding");
+    if (!item) return res.status(404).json({ error: "Item not found." });
+
+    if (!item.imageEmbedding) {
+      return res.status(400).json({ error: "This item has no image embedding to compare." });
+    }
+
+    req.body = { ...req.body, embedding: item.imageEmbedding };
+    return findSimilarItems(req, res);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
 /**
  * PUT /api/items/:itemId
  * Update an existing item (owner only).
@@ -225,7 +290,7 @@ export const updateItem = async (req, res) => {
       return res.status(403).json({ error: "You do not have permission to update this item." });
     }
 
-    const { title, description, category, type, location, exactLocation, date, color, distMark, images, user } = req.body;
+    const { title, description, category, type, location, exactLocation, date, color, distMark, images, user, embedding } = req.body;
 
     if (title)       item.title       = title;
     if (description) item.description = description;
@@ -238,6 +303,8 @@ export const updateItem = async (req, res) => {
     if (distMark !== undefined) item.distMark = distMark;
     if (images !== undefined) item.images   = images;
     if (user)        item.user        = user;
+
+    if (images !== undefined) updateImageEmbedding(item, embedding);
 
     const updated = await item.save();
     return res.status(200).json({ message: "Item updated.", data: updated });

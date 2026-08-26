@@ -4,6 +4,7 @@
 import Item from "../models/Item.js";
 import User from "../models/User.js";
 import { sendContactOwnerEmail } from "../utils/emailService.js";
+import { createItemImageEmbedding } from "../utils/imageEmbedding.js";
 
 export const updateItemStatus = async (req, res) => {
   try {
@@ -124,7 +125,12 @@ export const createItem = async (req, res) => {
       return res.status(400).json({ error: "Maximum of 5 images are allowed." });
     }
  
-    const newItem = new Item(buildItemPayload(req.body, req.user.id));
+    const payload = buildItemPayload(req.body, req.user.id);
+    if (payload.images.length > 0) {
+      payload.imageEmbedding = await createItemImageEmbedding(payload.images);
+    }
+
+    const newItem = new Item(payload);
     const savedItem = await newItem.save();
  
     return res.status(201).json({
@@ -236,7 +242,15 @@ export const updateItem = async (req, res) => {
     if (date)        item.date        = date;
     if (color  !== undefined) item.color    = color;
     if (distMark !== undefined) item.distMark = distMark;
-    if (images !== undefined) item.images   = images;
+    if (images !== undefined) {
+      if (!Array.isArray(images) || images.length > 5) {
+        return res.status(400).json({ error: "Maximum of 5 images are allowed." });
+      }
+      item.images = images;
+      item.imageEmbedding = images.length > 0
+        ? await createItemImageEmbedding(images)
+        : [];
+    }
     if (user)        item.user        = user;
 
     const updated = await item.save();
@@ -310,6 +324,56 @@ export const contactOwner = async (req, res) => {
 
     return res.status(200).json({ message: "Email sent successfully." });
   } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+
+//GET /api/items/:itemId/matches
+//Find visually similar items using Atlas Vector Search.
+export const getSimilarItems = async (req, res) => {
+  try {
+    const sourceItem = await Item.findById(req.params.itemId)
+      .select("+imageEmbedding type category location");
+
+    if (!sourceItem) return res.status(404).json({ error: "Item not found." });
+    if (!sourceItem.imageEmbedding?.length) {
+      return res.status(422).json({ error: "This item does not have an image embedding." });
+    }
+
+    const filter = {
+      type: sourceItem.type === "Lost" ? "Found" : "Lost",
+      status: { $nin: ["Returned", "Matched"] },
+    };
+    if (req.query.category === "true") filter.category = sourceItem.category;
+    if (req.query.location === "true") filter.location = sourceItem.location;
+
+    const requestedLimit = Number.parseInt(req.query.limit || "10", 10);
+    const limit = Number.isFinite(requestedLimit)
+      ? Math.min(Math.max(requestedLimit, 1), 50)
+      : 10;
+
+    const matches = await Item.aggregate([
+      {
+        $vectorSearch: {
+          index: process.env.MONGODB_VECTOR_INDEX_NAME || "item_image_embedding",
+          path: "imageEmbedding",
+          queryVector: sourceItem.imageEmbedding,
+          numCandidates: Math.max(limit * 20, 100),
+          limit,
+          filter,
+        },
+      },
+      { $addFields: { similarityScore: { $meta: "vectorSearchScore" } } },
+      { $project: { imageEmbedding: 0 } },
+    ]);
+
+    return res.status(200).json({ count: matches.length, data: matches });
+  } catch (err) {
+    console.error("Similar item search error:", err);
+    if (err.message?.includes("index") || err.codeName === "IndexNotFound") {
+      return res.status(503).json({ error: "The image similarity index is not configured." });
+    }
     return res.status(500).json({ error: err.message });
   }
 };

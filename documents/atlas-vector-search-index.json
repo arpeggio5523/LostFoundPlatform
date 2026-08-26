@@ -1,0 +1,14 @@
+{
+  "fields": [
+    {
+      "type": "vector",
+      "path": "imageEmbedding",
+      "numDimensions": 1024,
+      "similarity": "cosine"
+    },
+    {
+      "type": "filter",
+      "path": "type"
+    }
+  ]
+}

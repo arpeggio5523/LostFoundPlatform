@@ -1,10 +1,11 @@
-// This file is used by Subteam1 to handle validationn logic for the LostItem model when creating or updating lost item records in the database.
-// It ensures that all required fields are present and correctly formatted before allowing the operation to proceed.
+// This file handles validation logic for Lost/Found item records and image similarity matching.
+// Embedding generation is handled automatically via Jina AI when a new base64 image is uploaded.
 
 import Item from "../models/Item.js";
 import User from "../models/User.js";
 import { sendContactOwnerEmail } from "../utils/emailService.js";
 import { validateImageEmbedding } from "../services/imageEmbedding.js";
+import { generateImageEmbedding } from "../services/jinaEmbedding.js";
 
 const updateImageEmbedding = (item, embedding) => {
   if (!embedding) {
@@ -13,6 +14,37 @@ const updateImageEmbedding = (item, embedding) => {
   }
 
   item.imageEmbedding = validateImageEmbedding(embedding);
+};
+
+/**
+ * Returns true when the string is a browser-generated base64 data URL
+ * (e.g. "data:image/png;base64,..."). Used to detect new image uploads
+ * so we only call Jina for freshly uploaded images, not stored URL strings.
+ */
+const isBase64DataUrl = (str) =>
+  typeof str === "string" && str.startsWith("data:");
+
+/**
+ * Attempt to auto-generate an image embedding via Jina AI and store it on
+ * the item. Failures are logged as warnings but never propagated — item saves
+ * must always succeed regardless of embedding availability.
+ *
+ * @param {object} item - Mongoose Item document (mutated in place)
+ * @param {string[]} images - Array of image strings (base64 or URL)
+ */
+const autoGenerateEmbedding = async (item, images) => {
+  const firstImage = images?.[0];
+  if (!isBase64DataUrl(firstImage)) return; // skip for URL-only or missing images
+
+  try {
+    const embedding = await generateImageEmbedding(firstImage);
+    updateImageEmbedding(item, embedding);
+  } catch (err) {
+    console.warn(
+      "[image-embedding] Failed to generate embedding (item will save without vector):",
+      err.message
+    );
+  }
 };
 
 export const updateItemStatus = async (req, res) => {
@@ -135,7 +167,15 @@ export const createItem = async (req, res) => {
     }
  
     const newItem = new Item(buildItemPayload(req.body, req.user.id));
-    updateImageEmbedding(newItem, embedding);
+
+    // If the client explicitly sent a pre-computed embedding, use it.
+    // Otherwise, auto-generate from the first image if it's a fresh base64 upload.
+    if (embedding) {
+      updateImageEmbedding(newItem, embedding);
+    } else {
+      await autoGenerateEmbedding(newItem, images);
+    }
+
     const savedItem = await newItem.save();
  
     return res.status(201).json({
@@ -304,7 +344,17 @@ export const updateItem = async (req, res) => {
     if (images !== undefined) item.images   = images;
     if (user)        item.user        = user;
 
-    if (images !== undefined) updateImageEmbedding(item, embedding);
+    // Embedding update logic:
+    // 1. If client explicitly sent embedding — use it (override).
+    // 2. Else if images changed and new image is a fresh base64 upload — auto-generate.
+    // 3. Else if images changed but no new base64 (kept existing URL) — clear old embedding.
+    if (images !== undefined) {
+      if (embedding) {
+        updateImageEmbedding(item, embedding);
+      } else {
+        await autoGenerateEmbedding(item, images);
+      }
+    }
 
     const updated = await item.save();
     return res.status(200).json({ message: "Item updated.", data: updated });

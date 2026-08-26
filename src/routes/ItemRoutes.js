@@ -8,6 +8,8 @@ import {
   updateItem,
   deleteItem,
   contactOwner,
+  findSimilarItems,
+  findSimilarItemsById,
 } from "../controllers/ItemController.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 
@@ -19,8 +21,14 @@ router.get("/", getItems);
 // GET /api/items/my       — items reported by the logged-in user (must be before /:itemId)
 router.get("/my", requireAuth, getMyItems);
 
+// POST /api/items/similar — find items similar to an uploaded image
+router.post("/similar", requireAuth, findSimilarItems);
+
 // GET /api/items/:itemId  — single item detail
 router.get("/:itemId", getItemById);
+
+// GET /api/items/:itemId/similar — find items similar to an existing item
+router.get("/:itemId/similar", requireAuth, findSimilarItemsById);
 
 // POST /api/items         — create a new Lost or Found item report
 router.post("/", requireAuth, createItem);

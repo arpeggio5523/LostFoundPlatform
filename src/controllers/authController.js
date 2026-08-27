@@ -48,7 +48,7 @@ const generateEmailVerificationToken = () => {
 };
 
 const buildVerificationUrl = ({ email, rawToken }) => {
-  const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+  const frontendUrl = (process.env.FRONTEND_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:5173").replace(/\/$/, "");
 
   return `${frontendUrl}/verify-email?email=${encodeURIComponent(email)}&token=${encodeURIComponent(rawToken)}`;
 };

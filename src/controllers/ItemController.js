@@ -276,6 +276,8 @@ export const findSimilarItems = async (req, res) => {
     const queryVector = validateImageEmbedding(embedding);
     const filter = type ? { type: { $eq: type } } : undefined;
 
+    const minScore = Number(req.body.minScore || req.query.minScore) || 0.80;
+
     const pipeline = [
       {
         $vectorSearch: {
@@ -291,6 +293,11 @@ export const findSimilarItems = async (req, res) => {
         $set: {
           similarityScore: { $meta: "vectorSearchScore" },
         },
+      },
+      {
+        $match: {
+          similarityScore: { $gte: minScore }
+        }
       },
       { $project: { imageEmbedding: 0 } },
     ];

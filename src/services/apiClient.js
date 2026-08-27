@@ -1,11 +1,6 @@
 import { clearAuth } from "./authState";
 import { API_BASE_URL } from "../config/api";
 
-const configuredApiUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-const API_BASE_URL = configuredApiUrl
-  ? configuredApiUrl.replace(/\/$/, "")
-  : import.meta.env.DEV ? "http://localhost:3000" : "";
-
 export function getToken() {
   return (
     sessionStorage.getItem("accessToken") ||

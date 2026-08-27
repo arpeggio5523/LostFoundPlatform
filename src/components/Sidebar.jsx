@@ -13,7 +13,6 @@ import {
   Shield,
   BarChart3,
 } from "lucide-react";
-import { getAuthUser } from "../services/authState";
 
 const NAV_ITEMS = [
   { label: "Home",        path: "/dashboard",          icon: Home },

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, CheckCircle2, Clock3, FileText, RefreshCw, Trash2, XCircle } from "lucide-react";
 import Sidebar from "../components/Sidebar";
-// import { apiFetch } from "../services/apiClient";/
+import { apiFetch } from "../services/apiClient";
 import { clearAuth, getAuthUser } from "../services/authState";
 import { useTheme } from "../context/ThemeContext";
 
@@ -30,6 +30,38 @@ export default function AnalyticsPage() {
     }
     if (user.role !== "Admin") navigate("/dashboard", { replace: true });
   }, [navigate]);
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchAnalytics = async () => {
+      try {
+        const response = await apiFetch("/api/analytics");
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(result.message || result.error || "Unable to load analytics.");
+        }
+
+        if (active) {
+          setAnalytics(result.data);
+          setLastUpdated(new Date(result.data.generatedAt));
+          setError("");
+        }
+      } catch (err) {
+        if (active) setError(err.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+    const refreshTimer = window.setInterval(fetchAnalytics, 30000);
+
+    return () => {
+      active = false;
+      window.clearInterval(refreshTimer);
+    };
+  }, []);
 
 
 

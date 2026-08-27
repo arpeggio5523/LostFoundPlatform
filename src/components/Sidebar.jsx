@@ -8,8 +8,10 @@ import {
   User, 
   ChevronLeft, 
   ChevronRight, 
-  Plus 
+  Plus,
+  BarChart3,
 } from "lucide-react";
+import { getAuthUser } from "../services/authState";
 
 const NAV_ITEMS = [
   { label: "Home",        path: "/dashboard",          icon: Home },
@@ -21,6 +23,10 @@ const NAV_ITEMS = [
 export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
   const navigate = useNavigate();
   const location = useLocation();
+  const isAdmin = getAuthUser()?.role === "Admin";
+  const navItems = isAdmin
+    ? [...NAV_ITEMS, { label: "Analytics", path: "/analytics", icon: BarChart3 }]
+    : NAV_ITEMS;
 
   return (
     <aside style={{
@@ -81,7 +87,7 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
 
       {/* Nav links */}
       <nav style={{ flex: 1, padding: "0 10px" }}>
-        {NAV_ITEMS.map(({ label, path, icon: Icon }) => {
+        {navItems.map(({ label, path, icon: Icon }) => {
           const isActive = location.pathname === path;
           return (
             <button

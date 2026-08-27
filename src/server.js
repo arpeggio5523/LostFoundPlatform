@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import authRoutes from "./routes/authRoutes.js";
 import itemsRouter from "./routes/ItemRoutes.js";
 import connectDB from "./config/db.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,6 +38,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/items", itemsRouter);
+app.use("/api/analytics", analyticsRoutes);
 
 // Serve Vite build in production
 app.use(express.static(distPath));

@@ -1,4 +1,5 @@
 import { clearAuth } from "./authState";
+import { API_BASE_URL } from "../config/api";
 
 const configuredApiUrl = import.meta.env.VITE_API_BASE_URL?.trim();
 const API_BASE_URL = configuredApiUrl
@@ -77,7 +78,7 @@ export async function apiFetch(path, options = {}) {
       try {
         const refreshRes = await fetch(buildApiUrl("/api/auth/refresh"), {
           method: "POST",
-          credentials: "include", 
+          credentials: "include",
         });
 
         if (!refreshRes.ok) {
@@ -85,7 +86,7 @@ export async function apiFetch(path, options = {}) {
         }
 
         const data = await refreshRes.json();
-        
+
         if (data.accessToken) {
           localStorage.setItem("token", data.accessToken);
         }

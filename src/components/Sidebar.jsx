@@ -10,8 +10,10 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Plus,
-  Shield 
+  Shield,
+  BarChart3,
 } from "lucide-react";
+import { getAuthUser } from "../services/authState";
 
 const NAV_ITEMS = [
   { label: "Home",        path: "/dashboard",          icon: Home },
@@ -25,9 +27,12 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = getAuthUser();
-  const visibleNavItems = NAV_ITEMS.filter(
-    (item) => !item.adminOnly || currentUser?.role === "Admin"
-  );
+  const isAdmin = currentUser?.role === "Admin";
+  const visibleNavItems = (
+    isAdmin
+      ? [...NAV_ITEMS, { label: "Analytics", path: "/analytics", icon: BarChart3 }]
+      : NAV_ITEMS
+  ).filter((item) => !item.adminOnly || isAdmin);
 
   return (
     <aside style={{

@@ -1,17 +1,57 @@
 stages:
   - test
+  - e2e
   - deploy
 
-test:
+test:unit:
   stage: test
-  image: node:22
   script:
     - npm ci
-    - npx vitest run
+    - npm run test:coverage
+  after_script:
+    - mkdir -p reports
+    - export TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    - export REPORT_NAME="vitest_${CI_PIPELINE_SOURCE:-unknown}_${GITLAB_USER_LOGIN:-unknown}_${CI_COMMIT_REF_SLUG:-unknown}_pipeline-${CI_PIPELINE_IID:-unknown}_${CI_COMMIT_SHORT_SHA:-unknown}_${TIMESTAMP}"
+    - mv vitest-junit.xml reports/${REPORT_NAME}_junit.xml || true
+    - mv coverage/cobertura-coverage.xml reports/${REPORT_NAME}_cobertura.xml || true
+    - mv reports/vitest-report.md reports/${REPORT_NAME}_report.md || true
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - reports/
+      - html/
+      - coverage/
+    reports:
+      junit: reports/*_junit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: reports/*_cobertura.xml
+
+test:e2e:
+  stage: e2e
+  script:
+    - npm ci
+    - npx playwright install chromium
+    - npm run test:e2e
+  after_script:
+    - mkdir -p reports
+    - export TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    - export REPORT_NAME="playwright_${CI_PIPELINE_SOURCE:-unknown}_${GITLAB_USER_LOGIN:-unknown}_${CI_COMMIT_REF_SLUG:-unknown}_pipeline-${CI_PIPELINE_IID:-unknown}_${CI_COMMIT_SHORT_SHA:-unknown}_${TIMESTAMP}"
+    - mv playwright-junit.xml reports/${REPORT_NAME}_junit.xml || true
+    - mv reports/playwright-report.md reports/${REPORT_NAME}_report.md || true
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - reports/
+      - playwright-report/
+    reports:
+      junit: reports/*_junit.xml
 
 deploy:
   stage: deploy
-  image: node:20
   script:
     - echo "Add your deployment commands here"
   only:

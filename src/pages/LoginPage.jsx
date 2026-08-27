@@ -11,6 +11,14 @@ const REMEMBERED_EMAIL_KEY = "rememberedEmail";
 const REMEMBERED_PASSWORD_KEY = "rememberedPassword";
 const ACCESS_TOKEN_STORAGE_KEY = "accessToken";
 
+const getSafeRedirectPath = (redirectPath) => {
+    if (!redirectPath || !redirectPath.startsWith("/") || redirectPath.startsWith("//")) {
+        return "/dashboard";
+    }
+
+    return redirectPath;
+};
+
 function LoginPage(){
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -26,10 +34,12 @@ function LoginPage(){
     const [isResending, setIsResending] = useState(false);
     const [popupMessage, setPopupMessage] = useState("");
     const [showPopup, setShowPopup] = useState(false);
+    const redirectPath = getSafeRedirectPath(searchParams.get("redirect"));
 
     useEffect(() => {
         const email = searchParams.get("email") || "";
         const verificationPending = searchParams.get("verificationPending");
+        const redirect = searchParams.get("redirect");
         const rememberedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY) || "";
         const rememberedPassword = localStorage.getItem(REMEMBERED_PASSWORD_KEY) || "";
 
@@ -49,12 +59,13 @@ function LoginPage(){
 
             searchParams.delete("verificationPending");
 
-            navigate(
-                `/login${email ? `?email=${encodeURIComponent(email)}` : ""}`,
-                { replace: true }
-            );
+            const nextParams = new URLSearchParams();
+            if (email) nextParams.set("email", email);
+            if (redirect) nextParams.set("redirect", redirect);
+
+            navigate(`/login${nextParams.toString() ? `?${nextParams}` : ""}`, { replace: true });
         }
-    }, [searchParams]);
+    }, [navigate, searchParams]);
 
     // A helper to update the state object dynamically
     const handleChange = (e, field) => {
@@ -90,7 +101,7 @@ function LoginPage(){
                         }
                     }
                     setFeedbackMessage("");
-                    navigate("/dashboard");
+                    navigate(redirectPath, { replace: true });
                 } else {
                     const nextMessage = result.message || result.error || "Invalid credentials";
                     setFeedbackMessage(nextMessage);

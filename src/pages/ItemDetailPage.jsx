@@ -1,9 +1,9 @@
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isOwner, isAdmin, canEditItem } from "../services/authState";
-import { authHeaders, apiFetch } from "../services/apiClient";
+import { authHeaders, apiFetch, getToken } from "../services/apiClient";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../context/ToastContext";
 import StatusBadge from "../components/StatusBadge";
@@ -12,6 +12,7 @@ import QRCodeModal from "../components/QRcode";
 export default function ItemDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,12 @@ export default function ItemDetailPage() {
   const [showQRModal, setShowQRModal] = useState(false);
 
   useEffect(() => {
+    if (!getToken()) {
+      const redirectTo = `${location.pathname}${location.search}`;
+      navigate(`/login?redirect=${encodeURIComponent(redirectTo)}`, { replace: true });
+      return;
+    }
+
     const fetchItem = async () => {
       try {
         const response = await apiFetch(`/api/items/${id}`);
@@ -37,7 +44,7 @@ export default function ItemDetailPage() {
       }
     };
     fetchItem();
-  }, [id]);
+  }, [id, location.pathname, location.search, navigate]);
 
   const handleDelete = async () => {
     setShowDeleteModal(false);

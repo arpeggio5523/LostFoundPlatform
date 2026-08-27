@@ -276,8 +276,8 @@ export const findSimilarItems = async (req, res) => {
     const queryVector = validateImageEmbedding(embedding);
     const filter = type ? { type: { $eq: type } } : undefined;
 
-    // Default min cosine similarity of 0.60 to weed out completely unrelated items
-    const minScore = Number(req.body.minScore || req.query.minScore) || 0.60;
+    // Default min cosine similarity of 0.80 to weed out completely unrelated items
+    const minScore = Number(req.body.minScore || req.query.minScore) || 0.80;
 
     const pipeline = [
       {

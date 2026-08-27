@@ -167,6 +167,11 @@ const itemSchema = new mongoose.Schema(
       enum: ["Lost", "Found"],
     },
 
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+
     // MAPBOX GEOJSON
     reportLocation: {
       type: {

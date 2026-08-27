@@ -276,7 +276,8 @@ export const findSimilarItems = async (req, res) => {
     const queryVector = validateImageEmbedding(embedding);
     const filter = type ? { type: { $eq: type } } : undefined;
 
-    const minScore = Number(req.body.minScore || req.query.minScore) || 0.80;
+    // Default min cosine similarity of 0.60 to weed out completely unrelated items
+    const minScore = Number(req.body.minScore || req.query.minScore) || 0.60;
 
     const pipeline = [
       {
@@ -291,7 +292,16 @@ export const findSimilarItems = async (req, res) => {
       },
       {
         $set: {
-          similarityScore: { $meta: "vectorSearchScore" },
+          mongoScore: { $meta: "vectorSearchScore" },
+        },
+      },
+      {
+        $set: {
+          // MongoDB cosine vectorSearchScore is (1 + cosine) / 2.
+          // We reverse it to get true cosine similarity: cos = (score * 2) - 1
+          similarityScore: {
+            $subtract: [ { $multiply: ["$mongoScore", 2] }, 1 ]
+          }
         },
       },
       {

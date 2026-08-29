@@ -291,20 +291,7 @@ export default function ItemDetailPage() {
                 {/* Contact Owner CTA */}
                 {!isOwner && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <button 
-                      onClick={handleContactOwner}
-                      disabled={sendingEmail}
-                      style={{
-                        width: "100%", padding: "16px", background: "var(--color-brand)",
-                        color: "var(--color-brand-text)", border: "none", borderRadius: 12,
-                        fontSize: 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
-                        transition: "background 0.15s", opacity: sendingEmail ? 0.7 : 1,
-                      }}
-                      onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand-hover)")}
-                      onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand)")}
-                    >
-                      {sendingEmail ? "Sending..." : "Email owner"}
-                    </button>
+
 
                     <button 
                       onClick={handleStartChat}

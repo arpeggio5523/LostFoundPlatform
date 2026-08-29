@@ -124,3 +124,90 @@ export const sendContactOwnerEmail = async ({ ownerEmail, ownerName, postTitle, 
     ].join("\n"),
   });
 };
+
+const escapeHtml = (value = "") => String(value)
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/\"/g, "&quot;")
+  .replace(/'/g, "&#39;");
+
+export const buildNewMessageNotificationEmail = ({
+  recipientName,
+  senderName,
+  messageText,
+  itemTitle,
+  conversationUrl,
+}) => {
+  const safeRecipientName = recipientName || "there";
+  const safeSenderName = senderName || "Someone";
+  const safeItemTitle = itemTitle || "your item";
+  const safeMessageText = messageText || "(no message text provided)";
+  const safeConversationUrl = conversationUrl || `${process.env.FRONTEND_URL || "http://localhost:5173"}/messages`;
+
+  return `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+      <p>Hello ${escapeHtml(safeRecipientName)},</p>
+      <p>You have a new message about <strong>${escapeHtml(safeItemTitle)}</strong> on LostFound MY.</p>
+      <p><strong>${escapeHtml(safeSenderName)}</strong> sent you a message:</p>
+      <blockquote style="margin: 12px 0; padding: 12px 16px; background: #f3f4f6; border-left: 4px solid #2563eb; color: #111827;">
+        ${escapeHtml(safeMessageText).replace(/\n/g, "<br />")}
+      </blockquote>
+      <p>Reply to them here:</p>
+      <p><a href="${escapeHtml(safeConversationUrl)}">${escapeHtml(safeConversationUrl)}</a></p>
+      <p>Best regards,<br />The LostFound MY Team</p>
+    </div>
+  `;
+};
+
+export const sendNewMessageNotificationEmail = async ({
+  toEmail,
+  recipientName,
+  senderName,
+  messageText,
+  itemTitle,
+  conversationUrl,
+}) => {
+  const transporter = await getTransporter();
+
+  if (!transporter) {
+    if (isDevelopment) {
+      console.warn(
+        "SMTP configuration is missing. New message notification email was not sent; using console fallback instead."
+      );
+      console.log(`New Message Notification Email:\nTo: ${toEmail}\nSubject: New message about ${itemTitle}\nFrom: ${senderName}\nMessage: ${messageText}`);
+      return;
+    }
+
+    throw new Error("SMTP configuration is missing");
+  }
+
+  const normalizedConversationUrl = conversationUrl || `${process.env.FRONTEND_URL || "http://localhost:5173"}/messages`;
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to: toEmail,
+    subject: `New message about ${itemTitle || "your item"}`,
+    text: [
+      `Hi ${recipientName || "there"},`,
+      "",
+      `You have a new message about "${itemTitle || "your item"}" on LostFound MY.`,
+      "",
+      `${senderName || "Someone"} said:`,
+      messageText || "(no message text provided)",
+      "",
+      `Reply here: ${normalizedConversationUrl}`,
+      "",
+      "Best regards,",
+      "",
+      "The LostFound MY Team",
+    ].join("\n"),
+    html: buildNewMessageNotificationEmail({
+      recipientName,
+      senderName,
+      messageText,
+      itemTitle,
+      conversationUrl: normalizedConversationUrl,
+    }),
+  });
+};

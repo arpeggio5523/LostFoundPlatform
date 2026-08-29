@@ -3,6 +3,7 @@ import Message from "../models/Message.js";
 import User from "../models/User.js";
 import { encrypt, decrypt } from "../utils/cryptoUtils.js";
 import { maskUserForViewer } from "../utils/privacy.js";
+import { sendNewMessageNotificationEmail } from "../utils/emailService.js";
 
 const maskConversationForViewer = (conversation, viewerId) => ({
   ...conversation,
@@ -109,6 +110,32 @@ export const sendMessage = async (req, res) => {
         io.to(String(participantId)).emit("message_received", {
           data: maskMessageForViewer(populatedObj, participantId),
         });
+      });
+    }
+
+    const sender = await User.findById(req.user.id, "_id fullName email").lean();
+    const conversationUserIds = conversation.participants.filter(
+      (participantId) => String(participantId) !== String(req.user.id)
+    );
+
+    for (const recipientId of conversationUserIds) {
+      const isOnline = io?.sockets?.adapter?.rooms?.has(String(recipientId));
+      if (isOnline) continue;
+
+      const recipient = await User.findById(recipientId, "_id fullName email").lean();
+      if (!recipient?.email) continue;
+
+      const item = await Conversation.findById(conversation._id).populate("item", "_id title").lean();
+      const itemTitle = item?.item?.title || "your item";
+      const conversationUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/messages`;
+
+      await sendNewMessageNotificationEmail({
+        toEmail: recipient.email,
+        recipientName: recipient.fullName,
+        senderName: sender?.fullName || "Someone",
+        messageText: text.trim(),
+        itemTitle,
+        conversationUrl,
       });
     }
 

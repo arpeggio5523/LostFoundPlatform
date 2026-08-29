@@ -17,6 +17,7 @@ import Message from "./models/Message.js";
 import { encrypt, decrypt } from "./utils/cryptoUtils.js";
 import userRoutes from "./routes/userRoutes.js";
 import { maskUserForViewer } from "./utils/privacy.js";
+import { sendNewMessageNotificationEmail } from "./utils/emailService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -152,16 +153,43 @@ io.on("connection", (socket) => {
         io.to(String(participantId)).emit("message_received", { data: viewForParticipant });
       });
 
+      const sender = await import("./models/User.js").then((mod) => mod.default.findById(socket.user.id, "_id fullName email").lean());
+      const offlineRecipients = [];
+
+      for (const participantId of conversation.participants) {
+        if (String(participantId) === String(socket.user.id)) continue;
+        const recipientId = String(participantId);
+
+        if (io.sockets.adapter.rooms.has(recipientId)) {
+          continue;
+        }
+
+        const recipient = await import("./models/User.js").then((mod) => mod.default.findById(recipientId, "_id fullName email").lean());
+        if (!recipient?.email) continue;
+
+        offlineRecipients.push({
+          recipientId,
+          recipient,
+        });
+      }
+
+      for (const { recipient } of offlineRecipients) {
+        await sendNewMessageNotificationEmail({
+          toEmail: recipient.email,
+          recipientName: recipient.fullName,
+          senderName: sender?.fullName || "Someone",
+          messageText: text.trim(),
+          itemTitle: conversation.item ? "your item" : "your item",
+          conversationUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/messages`,
+        });
+      }
+
       socket.emit("message_sent", {
         data: {
           ...populatedObj,
           sender: maskUserForViewer(populatedObj.sender, socket.user.id),
         },
       });
-    
-    
-    
-    
     } catch (error) {
       socket.emit("message_error", { message: error.message });
     }

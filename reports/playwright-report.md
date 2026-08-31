@@ -1,8 +1,8 @@
 # Playwright Test Results
 
 **Status:** passed
-**Start Time:** 31/08/2026, 10:38:27 pm
-**Duration:** 13009.262000000002ms
+**Start Time:** 31/08/2026, 11:20:27 pm
+**Duration:** 17873.034ms
 
 ## chromium
 ### analytics.spec.js

@@ -124,7 +124,7 @@ const itemSchema = new mongoose.Schema(
         message:
           "Status must be one of [Lost, Found, Returned, Pending, Approved, Rejected, Matched, Deleted]",
       },
-      default: "Approved",
+      default: "Pending",
     },
 
     user: {
@@ -151,6 +151,12 @@ const itemSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
+      trim: true,
+    },
+
+    qrCodePath: {
+      type: String,
+      default: null,
       trim: true,
     },
 

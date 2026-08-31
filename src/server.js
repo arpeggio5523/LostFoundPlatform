@@ -40,6 +40,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/items", itemsRouter);
 app.use("/api/analytics", analyticsRoutes);
 
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
 // Serve Vite build in production
 app.use(express.static(distPath));
 app.get("*", (req, res) => {

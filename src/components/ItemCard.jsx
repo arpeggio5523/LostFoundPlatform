@@ -4,12 +4,15 @@ import NoImagePlaceholder from "./NoImagePlaceHolder";
 import {Calendar, MapPinIcon} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUserId } from "../services/authState";
+import { useState } from "react";
+import QRCodeModal from "./QRcode";
 
-export default function ItemCard({ item, dateLabel }) {
+export default function ItemCard({ item, dateLabel, returnTo }) {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    navigate(`/item/${item._id || item.id}`);
+    const returnQuery = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : "";
+    navigate(`/item/${item._id || item.id}${returnQuery}`);
   }
 
   const currentUserId = getCurrentUserId();
@@ -20,18 +23,26 @@ export default function ItemCard({ item, dateLabel }) {
     e.stopPropagation();
   };
 
+  const [showQRModal, setShowQRModal] = useState(false);
+
   return (
-    <div
-      onClick={handleCardClick}
-      className="bg-white dark:bg-[var(--color-bg-surface)] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-[var(--color-border)] cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
-    >
+    <>
+      <div
+        onClick={handleCardClick}
+        className="bg-white dark:bg-[var(--color-bg-surface)] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-[var(--color-border)] cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
+      >
         {/* Image */}
         <div className="relative">
             {item.image
             ? <img src={item.image} alt={item.title} className="w-full h-52 object-cover block" />
             : <NoImagePlaceholder />
             }
-            <QRIcon />
+            <QRIcon
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowQRModal(true);
+              }}
+            />
         </div>
 
         {/* Content */}
@@ -62,7 +73,13 @@ export default function ItemCard({ item, dateLabel }) {
                     By {item.user}
                 </span>
             </div>
-        </div>
-    </div>
+          </div>
+      </div>
+      <QRCodeModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        item={item}
+      />
+    </>
   );
 }

@@ -1,7 +1,6 @@
 import { clearAuth } from "./authState";
 import { API_BASE_URL } from "../config/api";
 
-
 export function getToken() {
   return (
     sessionStorage.getItem("accessToken") ||
@@ -25,7 +24,7 @@ export function authHeaders(extraHeaders = {}) {
 
 export function buildApiUrl(path) {
   if (!path) {
-    return API_BASE_URL;
+    return API_BASE_URL || window.location.origin;
   }
 
   if (path.startsWith("http://") || path.startsWith("https://")) {

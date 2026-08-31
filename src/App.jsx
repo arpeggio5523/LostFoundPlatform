@@ -11,6 +11,7 @@ import ItemDetailPage from "./pages/ItemDetailPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import ReportLostItemPage from "./pages/ReportLostItemPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
         <Route path="/item/:id" element={<ItemDetailPage />} />
         <Route path="/report-found" element={<ReportFoundItemPage />} />
         <Route path="/report-lost" element={<ReportLostItemPage />} />
+        <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
       </Routes>
   );

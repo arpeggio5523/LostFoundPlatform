@@ -1,27 +1,36 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode } from "lucide-react";
+import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getCurrentUserId } from "../services/authState";
-import { buildApiUrl, authHeaders, apiFetch } from "../services/apiClient";
+import { isOwner, isAdmin, canEditItem } from "../services/authState";
+import { authHeaders, apiFetch, getToken } from "../services/apiClient";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "../context/ToastContext";
-
+import StatusBadge from "../components/StatusBadge";
+import QRCodeModal from "../components/QRcode";
 
 export default function ItemDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [savingStatus, setSavingStatus] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(null);
   const { showToast } = useToast();
+  const [showQRModal, setShowQRModal] = useState(false);
 
   useEffect(() => {
+    if (!getToken()) {
+      const redirectTo = `${location.pathname}${location.search}`;
+      navigate(`/login?redirect=${encodeURIComponent(redirectTo)}`, { replace: true });
+      return;
+    }
+
     const fetchItem = async () => {
       try {
         const response = await apiFetch(`/api/items/${id}`);
@@ -35,12 +44,7 @@ export default function ItemDetailPage() {
       }
     };
     fetchItem();
-  }, [id]);
-
-  useEffect(() => {
-    if (!item) return;
-    setSelectedStatus(item.status === "Returned" ? "Returned" : item.type);
-  }, [item]);
+  }, [id, location.pathname, location.search, navigate]);
 
   const handleDelete = async () => {
     setShowDeleteModal(false);
@@ -57,7 +61,7 @@ export default function ItemDetailPage() {
       }
 
       showToast("Item deleted successfully.", "success");
-      navigate(item.type === "Lost" ? "/lost-items" : "/found-items");
+      navigate(returnTo);
     } catch (err) {
       showToast(err.message || "Failed to delete item.", "error");
     }
@@ -92,54 +96,58 @@ export default function ItemDetailPage() {
     }
   };
 
-  const handleStatusUpdate = async () => {
-    if (!item || selectedStatus === "" || selectedStatus === (item.status === "Returned" ? "Returned" : item.type)) {
-      return;
-    }
+  const updateItemStatus = async (status) => {
+    setUpdatingStatus(status);
 
-    setSavingStatus(true);
     try {
       const response = await apiFetch(`/api/items/${item._id}/status`, {
         method: "PUT",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ status: selectedStatus }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
       });
+      const result = await response.json().catch(() => ({}));
 
-      const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.error || "Failed to update item status.");
+        throw new Error(result.error || result.message || "Failed to update item status.");
       }
 
-      setItem(result.data);
-      setSelectedStatus(result.data.status === "Returned" ? "Returned" : result.data.type);
-      showToast("Item status updated successfully.", "success");
+      setItem(result.data || ((currentItem) => ({ ...currentItem, status })));
+      showToast(`Status updated to ${status.toLowerCase()}.`, "success");
     } catch (err) {
       showToast(err.message || "Failed to update item status.", "error");
     } finally {
-      setSavingStatus(false);
+      setUpdatingStatus(null);
     }
   };
+
+  const handleMarkAsMatched = () => updateItemStatus("Matched");
+  const handleMarkAsReturned = () => updateItemStatus("Returned");
 
   if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>Loading...</div>;
   if (error || !item) return <div style={{ padding: 40, color: "#f87171" }}>Item not found.</div>;
 
-  const isLost = item.type === "Lost";
-  const isOwner = String(item.reportedBy?._id || item.reportedBy) === String(getCurrentUserId());
-  const effectiveStatus = item.status === "Returned" ? "Returned" : item.type;
-  const statusOptions = isLost ? ["Lost", "Returned"] : ["Found", "Returned"];
+  const userIsOwner = isOwner(item);
+  const userIsAdmin = isAdmin();
+  const canEdit = canEditItem(item)
+  const effectiveStatus = ["Matched", "Returned"].includes(item.status) ? item.status : item.type;
+  const requestedReturnTo = searchParams.get("returnTo");
+  const allowedReturnPages = ["/admin-dashboard", "/lost-items", "/found-items"];
+  const returnTo = allowedReturnPages.includes(requestedReturnTo)
+    ? requestedReturnTo
+    : item.type === "Lost" ? "/lost-items" : "/found-items";
+  const backLabel = returnTo === "/admin-dashboard"
+    ? "Admin Dashboard"
+    : returnTo === "/lost-items" ? "Lost Items" : "Found Items";
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--color-bg-base)", transition: "background 0.2s ease" }}>
-      <Sidebar 
-        isCollapsed={isCollapsed} 
-        setIsCollapsed={setIsCollapsed} 
-      />
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
       <main style={{ marginLeft: isCollapsed ? 70 : 220, transition: "margin-left 0.3s ease", flex: 1, padding: "40px" }}>
-
+        
         {/* Back Button */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(returnTo)}
           style={{
             display: "flex", alignItems: "center", gap: 8, marginBottom: 32,
             color: "var(--color-text-muted)", fontSize: 14, fontWeight: 600,
@@ -149,7 +157,7 @@ export default function ItemDetailPage() {
           onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-muted)"}
         >
           <ArrowLeft size={16} />
-          Back to {isLost ? "Lost" : "Found"} Items
+          Back to {backLabel}
         </button>
 
         {/* Two Column Layout */}
@@ -157,6 +165,7 @@ export default function ItemDetailPage() {
 
           {/* LEFT COLUMN */}
           <div>
+            {/* Item Card Details */}
             <div style={{
               background: "var(--color-bg-surface)",
               borderRadius: 24,
@@ -187,8 +196,7 @@ export default function ItemDetailPage() {
                 {/* Badges */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    {/* <Badge type={item.type} label={item.type} /> */}
-                    <Badge type={effectiveStatus} label={effectiveStatus} isStatus />
+                    <StatusBadge status={effectiveStatus} />
                   </div>
                 </div>
 
@@ -210,23 +218,23 @@ export default function ItemDetailPage() {
                 {/* Info Grid */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, borderTop: "1px solid var(--color-border)", paddingTop: 32, marginBottom: 48 }}>
                   <InfoBlock label="Category" icon={<Tag size={16} />} value={item.category} />
-                  <InfoBlock label="Colour"   icon={<Palette size={16} />} value={item.color} />
+                  <InfoBlock label="Colour" icon={<Palette size={16} />} value={item.color} />
                   <InfoBlock label="Location" icon={<MapPin size={16} />} value={item.location} />
                   <InfoBlock label="Exact Location" icon={<MapPin size={16} />} value={item.exactLocation || "Not specified"} />
-                  <InfoBlock label="Date"     icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString() : "N/A"} />
+                  <InfoBlock label="Date" icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString() : "N/A"} />
                 </div>
 
                 {/* Contact Owner CTA */}
-                {!isOwner && (
+                {!userIsOwner && (
                   <button 
                     onClick={handleContactOwner}
                     disabled={sendingEmail}
                     style={{
-                    width: "100%", padding: "16px", background: "var(--color-brand)",
-                    color: "var(--color-brand-text)", border: "none", borderRadius: 12,
-                    fontSize: 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
-                    transition: "background 0.15s", opacity: sendingEmail ? 0.7 : 1,
-                  }}
+                      width: "100%", padding: "16px", background: "var(--color-brand)",
+                      color: "var(--color-brand-text)", border: "none", borderRadius: 12,
+                      fontSize: 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
+                      transition: "background 0.15s", opacity: sendingEmail ? 0.7 : 1,
+                    }}
                     onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand-hover)")}
                     onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand)")}
                   >
@@ -234,86 +242,64 @@ export default function ItemDetailPage() {
                   </button>
                 )}
 
-                {/* Owner Actions (Edit / Delete / Status Update) */}
-                {isOwner && (
-                  <div style={{ marginTop: 24, border: "1px solid var(--color-border)", borderRadius: 16, padding: 24 }}>
-                    <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 16 }}>Actions</h3>
-
-                    <div style={{ display: "grid", gap: 16 }}>
-                      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                        <button
-                          onClick={() => navigate(item.type === "Lost" ? `/report-lost?edit=${item._id}` : `/report-found?edit=${item._id}`)}
-                          style={{
-                            flex: 1, minWidth: 120, padding: "12px", background: "#2563eb", color: "#fff",
-                            border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer",
-                            transition: "background 0.15s",
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = "#1d4ed8"}
-                          onMouseLeave={e => e.currentTarget.style.background = "#2563eb"}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => setShowDeleteModal(true)}
-                          style={{
-                            flex: 1, minWidth: 120, padding: "12px", background: "#dc2626", color: "#fff",
-                            border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer",
-                            transition: "background 0.15s",
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = "#b91c1c"}
-                          onMouseLeave={e => e.currentTarget.style.background = "#dc2626"}
-                        >
-                          Delete
-                        </button>
-                      </div>
-
-                      <div style={{ display: "grid", gap: 12 }}>
-                        <div>
-                          <label htmlFor="status-select" style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 8 }}>Item Status</label>
-                          <select
-                            id="status-select"
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
-                            disabled={item.status === "Returned"}
-                            style={{
-                              width: "100%", padding: "12px 14px", borderRadius: 12,
-                              border: "1px solid var(--color-border)", background: "var(--color-bg-raised)",
-                              color: "var(--color-text-primary)", fontSize: 14, cursor: item.status === "Returned" ? "not-allowed" : "pointer",
-                            }}
-                          >
-                            {statusOptions.map((statusOption) => (
-                              <option key={statusOption} value={statusOption}>{statusOption}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <button
-                          onClick={handleStatusUpdate}
-                          disabled={savingStatus || item.status === "Returned" || selectedStatus === effectiveStatus}
-                          style={{
-                            width: "100%", padding: "12px", background: "#10b981", color: "#fff",
-                            border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: savingStatus || item.status === "Returned" || selectedStatus === effectiveStatus ? "not-allowed" : "pointer",
-                            transition: "background 0.15s",
-                          }}
-                          onMouseEnter={e => {
-                            if (!savingStatus && item.status !== "Returned" && selectedStatus !== effectiveStatus) {
-                              e.currentTarget.style.background = "#059669";
-                            }
-                          }}
-                          onMouseLeave={e => {
-                            if (!savingStatus && item.status !== "Returned" && selectedStatus !== effectiveStatus) {
-                              e.currentTarget.style.background = "#10b981";
-                            }
-                          }}
-                        >
-                          {savingStatus ? "Saving..." : "Update status"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                {canEdit && (
+                  <button
+                    onClick={() => setShowDeleteModal(true)}
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-none bg-red-600 p-4 text-[15px] font-bold text-white transition hover:bg-red-700"
+                  >
+                    <Trash2 size={18} />
+                    Delete item
+                  </button>
                 )}
               </div>
             </div>
+
+            {/* Actions Block for Owner/Admin */}
+            {canEdit && !["Pending", "Rejected"].includes(item.status) &&
+              (userIsAdmin || ["Approved", "Matched"].includes(item.status)) && (
+              <div className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 sm:p-6 transition-all duration-300">
+                <div className="mb-4 text-xl font-bold text-[var(--color-text-primary)]">
+                  Actions
+                </div>
+
+                <div className={`grid grid-cols-1 gap-3 ${userIsAdmin ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+                  {userIsAdmin && (
+                    <button
+                      onClick={() =>
+                        navigate(
+                          item.type === "Lost"
+                            ? `/report-lost?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
+                            : `/report-found?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
+                        )
+                      }
+                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
+                    >
+                      Edit
+                    </button>
+                  )}
+
+                  {item.status === "Approved" && (
+                    <button
+                      onClick={handleMarkAsMatched}
+                      disabled={Boolean(updatingStatus)}
+                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {updatingStatus === "Matched" ? "Updating..." : "Mark as matched"}
+                    </button>
+                  )}
+
+                  {["Approved", "Matched"].includes(item.status) && (
+                    <button
+                      onClick={handleMarkAsReturned}
+                      disabled={Boolean(updatingStatus)}
+                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {updatingStatus === "Returned" ? "Updating..." : "Mark as returned"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* RIGHT COLUMN */}
@@ -350,13 +336,15 @@ export default function ItemDetailPage() {
               </div>
 
               {/* QR Button */}
-              <button style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-                gap: 10, padding: 14, background: "var(--color-bg-surface)",
-                border: "1.5px solid var(--color-border)", borderRadius: 12,
-                fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
-                cursor: "pointer", marginBottom: 16, transition: "background 0.2s",
-              }}
+              <button 
+                onClick={() => setShowQRModal(true)}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                  gap: 10, padding: 14, background: "var(--color-bg-surface)",
+                  border: "1.5px solid var(--color-border)", borderRadius: 12,
+                  fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
+                  cursor: "pointer", transition: "background 0.2s",
+                }}
                 onMouseEnter={e => e.currentTarget.style.background = "var(--color-bg-hover)"}
                 onMouseLeave={e => e.currentTarget.style.background = "var(--color-bg-surface)"}
               >
@@ -377,24 +365,12 @@ export default function ItemDetailPage() {
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteModal(false)}
       />
-    </div>
-  );
-}
 
-// Badge Component
-function Badge({ type, label, isStatus }) {
-  const normalizedType = type ? type.toLowerCase() : "";
-  const isGreen = normalizedType === "found" || normalizedType === "approved";
-
-  return (
-    <div style={{
-      padding: "6px 12px", borderRadius: 8,
-      background: isGreen ? "var(--color-success-bg, #ecfdf5)" : "var(--color-info-bg, #eff6ff)",
-      color: isGreen ? "var(--color-success, #059669)" : "var(--color-info, #2563eb)",
-      fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em",
-      border: `1px solid ${isGreen ? "var(--color-success-border, #d1fae5)" : "var(--color-info-border, #dbeafe)"}`,
-    }}>
-      {label}
+      <QRCodeModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        item={item}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { authHeaders, buildApiUrl, apiFetch } from "../services/apiClient";
-import { getAuthUser } from "../services/authState";
+import { getAuthUser, isAdmin } from "../services/authState";
 import { useToast } from "../context/ToastContext";
 
 const CATEGORIES = [
@@ -49,11 +49,15 @@ export default function ReportFoundItemPage() {
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const editId = searchParams.get("edit"); // gets the ID if editing
+  const requestedReturnTo = searchParams.get("returnTo");
+  const returnTo = ["/admin-dashboard", "/lost-items", "/found-items"].includes(requestedReturnTo)
+    ? requestedReturnTo
+    : "/found-items";
   const fileInputRef = useRef(null);
 
   const [form, setForm] = useState({
     title: "", description: "", category: "",
-    color: "", marks: "", location: "", exactLocation: "", date: "",
+    color: "", marks: "", location: "", exactLocation: "", date: "", status: "",
   });
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [images, setImages] = useState([]);
@@ -78,6 +82,7 @@ export default function ReportFoundItemPage() {
           location: item.location || "",
           exactLocation: item.exactLocation || "",
           date: item.date ? item.date.split("T")[0] : "",
+          status: item.status || "Pending",
         });
         if (item.user === "Anonymous") setIsAnonymous(true);
         else setIsAnonymous(false);
@@ -191,6 +196,7 @@ export default function ReportFoundItemPage() {
           images: imageUrls,
           type: "Found",
           user: isAnonymous ? "Anonymous" : (authUser.fullName || "Anonymous"),
+          ...(editId && isAdmin() ? { status: form.status } : {}),
         }),
       });
 
@@ -209,7 +215,11 @@ export default function ReportFoundItemPage() {
       }
 
       showToast(editId ? "Item updated successfully!" : "Report submitted successfully!", "success");
-      navigate("/found-items");
+      navigate(
+        editId
+          ? `/item/${editId}?returnTo=${encodeURIComponent(returnTo)}`
+          : "/found-items"
+      );
     } catch (error) {
       setSubmitError(error.message || "Failed to submit report");
     }
@@ -331,6 +341,23 @@ export default function ReportFoundItemPage() {
             className={errors.date ? inputErrorClass : inputClass}
           />
         </Field>
+
+        {editId && isAdmin() && (
+          <Field label="Status" required>
+            <select
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+              className={`${inputClass} appearance-none cursor-pointer`}
+            >
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Matched">Matched</option>
+              <option value="Returned">Returned</option>
+            </select>
+          </Field>
+        )}
 
         {/* Image Upload */}
         <div className="mb-3">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { getAuthUser } from "../services/authState";
 import { 
   Home, 
   Search, 
@@ -9,24 +10,28 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Plus,
+  Shield,
   BarChart3,
 } from "lucide-react";
-import { getAuthUser } from "../services/authState";
 
 const NAV_ITEMS = [
   { label: "Home",        path: "/dashboard",          icon: Home },
   { label: "Found Items", path: "/found-items",   icon: Search },
   { label: "Lost Items",  path: "/lost-items",    icon: FileText },
   { label: "Profile",     path: "/profile",       icon: User },
+  { label: "Admin",       path: "/admin-dashboard", icon: Shield, adminOnly: true }
 ];
 
 export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
   const navigate = useNavigate();
   const location = useLocation();
-  const isAdmin = getAuthUser()?.role === "Admin";
-  const navItems = isAdmin
-    ? [...NAV_ITEMS, { label: "Analytics", path: "/analytics", icon: BarChart3 }]
-    : NAV_ITEMS;
+  const currentUser = getAuthUser();
+  const isAdmin = currentUser?.role === "Admin";
+  const visibleNavItems = (
+    isAdmin
+      ? [...NAV_ITEMS, { label: "Analytics", path: "/analytics", icon: BarChart3 }]
+      : NAV_ITEMS
+  ).filter((item) => !item.adminOnly || isAdmin);
 
   return (
     <aside style={{
@@ -87,7 +92,7 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
 
       {/* Nav links */}
       <nav style={{ flex: 1, padding: "0 10px" }}>
-        {navItems.map(({ label, path, icon: Icon }) => {
+        {visibleNavItems.map(({ label, path, icon: Icon }) => {
           const isActive = location.pathname === path;
           return (
             <button

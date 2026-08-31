@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthInput from "../components/AuthInput";
@@ -161,12 +162,6 @@ function SignupPage(){
                                 >
                                     Sign In
                                 </span>
-                                {/* <Link
-                                    to ="/login"
-                                    className = "font-semibold text-blue-600 hover:text-blue-700"
-                                >
-                                    Sign In
-                                </Link> */}
                             </p>
                         </div>
                     </div>

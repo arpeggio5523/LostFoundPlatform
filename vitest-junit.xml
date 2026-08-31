@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="9" failures="0" errors="0" time="2.929">
+    <testsuite name="tests/unit/utils/authState.test.js" timestamp="2026-08-30T08:19:33.480Z" hostname="LAPTOP-8M3E6267" tests="9" failures="0" errors="0" skipped="0" time="0.012006">
+        <testcase classname="tests/unit/utils/authState.test.js" name="authState &gt; setAuthUser and getToken &gt; stores token in localStorage" time="0.0025221">
+        </testcase>
+        <testcase classname="tests/unit/utils/authState.test.js" name="authState &gt; setAuthUser and getToken &gt; does not store token when token is not provided" time="0.0010865">
+        </testcase>
+        <testcase classname="tests/unit/utils/authState.test.js" name="authState &gt; setAuthUser and getAuthUser &gt; stores and retrieves user correctly" time="0.0014154">
+        </testcase>
+        <testcase classname="tests/unit/utils/authState.test.js" name="authState &gt; setAuthUser and getAuthUser &gt; returns null when no user is stored" time="0.0004183">
+        </testcase>
+        <testcase classname="tests/unit/utils/authState.test.js" name="authState &gt; setAuthUser and getAuthUser &gt; returns null when stored user data is invalid JSON" time="0.0006539">
+        </testcase>
+        <testcase classname="tests/unit/utils/authState.test.js" name="authState &gt; getCurrentUserId &gt; returns user id when id exists" time="0.0013007">
+        </testcase>
+        <testcase classname="tests/unit/utils/authState.test.js" name="authState &gt; getCurrentUserId &gt; returns _id when id does not exist" time="0.0004948">
+        </testcase>
+        <testcase classname="tests/unit/utils/authState.test.js" name="authState &gt; getCurrentUserId &gt; returns null when no user exists" time="0.0002007">
+        </testcase>
+        <testcase classname="tests/unit/utils/authState.test.js" name="authState &gt; clearAuth &gt; removes token and user from localStorage" time="0.000766">
+        </testcase>
+    </testsuite>
+</testsuites>

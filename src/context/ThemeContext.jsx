@@ -1,4 +1,4 @@
-import { createContext, useContext, useLayoutEffect, useState } from "react";
+import React, { createContext, useContext, useLayoutEffect, useState } from "react";
 import { getCurrentUserId } from "../services/authState";
 
 const ThemeContext = createContext(null);

@@ -108,7 +108,7 @@ const ALLOWED_LOCATIONS = [
   "Multimedia University (MMU)"
 ];
 
-const ALLOWED_STATUSES = ["Pending", "Approved", "Matched", "Returned"];
+// const ALLOWED_STATUSES = ["Pending", "Approved", "Matched", "Returned"];
 const ALLOWED_TYPES = ["Lost", "Found"];
 
 const isValidReportLocation = (rl) =>

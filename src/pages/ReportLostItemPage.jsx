@@ -220,7 +220,7 @@ export default function ReportLostItemPage() {
             type: "Point",
             coordinates: reportLocation.coordinates,
             formattedAddress: reportLocation.formattedAddress || ""
-          }
+          },
           ...(editId && isAdmin() ? { status: form.status } : {}),
         })
       });

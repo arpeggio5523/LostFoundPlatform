@@ -161,7 +161,7 @@ const itemSchema = new mongoose.Schema(
     },
 
     reportedBy: {
-        type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
         // To match the name in the schema "User"
         ref: 'User',
         required: true
@@ -177,13 +177,44 @@ const itemSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-  },
 
+    // MAPBOX GEOJSON
+    reportLocation: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        required: true,
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        required: [true, "Map coordinates [longitude, latitude] are required"],
+        validate: {
+          validator: function (val) {
+            if (!Array.isArray(val) || val.length !== 2) {
+              return false;
+            }
+            const [longitude, latitude] = val;
+            return Math.abs(longitude) <= 180 && Math.abs(latitude) <= 90;
+          },
+          message: "Coordinates must be in valid range",
+        },
+      },
+      formattedAddress: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+    },
+  },
   {
     timestamps: true,
   }
 );
 
-const Item = mongoose.model("Item", itemSchema);
+// Spatial Indexing for MongoDB GeoJSON querying
+itemSchema.index({ reportLocation: "2dsphere" });
+
+const Item = mongoose.models.Item || mongoose.model("Item", itemSchema);
 
 export default Item;

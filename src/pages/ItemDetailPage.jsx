@@ -1,10 +1,11 @@
 import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2 } from "lucide-react";
+import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isOwner, isAdmin, canEditItem } from "../services/authState";
 import { authHeaders, apiFetch, getToken } from "../services/apiClient";
 import ConfirmModal from "../components/ConfirmModal";
+import LocationMap from "../components/LocationMap";
 import { useToast } from "../context/ToastContext";
 import StatusBadge from "../components/StatusBadge";
 import QRCodeModal from "../components/QRcode";
@@ -304,6 +305,27 @@ export default function ItemDetailPage() {
 
           {/* RIGHT COLUMN */}
           <aside style={{ position: "sticky", top: 40, alignSelf: "start" }}>
+            <div style={{ marginBottom: 20, background: "var(--color-bg-surface)", border: "1px solid var(--color-border)", borderRadius: 20, overflow: "hidden" }}>
+              <div style={{ padding: "20px 20px 14px" }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "var(--color-text-primary)" }}>Reported location</h3>
+                <p style={{ margin: "5px 0 0", fontSize: 13, color: "var(--color-text-secondary)" }}>
+                  {item.reportLocation?.formattedAddress || item.location}
+                </p>
+              </div>
+              <LocationMap location={item.reportLocation} itemType={item.type} title={item.title} />
+              {item.reportLocation?.coordinates?.length === 2 && (
+                <button
+                  onClick={() => {
+                    const mapUrl = `/item/${item._id}/map`;
+                    window.open(mapUrl, "_blank", "noopener,noreferrer");
+                  }}
+                  style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, background: "var(--color-bg-surface)", border: "none", borderTop: "1px solid var(--color-border)", color: "var(--color-brand)", fontWeight: 700, cursor: "pointer" }}
+                >
+                  <ExternalLink size={16} /> View full map
+                </button>
+              )}
+            </div>
+
             <div style={{
               background: "var(--color-bg-surface)",
               border: "1px solid var(--color-border)",

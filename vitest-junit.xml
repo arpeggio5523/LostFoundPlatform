@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="5" failures="1" errors="0" time="10.446">
+    <testsuite name="tests/unit/controllers/analyticsController.test.js" timestamp="2026-08-31T09:01:37.118Z" hostname="LAPTOP-E5PCPQO7" tests="3" failures="0" errors="0" skipped="0" time="0.0249381">
+        <testcase classname="tests/unit/controllers/analyticsController.test.js" name="analyticsController &gt; should return analytics data with correct totals" time="0.0129279">
+        </testcase>
+        <testcase classname="tests/unit/controllers/analyticsController.test.js" name="analyticsController &gt; should handle empty results" time="0.0045605">
+        </testcase>
+        <testcase classname="tests/unit/controllers/analyticsController.test.js" name="analyticsController &gt; should handle database errors" time="0.0043978">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/unit/utils/example.test.js" timestamp="2026-08-31T09:01:37.137Z" hostname="LAPTOP-E5PCPQO7" tests="1" failures="0" errors="0" skipped="0" time="0.0090376">
+        <testcase classname="tests/unit/utils/example.test.js" name="Sanity Check &gt; runs unit test properly" time="0.0045152">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/integration/routes/analyticsRoutes.test.js" timestamp="2026-08-31T09:01:37.151Z" hostname="LAPTOP-E5PCPQO7" tests="1" failures="1" errors="0" skipped="0" time="0">
+        <testcase classname="tests/integration/routes/analyticsRoutes.test.js" name="tests/integration/routes/analyticsRoutes.test.js" time="0">
+            <failure message="No test suite found in file D:/monash_repository/FIT3170_repository/fit3170_project1/tests/integration/routes/analyticsRoutes.test.js" type="Error">
+Error: No test suite found in file D:/monash_repository/FIT3170_repository/fit3170_project1/tests/integration/routes/analyticsRoutes.test.js
+            </failure>
+        </testcase>
+    </testsuite>
+</testsuites>

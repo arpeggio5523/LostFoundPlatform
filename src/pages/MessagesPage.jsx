@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Send, MessageSquare, ArrowLeft, Paperclip } from "lucide-react";
 import Sidebar from "../components/Sidebar";
-import Navbar2 from "../components/Navbar2";
+import NavBar2 from "../components/NavBar2";
 import { getAuthUser, getCurrentUserId } from "../services/authState";
 import { fetchConversations, fetchMessages, sendMessage } from "../services/messagesApi";
 import { useSocket } from "../context/SocketContext";
@@ -306,7 +306,7 @@ export default function MessagesPage() {
         className="flex flex-1 flex-col transition-[margin] duration-300"
         style={{ marginLeft: isCollapsed ? 70 : 220 }}
       >
-        <Navbar2 />
+        <NavBar2 />
 
         <div className="flex flex-1 overflow-hidden">
           {/* Conversation list */}

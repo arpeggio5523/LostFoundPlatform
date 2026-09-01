@@ -14,7 +14,9 @@ const makeTransport = () => ({
 
 const loadEmailService = async () => {
   jest.resetModules();
-  return import("../../../src/utils/emailService.js");
+  const service = await import("../../../src/utils/emailService.js");
+  const nodemailerMock = (await import("nodemailer")).default;
+  return { ...service, nodemailerMock };
 };
 
 describe("emailService", () => {
@@ -39,10 +41,10 @@ describe("emailService", () => {
   });
 
   test("sendVerificationEmail sends a verification message when SMTP is configured", async () => {
+    const { sendVerificationEmail, nodemailerMock } = await loadEmailService();
+    
     const transporter = makeTransport();
-    nodemailer.createTransport.mockReturnValue(transporter);
-
-    const { sendVerificationEmail } = await loadEmailService();
+    nodemailerMock.createTransport.mockReturnValue(transporter);
 
     await sendVerificationEmail({
       email: "student@example.com",
@@ -65,10 +67,10 @@ describe("emailService", () => {
   });
 
   test("sendNewMessageNotificationEmail includes the sender, item title, and conversation link", async () => {
+    const { sendNewMessageNotificationEmail, buildNewMessageNotificationEmail, nodemailerMock } = await loadEmailService();
+    
     const transporter = makeTransport();
-    nodemailer.createTransport.mockReturnValue(transporter);
-
-    const { sendNewMessageNotificationEmail, buildNewMessageNotificationEmail } = await loadEmailService();
+    nodemailerMock.createTransport.mockReturnValue(transporter);
 
     const html = buildNewMessageNotificationEmail({
       recipientName: "Liam",
@@ -107,10 +109,10 @@ describe("emailService", () => {
   });
 
   test("sendContactOwnerEmail creates a direct owner inquiry email when configured", async () => {
+    const { sendContactOwnerEmail, nodemailerMock } = await loadEmailService();
+    
     const transporter = makeTransport();
-    nodemailer.createTransport.mockReturnValue(transporter);
-
-    const { sendContactOwnerEmail } = await loadEmailService();
+    nodemailerMock.createTransport.mockReturnValue(transporter);
 
     await sendContactOwnerEmail({
       ownerEmail: "owner@example.com",

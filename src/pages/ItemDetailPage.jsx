@@ -354,7 +354,7 @@ export default function ItemDetailPage() {
                 </div>
 
                 <div className={`grid grid-cols-1 gap-3 ${userIsAdmin ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
-                  {userIsAdmin && (
+                  {canEdit && (
                     <button
                       onClick={() =>
                         navigate(
@@ -368,6 +368,7 @@ export default function ItemDetailPage() {
                       Edit
                     </button>
                   )}
+
 
                   {item.status === "Approved" && (
                     <button

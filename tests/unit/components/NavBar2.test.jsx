@@ -37,7 +37,7 @@ vi.mock('../../../src/services/authState', () => ({
 const renderNavbar2 = () => {
   return render(
     <MemoryRouter>
-      <Navbar2 />
+      <NavBar2 />
     </MemoryRouter>
   );
 };

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { authHeaders, buildApiUrl, apiFetch } from "../services/apiClient";
 import { getAuthUser, isAdmin } from "../services/authState";
 import { useToast } from "../context/ToastContext";
-import LocationTagField from "../components/LocationTagField";
+import LocationTagField from "../components/Locationtagfield";
 
 const CATEGORIES = [
   "All Categories",

@@ -30,6 +30,7 @@ const body = (type) => ({
 describe("item status controller behavior", () => {
   beforeEach(() => vi.clearAllMocks());
 
+  // Tests that lost and found posts receive the expected initial status.
   it.each(["Lost", "Found"])("assigns %s to a newly submitted post", async (type) => {
     const saved = { _id: "item-1", type, status: "Approved", ...body(type) };
     const save = vi.fn().mockResolvedValue(saved);
@@ -43,6 +44,7 @@ describe("item status controller behavior", () => {
     expect(res.status).toHaveBeenCalledWith(201);
   });
 
+  // Tests that the item list returns the status saved for each item.
   it("returns each item's persisted status in the list response", async () => {
     const items = [{ _id: "item-1", type: "Lost", status: "Lost" }];
     const query = { populate: vi.fn().mockReturnThis(), sort: vi.fn().mockResolvedValue(items) };
@@ -52,6 +54,7 @@ describe("item status controller behavior", () => {
     expect(res.json).toHaveBeenCalledWith({ count: 1, data: items });
   });
 
+  // Tests that the item details endpoint returns the saved status.
   it("returns the persisted status on the item details response", async () => {
     const item = { _id: "item-1", type: "Found", status: "Approved" };
     mockItem.findById.mockReturnValue({ populate: vi.fn().mockResolvedValue(item) });
@@ -60,6 +63,7 @@ describe("item status controller behavior", () => {
     expect(res.json).toHaveBeenCalledWith({ data: item });
   });
 
+  // Tests that an authorised user can save an item status update.
   it("persists a status update", async () => {
     const item = { status: "Pending", reportedBy: "user-1", save: vi.fn().mockResolvedValue({ status: "Approved" }) };
     mockItem.findById.mockResolvedValue(item);

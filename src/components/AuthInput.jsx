@@ -1,3 +1,4 @@
+import React from 'react';
 function AuthInput({ label, type, placeholder, value, onChange, required = false, minLength }) {
   return (
     <div className="flex flex-col gap-2">

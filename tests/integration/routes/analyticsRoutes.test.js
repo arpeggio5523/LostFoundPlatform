@@ -6,7 +6,9 @@ import * as analyticsController from '../../../src/controllers/analyticsControll
 import { requireAdmin } from '../../../src/middleware/adminMiddleware.js';
 
 // Mock the middleware and controller
-vi.mock('../../../src/middleware/adminMiddleware.js');
+vi.mock('../../../src/middleware/adminMiddleware.js', () => ({
+  requireAdmin: vi.fn(),
+}));
 vi.mock('../../../src/controllers/analyticsController.js');
 
 describe('Analytics Routes', () => {
@@ -52,7 +54,9 @@ describe('Analytics Routes', () => {
 
   it('should reject unauthorized requests without admin middleware', async () => {
     // Temporarily restore real middleware
-    requireAdmin.mockRestoreAll();
+    requireAdmin.mockImplementation((req, res, next) => {
+      res.status(401).json({ error: 'Unauthorized' });
+    });
 
     const response = await request(app)
       .get('/api/analytics')

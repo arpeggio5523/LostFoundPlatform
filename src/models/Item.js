@@ -147,6 +147,12 @@ const itemSchema = new mongoose.Schema(
       default: [],
     },
 
+    imageEmbedding: {
+      type: [Number],
+      select: false,
+      default: undefined,
+    },
+
     item_id: {
       type: String,
       unique: true,

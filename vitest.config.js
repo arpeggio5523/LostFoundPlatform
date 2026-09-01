@@ -3,6 +3,9 @@ import { VitestMarkdownReporter } from 'vitest-markdown-reporter';
 
 export default defineConfig({
   test: {
+    env: {
+      MONGO_URI_TEST: 'mongodb://localhost:27017/lostfound_test',
+    },
     globals: true,
     environment: 'jsdom',
     setupFiles: './tests/setup/setup.js',

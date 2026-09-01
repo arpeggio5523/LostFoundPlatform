@@ -32,7 +32,7 @@ import {
   sendMessage,
   startConversation,
 } from "../../../src/controllers/messageController.js";
-import { makeQuery, makeRes } from "../../utils/mongooseMocks.js";
+import { makeQuery, makeRes } from "../../utils/Mongoosemocks.js";
 
 const ME = "user-me";
 const PRIVATE_OTHER = { _id: "user-private", fullName: "Private Person", email: "p@example.com", privacyMode: true };

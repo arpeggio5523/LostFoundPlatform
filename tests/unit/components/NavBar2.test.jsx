@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
-import Navbar2 from '../../../src/components/Navbar2';
+import NavBar2 from '../../../src/components/NavBar2';
 import { clearAuth } from '../../../src/services/authState';
 
 

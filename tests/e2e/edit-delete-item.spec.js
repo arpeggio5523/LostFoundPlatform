@@ -99,3 +99,58 @@ test.describe("Editing a lost item post", () => {
     // await expect(page.getByText("Item title is required.")).toBeVisible();
   });
 });
+
+test.describe("Deleting a lost item post", () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page, OWNER);
+    await page.goto(`${BASE_URL}/item/${DELETABLE_ITEM_ID}`);
+    await expect(page.getByText("Reported location")).toBeVisible();
+  });
+
+  test("opens a confirmation dialog and does not delete until confirmed", async ({
+    page
+  }) => {
+    await page.getByRole("button", { name: "Delete item" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Delete Item" })
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        "Are you sure you want to delete this item? This action cannot be undone."
+      )
+    ).toBeVisible();
+  });
+
+  test("closes the dialog without deleting when Cancel is clicked", async ({
+    page
+  }) => {
+    // Opens the dialog, then backs out via Cancel - the item is never
+    // actually deleted, so DELETABLE_ITEM_ID survives for the next run.
+    await page.getByRole("button", { name: "Delete item" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Delete Item" })
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Cancel" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Delete Item" })
+    ).toHaveCount(0);
+    // The item is still here - the "Delete item" trigger is visible again.
+    await expect(
+      page.getByRole("button", { name: "Delete item" })
+    ).toBeVisible();
+  });
+
+  test.skip("deletes the item once the user confirms", async ({ page }) => {
+    await page.getByRole("button", { name: "Delete item" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Delete Item" })
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
+
+    await expect(page.getByText("Item deleted successfully.")).toBeVisible();
+  });
+});

@@ -111,9 +111,6 @@ export default function ItemDetailPage() {
     }
   };
 
-  const updateItemStatus = async (status) => {
-    setUpdatingStatus(status);
-
   const handleStartChat = async () => {
     if (!item) return;
     const ownerId = item.reportedBy?._id || item.reportedBy;
@@ -134,6 +131,9 @@ export default function ItemDetailPage() {
       setStartingChat(false);
     }
   };
+
+  const updateItemStatus = async (status) => {
+    setUpdatingStatus(status);
 
     try {
       const response = await apiFetch(`/api/items/${item._id}/status`, {

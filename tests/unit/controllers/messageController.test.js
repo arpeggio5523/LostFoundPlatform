@@ -15,11 +15,11 @@
  * are mocked so no real DB/network/crypto is involved.
  */
 
-jest.mock("../../../src/models/Conversation.js");
-jest.mock("../../../src/models/Message.js");
-jest.mock("../../../src/models/User.js");
-jest.mock("../../../src/utils/cryptoUtils.js");
-jest.mock("../../../src/utils/emailService.js");
+vi.mock("../../../src/models/Conversation.js");
+vi.mock("../../../src/models/Message.js");
+vi.mock("../../../src/models/User.js");
+vi.mock("../../../src/utils/cryptoUtils.js");
+vi.mock("../../../src/utils/emailService.js");
 
 import Conversation from "../../../src/models/Conversation.js";
 import Message from "../../../src/models/Message.js";
@@ -39,7 +39,7 @@ const PRIVATE_OTHER = { _id: "user-private", fullName: "Private Person", email: 
 const OPEN_OTHER = { _id: "user-open", fullName: "Open Person", email: "o@example.com", privacyMode: false };
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   decrypt.mockImplementation((ciphertext) => `decrypted:${ciphertext}`);
   encrypt.mockImplementation((plaintext) => `encrypted:${plaintext}`);
 });
@@ -128,7 +128,7 @@ describe("sendMessage", () => {
     user: { id: ME },
     params: { conversationId: "conv-1" },
     body: { text: "Hello there" },
-    app: { get: jest.fn().mockReturnValue(undefined) }, // no io by default
+    app: { get: vi.fn().mockReturnValue(undefined) }, // no io by default
     ...overrides,
   });
 
@@ -156,7 +156,7 @@ describe("sendMessage", () => {
       participants: [ME, "user-private"],
       lastMessage: "",
       lastMessageAt: null,
-      save: jest.fn().mockResolvedValue(true),
+      save: vi.fn().mockResolvedValue(true),
     };
     Conversation.findOne.mockResolvedValue(conversationDoc);
     // sendMessage always runs the "email offline recipients" loop when io is absent
@@ -165,7 +165,7 @@ describe("sendMessage", () => {
     Conversation.findById.mockReturnValue(makeQuery({ item: { title: "Lost cat" } }));
     Message.create.mockResolvedValue({ _id: "msg-1" });
     Message.findById.mockReturnValue({
-      populate: jest.fn().mockResolvedValue({
+      populate: vi.fn().mockResolvedValue({
         toObject: () => ({ _id: "msg-1", sender: { _id: ME, fullName: "Me", privacyMode: false }, text: "encrypted:Hello there" }),
       }),
     });
@@ -187,21 +187,21 @@ describe("sendMessage", () => {
 
   test("emits a masked message to each conversation participant when io is available", async () => {
     const res = makeRes();
-    const emit = jest.fn();
-    const to = jest.fn().mockReturnValue({ emit });
+    const emit = vi.fn();
+    const to = vi.fn().mockReturnValue({ emit });
     const io = { to, sockets: { adapter: { rooms: new Map() } } };
 
     const conversationDoc = {
       _id: "conv-1",
       participants: [ME, "user-private"],
       lastMessage: "",
-      save: jest.fn().mockResolvedValue(true),
+      save: vi.fn().mockResolvedValue(true),
     };
     Conversation.findOne.mockResolvedValue(conversationDoc);
     Conversation.findById.mockReturnValue(makeQuery({ item: { title: "Lost cat" } }));
     Message.create.mockResolvedValue({ _id: "msg-1" });
     Message.findById.mockReturnValue({
-      populate: jest.fn().mockResolvedValue({
+      populate: vi.fn().mockResolvedValue({
         toObject: () => ({
           _id: "msg-1",
           sender: { _id: ME, fullName: "Me", privacyMode: true }, // sender IS private
@@ -211,7 +211,7 @@ describe("sendMessage", () => {
     });
     User.findById.mockReturnValue(makeQuery({ _id: ME, fullName: "Me", email: "me@example.com" }));
 
-    await sendMessage(baseReq({ app: { get: jest.fn().mockReturnValue(io) } }), res);
+    await sendMessage(baseReq({ app: { get: vi.fn().mockReturnValue(io) } }), res);
 
     // one emit per participant (2 participants)
     expect(to).toHaveBeenCalledTimes(2);
@@ -233,7 +233,7 @@ describe("sendMessage", () => {
     const res = makeRes();
     const onlineRoom = new Map([["user-online", true]]);
     const io = {
-      to: jest.fn().mockReturnValue({ emit: jest.fn() }),
+      to: vi.fn().mockReturnValue({ emit: vi.fn() }),
       sockets: { adapter: { rooms: onlineRoom } },
     };
 
@@ -241,13 +241,13 @@ describe("sendMessage", () => {
       _id: "conv-1",
       participants: [ME, "user-online", "user-offline"],
       lastMessage: "",
-      save: jest.fn().mockResolvedValue(true),
+      save: vi.fn().mockResolvedValue(true),
     };
     Conversation.findOne.mockResolvedValue(conversationDoc);
     Conversation.findById.mockReturnValue(makeQuery({ item: { title: "Lost cat" } }));
     Message.create.mockResolvedValue({ _id: "msg-1" });
     Message.findById.mockReturnValue({
-      populate: jest.fn().mockResolvedValue({
+      populate: vi.fn().mockResolvedValue({
         toObject: () => ({ _id: "msg-1", sender: { _id: ME, fullName: "Me" }, text: "encrypted:Hi" }),
       }),
     });
@@ -261,7 +261,7 @@ describe("sendMessage", () => {
       return makeQuery(users[id]);
     });
 
-    await sendMessage(baseReq({ app: { get: jest.fn().mockReturnValue(io) } }), res);
+    await sendMessage(baseReq({ app: { get: vi.fn().mockReturnValue(io) } }), res);
 
     expect(sendNewMessageNotificationEmail).toHaveBeenCalledTimes(1);
     expect(sendNewMessageNotificationEmail).toHaveBeenCalledWith(

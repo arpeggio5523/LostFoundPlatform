@@ -32,11 +32,17 @@ import request from "supertest";
 
 // ─── Module Mocks ───────────────────────────────────────────────────────────
 
-jest.mock("../../src/models/Item.js");
-jest.mock("../../src/models/User.js");
-jest.mock("../../src/utils/emailService.js");
-jest.mock("../../src/services/imageEmbedding.js");
-jest.mock("../../src/services/jinaEmbedding.js");
+vi.mock("../../src/models/Item.js", () => {
+  const ItemMock = vi.fn();
+  ItemMock.aggregate = vi.fn();
+  ItemMock.findById = vi.fn();
+  ItemMock.findOne = vi.fn();
+  return { default: ItemMock };
+});
+vi.mock("../../src/models/User.js");
+vi.mock("../../src/utils/emailService.js");
+vi.mock("../../src/services/imageEmbedding.js");
+vi.mock("../../src/services/jinaEmbedding.js");
 
 import Item from "../../src/models/Item.js";
 import { validateImageEmbedding } from "../../src/services/imageEmbedding.js";
@@ -79,7 +85,7 @@ const buildApp = () =>
 // ─── Common Setup ───────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   validateImageEmbedding.mockImplementation((v) => v);
 });
 
@@ -96,7 +102,7 @@ describe("E2E — Upload image and find similar items", () => {
 
     // Arrange: Mock the vector search to return matching items
     const similarItems = mockSimilarItemResults(3);
-    Item.aggregate = jest.fn().mockResolvedValue(similarItems);
+    Item.aggregate = vi.fn().mockResolvedValue(similarItems);
 
     const app = buildApp();
 
@@ -127,7 +133,7 @@ describe("E2E — Upload image and find similar items", () => {
 
   test("search returns empty results for an image with no visual matches", async () => {
     generateImageEmbedding.mockResolvedValue(FAKE_EMBEDDING);
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     const app = buildApp();
 
@@ -159,7 +165,7 @@ describe("E2E — Upload image and find similar items", () => {
     lostItems[0].similarityScore = 0.92;
     lostItems[0].mongoScore = 0.96;
 
-    Item.aggregate = jest.fn().mockResolvedValue(lostItems);
+    Item.aggregate = vi.fn().mockResolvedValue(lostItems);
 
     const app = buildApp();
 
@@ -187,8 +193,8 @@ describe("E2E — Create item with automatic embedding generation", () => {
     const saved = mockSavedDoc({ images: [FAKE_BASE64_IMAGE] });
     let constructedInstance;
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockResolvedValue(saved);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockResolvedValue(saved);
       constructedInstance = this;
     });
     generateImageEmbedding.mockResolvedValue(FAKE_EMBEDDING);
@@ -208,14 +214,14 @@ describe("E2E — Create item with automatic embedding generation", () => {
   test("item creation succeeds even when embedding generation fails", async () => {
     const saved = mockSavedDoc();
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockResolvedValue(saved);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockResolvedValue(saved);
     });
     generateImageEmbedding.mockRejectedValue(new Error("Jina quota exceeded"));
 
     // Suppress console.warn
     const origWarn = console.warn;
-    console.warn = jest.fn();
+    console.warn = vi.fn();
 
     const res = await request(buildApp())
       .post("/api/items")
@@ -231,8 +237,8 @@ describe("E2E — Create item with automatic embedding generation", () => {
   test("item with URL-only images skips embedding generation entirely", async () => {
     const saved = mockSavedDoc();
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockResolvedValue(saved);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockResolvedValue(saved);
     });
 
     const res = await request(buildApp())
@@ -253,12 +259,12 @@ describe("E2E — Find similar items by existing item ID", () => {
 
   test("retrieves item embedding and finds similar items", async () => {
     const itemDoc = mockItemWithEmbedding();
-    Item.findById = jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue(itemDoc),
+    Item.findById = vi.fn().mockReturnValue({
+      select: vi.fn().mockResolvedValue(itemDoc),
     });
 
     const similarItems = mockSimilarItemResults(2);
-    Item.aggregate = jest.fn().mockResolvedValue(similarItems);
+    Item.aggregate = vi.fn().mockResolvedValue(similarItems);
 
     const res = await request(buildApp())
       .get(`/api/items/${FAKE_ITEM_ID}/similar`);
@@ -269,8 +275,8 @@ describe("E2E — Find similar items by existing item ID", () => {
   });
 
   test("returns 404 when item ID does not exist", async () => {
-    Item.findById = jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue(null),
+    Item.findById = vi.fn().mockReturnValue({
+      select: vi.fn().mockResolvedValue(null),
     });
 
     const res = await request(buildApp())
@@ -282,8 +288,8 @@ describe("E2E — Find similar items by existing item ID", () => {
 
   test("returns 400 when item has no stored embedding", async () => {
     const itemWithoutEmbed = { _id: FAKE_ITEM_ID, imageEmbedding: null };
-    Item.findById = jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue(itemWithoutEmbed),
+    Item.findById = vi.fn().mockReturnValue({
+      select: vi.fn().mockResolvedValue(itemWithoutEmbed),
     });
 
     const res = await request(buildApp())
@@ -322,7 +328,7 @@ describe("E2E — Error handling and edge cases", () => {
     generateImageEmbedding.mockRejectedValue(new Error("Service unavailable"));
 
     const origError = console.error;
-    console.error = jest.fn();
+    console.error = vi.fn();
 
     const res = await request(buildApp())
       .post("/api/items/embed-image")
@@ -345,7 +351,7 @@ describe("E2E — Error handling and edge cases", () => {
 
   test("similarity search with custom limit returns correct count", async () => {
     const items = mockSimilarItemResults(5);
-    Item.aggregate = jest.fn().mockResolvedValue(items);
+    Item.aggregate = vi.fn().mockResolvedValue(items);
 
     const res = await request(buildApp())
       .post("/api/items/similar")
@@ -360,7 +366,7 @@ describe("E2E — Error handling and edge cases", () => {
     const app = buildApp();
 
     // First search
-    Item.aggregate = jest.fn().mockResolvedValue(mockSimilarItemResults(2));
+    Item.aggregate = vi.fn().mockResolvedValue(mockSimilarItemResults(2));
     const search1 = await request(app)
       .post("/api/items/similar")
       .send({ embedding: FAKE_EMBEDDING, type: "Lost" });
@@ -369,7 +375,7 @@ describe("E2E — Error handling and edge cases", () => {
     expect(search1.body.count).toBe(2);
 
     // Second search (different results)
-    Item.aggregate = jest.fn().mockResolvedValue(mockSimilarItemResults(1));
+    Item.aggregate = vi.fn().mockResolvedValue(mockSimilarItemResults(1));
     const search2 = await request(app)
       .post("/api/items/similar")
       .send({ embedding: FAKE_EMBEDDING_ALT, type: "Found" });

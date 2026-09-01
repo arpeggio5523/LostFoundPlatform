@@ -28,11 +28,17 @@ import request from "supertest";
 
 // ─── Module Mocks ───────────────────────────────────────────────────────────
 
-jest.mock("../../../src/models/Item.js");
-jest.mock("../../../src/models/User.js");
-jest.mock("../../../src/utils/emailService.js");
-jest.mock("../../../src/services/imageEmbedding.js");
-jest.mock("../../../src/services/jinaEmbedding.js");
+vi.mock("../../../src/models/Item.js", () => {
+  const ItemMock = vi.fn();
+  ItemMock.aggregate = vi.fn();
+  ItemMock.findById = vi.fn();
+  ItemMock.findOne = vi.fn();
+  return { default: ItemMock };
+});
+vi.mock("../../../src/models/User.js");
+vi.mock("../../../src/utils/emailService.js");
+vi.mock("../../../src/services/imageEmbedding.js");
+vi.mock("../../../src/services/jinaEmbedding.js");
 
 import Item from "../../../src/models/Item.js";
 import { validateImageEmbedding } from "../../../src/services/imageEmbedding.js";
@@ -69,7 +75,7 @@ const buildApp = () =>
 // ─── Common Setup ───────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   validateImageEmbedding.mockImplementation((v) => v);
 });
 
@@ -115,7 +121,7 @@ describe("POST /api/items/embed-image — integration", () => {
 
     // Suppress console.error
     const origError = console.error;
-    console.error = jest.fn();
+    console.error = vi.fn();
 
     const res = await request(buildApp())
       .post("/api/items/embed-image")
@@ -148,7 +154,7 @@ describe("POST /api/items/similar — integration", () => {
 
   test("returns 200 with matching items on valid embedding", async () => {
     const results = mockSimilarItemResults(2);
-    Item.aggregate = jest.fn().mockResolvedValue(results);
+    Item.aggregate = vi.fn().mockResolvedValue(results);
 
     const res = await request(buildApp())
       .post("/api/items/similar")
@@ -160,7 +166,7 @@ describe("POST /api/items/similar — integration", () => {
   });
 
   test("returns 200 with empty data when no similar items found", async () => {
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     const res = await request(buildApp())
       .post("/api/items/similar")
@@ -181,7 +187,7 @@ describe("POST /api/items/similar — integration", () => {
   });
 
   test("passes limit parameter through to the aggregation pipeline", async () => {
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     await request(buildApp())
       .post("/api/items/similar")
@@ -192,10 +198,10 @@ describe("POST /api/items/similar — integration", () => {
   });
 
   test("returns 500 when aggregation pipeline throws", async () => {
-    Item.aggregate = jest.fn().mockRejectedValue(new Error("Atlas error"));
+    Item.aggregate = vi.fn().mockRejectedValue(new Error("Atlas error"));
 
     const origError = console.error;
-    console.error = jest.fn();
+    console.error = vi.fn();
 
     const res = await request(buildApp())
       .post("/api/items/similar")
@@ -217,8 +223,8 @@ describe("POST /api/items — auto-embedding integration", () => {
   test("auto-generates embedding when first image is base64", async () => {
     const saved = mockSavedDoc();
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockResolvedValue(saved);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockResolvedValue(saved);
     });
     generateImageEmbedding.mockResolvedValue(FAKE_EMBEDDING);
 
@@ -233,8 +239,8 @@ describe("POST /api/items — auto-embedding integration", () => {
   test("skips embedding generation for URL-only images", async () => {
     const saved = mockSavedDoc();
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockResolvedValue(saved);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockResolvedValue(saved);
     });
 
     const res = await request(buildApp())
@@ -249,8 +255,8 @@ describe("POST /api/items — auto-embedding integration", () => {
     const saved = mockSavedDoc();
     let instance;
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockResolvedValue(saved);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockResolvedValue(saved);
       instance = this;
     });
     validateImageEmbedding.mockImplementation((v) => v);
@@ -272,14 +278,14 @@ describe("POST /api/items — auto-embedding integration", () => {
   test("item saves successfully even if embedding generation fails", async () => {
     const saved = mockSavedDoc();
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockResolvedValue(saved);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockResolvedValue(saved);
     });
     generateImageEmbedding.mockRejectedValue(new Error("Jina down"));
 
     // Suppress console.warn from autoGenerateEmbedding
     const origWarn = console.warn;
-    console.warn = jest.fn();
+    console.warn = vi.fn();
 
     const res = await request(buildApp())
       .post("/api/items")

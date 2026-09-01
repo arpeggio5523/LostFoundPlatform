@@ -1,19 +1,19 @@
-jest.mock("nodemailer", () => ({
+vi.mock("nodemailer", () => ({
   __esModule: true,
   default: {
-    createTransport: jest.fn(),
+    createTransport: vi.fn(),
   },
 }));
 
 import nodemailer from "nodemailer";
 
 const makeTransport = () => ({
-  verify: jest.fn().mockResolvedValue(true),
-  sendMail: jest.fn().mockResolvedValue(true),
+  verify: vi.fn().mockResolvedValue(true),
+  sendMail: vi.fn().mockResolvedValue(true),
 });
 
 const loadEmailService = async () => {
-  jest.resetModules();
+  vi.resetModules();
   const service = await import("../../../src/utils/emailService.js");
   const nodemailerMock = (await import("nodemailer")).default;
   return { ...service, nodemailerMock };
@@ -21,7 +21,7 @@ const loadEmailService = async () => {
 
 describe("emailService", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     process.env.NODE_ENV = "development";
     process.env.SMTP_HOST = "smtp.example.com";
     process.env.SMTP_PORT = "465";

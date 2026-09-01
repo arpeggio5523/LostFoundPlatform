@@ -22,11 +22,11 @@
 
 // ─── Module Mocks (must be before imports) ──────────────────────────────────
 
-jest.mock("../../../src/models/Item.js");
-jest.mock("../../../src/models/User.js");
-jest.mock("../../../src/utils/emailService.js");
-jest.mock("../../../src/services/imageEmbedding.js");
-jest.mock("../../../src/services/jinaEmbedding.js");
+vi.mock("../../../src/models/Item.js");
+vi.mock("../../../src/models/User.js");
+vi.mock("../../../src/utils/emailService.js");
+vi.mock("../../../src/services/imageEmbedding.js");
+vi.mock("../../../src/services/jinaEmbedding.js");
 
 import Item from "../../../src/models/Item.js";
 import { validateImageEmbedding } from "../../../src/services/imageEmbedding.js";
@@ -51,7 +51,7 @@ import {
 // ─── Common Setup ───────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 
   // Default: validateImageEmbedding passes through its input unchanged
   validateImageEmbedding.mockImplementation((v) => v);
@@ -68,7 +68,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
 
   test("returns similar items on valid embedding input", async () => {
     const similarItems = mockSimilarItemResults(3);
-    Item.aggregate = jest.fn().mockResolvedValue(similarItems);
+    Item.aggregate = vi.fn().mockResolvedValue(similarItems);
 
     const req = mockReq({ body: { embedding: FAKE_EMBEDDING } });
     const res = mockRes();
@@ -81,7 +81,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
   });
 
   test("validates the embedding before querying", async () => {
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     const req = mockReq({ body: { embedding: FAKE_EMBEDDING } });
     const res = mockRes();
@@ -92,7 +92,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
   });
 
   test("calls Item.aggregate with $vectorSearch pipeline", async () => {
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     const req = mockReq({ body: { embedding: FAKE_EMBEDDING, type: "Lost" } });
     const res = mockRes();
@@ -112,7 +112,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
   // ─── Type Filtering ───────────────────────────────────────────────
 
   test("filters by type when type=Lost is provided", async () => {
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     const req = mockReq({ body: { embedding: FAKE_EMBEDDING, type: "Lost" } });
     const res = mockRes();
@@ -124,7 +124,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
   });
 
   test("filters by type when type=Found is provided", async () => {
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     const req = mockReq({ body: { embedding: FAKE_EMBEDDING, type: "Found" } });
     const res = mockRes();
@@ -136,7 +136,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
   });
 
   test("does not include filter when no type is specified", async () => {
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     const req = mockReq({ body: { embedding: FAKE_EMBEDDING } });
     const res = mockRes();
@@ -161,7 +161,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
   // ─── Limit Clamping ───────────────────────────────────────────────
 
   test("defaults limit to 10 when not specified", async () => {
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     const req = mockReq({ body: { embedding: FAKE_EMBEDDING } });
     const res = mockRes();
@@ -173,7 +173,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
   });
 
   test("clamps limit to maximum of 50", async () => {
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     const req = mockReq({ body: { embedding: FAKE_EMBEDDING, limit: 100 } });
     const res = mockRes();
@@ -185,7 +185,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
   });
 
   test("clamps limit to minimum of 1 when negative value provided", async () => {
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     // Use -5 instead of 0, because Number(0) is falsy so the code falls back
     // to the default of 10 via (Number(limit) || 10)
@@ -206,7 +206,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
       { _id: FAKE_ITEM_ID, title: "Source item", similarityScore: 1.0 },
       { _id: "64f000000000000000000100", title: "Match 1", similarityScore: 0.92 },
     ];
-    Item.aggregate = jest.fn().mockResolvedValue(items);
+    Item.aggregate = vi.fn().mockResolvedValue(items);
 
     const req = mockReq({
       body: { embedding: FAKE_EMBEDDING, excludeId: FAKE_ITEM_ID },
@@ -222,7 +222,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
   });
 
   test("fetches one extra item when excludeId is set (to compensate for removal)", async () => {
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     const req = mockReq({
       body: { embedding: FAKE_EMBEDDING, limit: 5, excludeId: FAKE_ITEM_ID },
@@ -239,11 +239,11 @@ describe("findSimilarItems — POST /api/items/similar", () => {
   // ─── Error Handling ───────────────────────────────────────────────
 
   test("returns 500 when Item.aggregate throws", async () => {
-    Item.aggregate = jest.fn().mockRejectedValue(new Error("Aggregation failed"));
+    Item.aggregate = vi.fn().mockRejectedValue(new Error("Aggregation failed"));
 
     // Suppress console.error for this test
     const origError = console.error;
-    console.error = jest.fn();
+    console.error = vi.fn();
 
     const req = mockReq({ body: { embedding: FAKE_EMBEDDING } });
     const res = mockRes();
@@ -262,7 +262,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
     });
 
     const origError = console.error;
-    console.error = jest.fn();
+    console.error = vi.fn();
 
     const req = mockReq({ body: { embedding: [1, 2, 3] } });
     const res = mockRes();
@@ -284,9 +284,9 @@ describe("findSimilarItemsById — GET /api/items/:itemId/similar", () => {
 
   test("looks up the item and delegates to findSimilarItems", async () => {
     const itemDoc = mockItemWithEmbedding();
-    const selectMock = jest.fn().mockResolvedValue(itemDoc);
-    Item.findById = jest.fn().mockReturnValue({ select: selectMock });
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    const selectMock = vi.fn().mockResolvedValue(itemDoc);
+    Item.findById = vi.fn().mockReturnValue({ select: selectMock });
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     const req = mockReq({ params: { itemId: FAKE_ITEM_ID } });
     const res = mockRes();
@@ -302,8 +302,8 @@ describe("findSimilarItemsById — GET /api/items/:itemId/similar", () => {
   });
 
   test("returns 404 when item does not exist", async () => {
-    Item.findById = jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue(null),
+    Item.findById = vi.fn().mockReturnValue({
+      select: vi.fn().mockResolvedValue(null),
     });
 
     const req = mockReq({ params: { itemId: "nonexistent" } });
@@ -317,8 +317,8 @@ describe("findSimilarItemsById — GET /api/items/:itemId/similar", () => {
 
   test("returns 400 when item has no image embedding", async () => {
     const itemWithoutEmbedding = { _id: FAKE_ITEM_ID, imageEmbedding: null };
-    Item.findById = jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue(itemWithoutEmbedding),
+    Item.findById = vi.fn().mockReturnValue({
+      select: vi.fn().mockResolvedValue(itemWithoutEmbedding),
     });
 
     const req = mockReq({ params: { itemId: FAKE_ITEM_ID } });
@@ -332,8 +332,8 @@ describe("findSimilarItemsById — GET /api/items/:itemId/similar", () => {
 
   test("returns 400 when item has empty embedding array", async () => {
     const itemEmptyEmbed = { _id: FAKE_ITEM_ID, imageEmbedding: [] };
-    Item.findById = jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue(itemEmptyEmbed),
+    Item.findById = vi.fn().mockReturnValue({
+      select: vi.fn().mockResolvedValue(itemEmptyEmbed),
     });
 
     const req = mockReq({ params: { itemId: FAKE_ITEM_ID } });
@@ -347,10 +347,10 @@ describe("findSimilarItemsById — GET /api/items/:itemId/similar", () => {
 
   test("injects excludeId to prevent self-matching", async () => {
     const itemDoc = mockItemWithEmbedding();
-    Item.findById = jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue(itemDoc),
+    Item.findById = vi.fn().mockReturnValue({
+      select: vi.fn().mockResolvedValue(itemDoc),
     });
-    Item.aggregate = jest.fn().mockResolvedValue([]);
+    Item.aggregate = vi.fn().mockResolvedValue([]);
 
     const req = mockReq({ params: { itemId: FAKE_ITEM_ID } });
     const res = mockRes();
@@ -362,8 +362,8 @@ describe("findSimilarItemsById — GET /api/items/:itemId/similar", () => {
   });
 
   test("returns 500 on unexpected error", async () => {
-    Item.findById = jest.fn().mockReturnValue({
-      select: jest.fn().mockRejectedValue(new Error("DB timeout")),
+    Item.findById = vi.fn().mockReturnValue({
+      select: vi.fn().mockRejectedValue(new Error("DB timeout")),
     });
 
     const req = mockReq({ params: { itemId: FAKE_ITEM_ID } });
@@ -450,7 +450,7 @@ describe("embedImage — POST /api/items/embed-image", () => {
 
     // Suppress console.error for this test
     const origError = console.error;
-    console.error = jest.fn();
+    console.error = vi.fn();
 
     const req = mockReq({ body: { imageBase64: FAKE_BASE64_IMAGE } });
     const res = mockRes();
@@ -467,7 +467,7 @@ describe("embedImage — POST /api/items/embed-image", () => {
     generateImageEmbedding.mockRejectedValue(new Error("Rate limit exceeded"));
 
     const origError = console.error;
-    console.error = jest.fn();
+    console.error = vi.fn();
 
     const req = mockReq({ body: { imageBase64: FAKE_BASE64_IMAGE } });
     const res = mockRes();

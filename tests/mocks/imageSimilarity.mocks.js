@@ -104,10 +104,10 @@ export const jinaEmptyDataResponse = () => ({
  *
  * @param {object} body     - JSON body to return
  * @param {number} status   - HTTP status code (default 200)
- * @returns {jest.Mock}      - The mock function (so callers can assert on it)
+ * @returns {vi.Mock}      - The mock function (so callers can assert on it)
  */
 export const installMockFetch = (body, status = 200) => {
-  const mockFn = jest.fn().mockResolvedValue({
+  const mockFn = vi.fn().mockResolvedValue({
     ok: status >= 200 && status < 300,
     status,
     statusText: status === 200 ? "OK" : "Error",
@@ -122,10 +122,10 @@ export const installMockFetch = (body, status = 200) => {
  * Installs a mock `global.fetch` that rejects with a network error.
  *
  * @param {string} message - Error message for the rejection
- * @returns {jest.Mock}
+ * @returns {vi.Mock}
  */
 export const installNetworkErrorFetch = (message = "Network failure") => {
-  const mockFn = jest.fn().mockRejectedValue(new Error(message));
+  const mockFn = vi.fn().mockRejectedValue(new Error(message));
   global.fetch = mockFn;
   return mockFn;
 };
@@ -212,11 +212,11 @@ export const mockReq = (overrides = {}) => ({
  */
 export const mockRes = () => {
   const res = {};
-  res.status = jest.fn().mockImplementation((code) => {
+  res.status = vi.fn().mockImplementation((code) => {
     res.statusCode = code;
     return res;
   });
-  res.json = jest.fn().mockImplementation((body) => {
+  res.json = vi.fn().mockImplementation((body) => {
     res.body = body;
     return res;
   });

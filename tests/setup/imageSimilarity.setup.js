@@ -86,8 +86,8 @@ export const setupImageSimilarityEnv = (envOverrides = {}) => {
 
   // Suppress noisy console output during tests
   // Tests can still assert on these mocks if needed
-  console.warn = jest.fn();
-  console.error = jest.fn();
+  console.warn = vi.fn();
+  console.error = vi.fn();
 };
 
 
@@ -118,7 +118,7 @@ export const teardownImageSimilarityEnv = () => {
   if (savedConsoleError) console.error = savedConsoleError;
 
   // Clear all Jest mocks
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 };
 
 
@@ -147,7 +147,7 @@ export const assertImageSimilarityEnvReady = () => {
 
 /**
  * Returns a Jest-compatible config object for image similarity tests.
- * Can be spread into jest.config.js overrides if needed.
+ * Can be spread into vi.config.js overrides if needed.
  */
 export const imageSimilarityTestConfig = {
   testTimeout: 10000, // 10 seconds — generous for async mock tests

@@ -6,10 +6,10 @@
  */
 export const makeQuery = (resolvedValue) => {
   const query = {
-    populate: jest.fn(() => query),
-    sort: jest.fn(() => query),
-    select: jest.fn(() => query),
-    lean: jest.fn(() => Promise.resolve(resolvedValue)),
+    populate: vi.fn(() => query),
+    sort: vi.fn(() => query),
+    select: vi.fn(() => query),
+    lean: vi.fn(() => Promise.resolve(resolvedValue)),
     then: (resolve, reject) => Promise.resolve(resolvedValue).then(resolve, reject),
     catch: (reject) => Promise.resolve(resolvedValue).catch(reject),
   };
@@ -19,11 +19,11 @@ export const makeQuery = (resolvedValue) => {
 /** Minimal fake Express res: tracks status code + json body, chainable like real res. */
 export const makeRes = () => {
   const res = {};
-  res.status = jest.fn().mockImplementation((code) => {
+  res.status = vi.fn().mockImplementation((code) => {
     res.statusCode = code;
     return res;
   });
-  res.json = jest.fn().mockImplementation((body) => {
+  res.json = vi.fn().mockImplementation((body) => {
     res.body = body;
     return res;
   });

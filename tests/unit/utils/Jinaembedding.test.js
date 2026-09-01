@@ -8,7 +8,7 @@
 import { generateImageEmbedding } from "../../../src/services/jinaEmbedding.js";
 
 function mockFetch(responseBody, statusCode = 200) {
-  global.fetch = jest.fn().mockResolvedValue({
+  global.fetch = vi.fn().mockResolvedValue({
     ok: statusCode >= 200 && statusCode < 300,
     status: statusCode,
     statusText: statusCode === 200 ? "OK" : "Error",
@@ -60,7 +60,7 @@ describe("jinaEmbedding — generateImageEmbedding", () => {
   });
 
   test("throws on network error", async () => {
-    global.fetch = jest.fn().mockRejectedValue(new Error("Network failure"));
+    global.fetch = vi.fn().mockRejectedValue(new Error("Network failure"));
     await expect(
       generateImageEmbedding("data:image/png;base64,abc123")
     ).rejects.toThrow(/network error/i);

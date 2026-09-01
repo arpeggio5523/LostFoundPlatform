@@ -281,7 +281,7 @@ describe("ImageSearchPanel — reset/clear behaviour", () => {
   });
 
   test("reset triggers onClear callback", () => {
-    const onClear = jest.fn();
+    const onClear = vi.fn();
 
     // Simulate calling reset which should invoke onClear
     onClear();

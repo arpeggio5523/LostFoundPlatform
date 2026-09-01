@@ -11,10 +11,19 @@ export const VALID_FOUND_ITEM = {
   images: [],
 };
 
-export const mockSavedDoc = (overrides = {}) => ({
-  _id: "64f000000000000000000099",
-  ...VALID_FOUND_ITEM,
-  status: "Approved",
-  reportedBy: FAKE_USER_ID,
-  ...overrides,
-});
+export const mockSavedDoc = (overrides = {}) => {
+  const doc = {
+    _id: "64f000000000000000000099",
+    ...VALID_FOUND_ITEM,
+    status: "Approved",
+    reportedBy: FAKE_USER_ID,
+    ...overrides,
+  };
+  Object.defineProperty(doc, 'save', {
+    value: vi.fn().mockResolvedValue(doc),
+    enumerable: false,
+    writable: true,
+    configurable: true
+  });
+  return doc;
+};

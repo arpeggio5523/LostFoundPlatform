@@ -223,7 +223,7 @@ describe("generateImageEmbedding — Jina AI API client", () => {
 
   test("throws when response JSON is invalid", async () => {
     // Simulate json() throwing a parse error
-    global.fetch = jest.fn().mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => { throw new SyntaxError("Unexpected token"); },

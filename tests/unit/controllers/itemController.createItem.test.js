@@ -11,11 +11,14 @@ import request from "supertest";
 
 // ---- Mocks ---------------------------------------------------------------
 
-jest.mock("../../../src/models/Item.js");
-jest.mock("../../../src/models/User.js");
-jest.mock("../../../src/utils/emailService.js");
-jest.mock("../../../src/services/imageEmbedding.js");
-jest.mock("../../../src/services/jinaEmbedding.js");
+vi.mock("../../../src/models/Item.js", () => {
+  const ItemMock = vi.fn();
+  return { default: ItemMock };
+});
+vi.mock("../../../src/models/User.js");
+vi.mock("../../../src/utils/emailService.js");
+vi.mock("../../../src/services/imageEmbedding.js");
+vi.mock("../../../src/services/jinaEmbedding.js");
 
 import Item from "../../../src/models/Item.js";
 import { validateImageEmbedding } from "../../../src/services/imageEmbedding.js";
@@ -28,15 +31,15 @@ const buildApp = () =>
   buildTestApp((app) => app.post("/api/items", createItem));
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 describe("POST /api/items — createItem (Found post)", () => {
   test("creates a Found item successfully and forces status to 'Approved'", async () => {
     const savedDoc = mockSavedDoc();
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockResolvedValue(savedDoc);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockResolvedValue(savedDoc);
     });
 
     const res = await request(buildApp())
@@ -121,8 +124,8 @@ describe("POST /api/items — createItem (Found post)", () => {
     const savedDoc = mockSavedDoc();
     let constructedInstance;
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockResolvedValue(savedDoc);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockResolvedValue(savedDoc);
       constructedInstance = this;
     });
     generateImageEmbedding.mockResolvedValue([0.1, 0.2, 0.3]);
@@ -141,8 +144,8 @@ describe("POST /api/items — createItem (Found post)", () => {
     const savedDoc = mockSavedDoc();
     let constructedInstance;
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockResolvedValue(savedDoc);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockResolvedValue(savedDoc);
       constructedInstance = this;
     });
     validateImageEmbedding.mockImplementation((v) => v);
@@ -164,8 +167,8 @@ describe("POST /api/items — createItem (Found post)", () => {
   test("does not attempt embedding generation for URL-only images", async () => {
     const savedDoc = mockSavedDoc();
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockResolvedValue(savedDoc);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockResolvedValue(savedDoc);
     });
 
     const res = await request(buildApp())
@@ -179,8 +182,8 @@ describe("POST /api/items — createItem (Found post)", () => {
   test("still saves the item (without a vector) if embedding generation throws", async () => {
     const savedDoc = mockSavedDoc();
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockResolvedValue(savedDoc);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockResolvedValue(savedDoc);
     });
     generateImageEmbedding.mockRejectedValue(new Error("Jina API down"));
 
@@ -201,8 +204,8 @@ describe("POST /api/items — createItem (Found post)", () => {
       },
     };
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockRejectedValue(validationError);
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockRejectedValue(validationError);
     });
 
     const res = await request(buildApp())
@@ -215,8 +218,8 @@ describe("POST /api/items — createItem (Found post)", () => {
 
   test("returns 500 on unexpected save errors", async () => {
     Item.mockImplementation(function (payload) {
-      Object.assign(this, payload);
-      this.save = jest.fn().mockRejectedValue(new Error("DB connection lost"));
+      Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
+      this.save = vi.fn().mockRejectedValue(new Error("DB connection lost"));
     });
 
     const res = await request(buildApp())

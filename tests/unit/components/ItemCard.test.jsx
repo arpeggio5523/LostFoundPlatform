@@ -102,11 +102,8 @@ describe("ItemCard", () => {
     );
   };
 
-  // =====================================================
-  // ACCEPTANCE CRITERIA
-  // Each item displays key information
-  // =====================================================
 
+  // Each item displays key information
   it("displays the found item name", () => {
     renderItemCard();
 
@@ -201,10 +198,7 @@ describe("ItemCard", () => {
     ).not.toBeInTheDocument();
   });
 
-  // =====================================================
   // NAVIGATION
-  // =====================================================
-
   it("navigates to the item details page when clicked", async () => {
     const user = userEvent.setup();
 
@@ -235,10 +229,7 @@ describe("ItemCard", () => {
     );
   });
 
-  // =====================================================
   // QR CODE
-  // =====================================================
-
   it("does not display the QR modal initially", () => {
     renderItemCard();
 

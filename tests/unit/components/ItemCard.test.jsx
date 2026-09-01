@@ -146,10 +146,6 @@ describe("ItemCard", () => {
     ).toBeInTheDocument();
   });
 
-  // =====================================================
-  // ADDITIONAL ITEM CARD FUNCTIONALITY
-  // =====================================================
-
   it("displays the item status", () => {
     renderItemCard();
 

@@ -1,40 +1,44 @@
-import nodemailer from "nodemailer";
-
 const isDevelopment = process.env.NODE_ENV !== "production";
-let verifiedTransporter = null;
 
-const getSmtpConfig = () => {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
+/**
+ * Sends an email using the Resend API over standard HTTPS (Port 443).
+ * This avoids Render's strict SMTP port blocks.
+ */
+const sendEmailWithResend = async ({ to, subject, html, text }) => {
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.EMAIL_FROM || process.env.SMTP_FROM || "onboarding@resend.dev";
 
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !SMTP_FROM) {
-    return null;
+  if (!apiKey) {
+    if (isDevelopment) {
+      console.warn("RESEND_API_KEY is missing. Email was not sent; using console fallback instead.");
+      console.log(`[Email Fallback]\nTo: ${to}\nSubject: ${subject}\nText:\n${text}`);
+      return;
+    }
+    throw new Error("RESEND_API_KEY is missing in production environment");
   }
 
-  return {
-    host: SMTP_HOST,
-    port: Number(SMTP_PORT),
-    secure: Number(SMTP_PORT) === 465,
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS,
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
     },
-  };
-};
+    body: JSON.stringify({
+      from: fromEmail,
+      to,
+      subject,
+      html,
+      text,
+    }),
+  });
 
-const getTransporter = async () => {
-  const smtpConfig = getSmtpConfig();
-
-  if (!smtpConfig) {
-    return null;
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error("Resend API Error:", errorData);
+    throw new Error(errorData.message || "Failed to send email via Resend API");
   }
 
-  if (!verifiedTransporter) {
-    const transporter = nodemailer.createTransport(smtpConfig);
-    await transporter.verify();
-    verifiedTransporter = transporter;
-  }
-
-  return verifiedTransporter;
+  return response.json();
 };
 
 const buildVerificationEmailHtml = ({ fullName, verificationUrl, email, apiVerificationUrl }) => `
@@ -52,22 +56,7 @@ export const sendVerificationEmail = async ({ email, fullName, verificationUrl }
   const apiBaseUrl = process.env.API_BASE_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:3000";
   const apiVerificationUrl = `${apiBaseUrl.replace(/\/$/, "")}/api/auth/verify-email`;
 
-  const transporter = await getTransporter();
-
-  if (!transporter) {
-    if (isDevelopment) {
-      console.warn(
-        "SMTP configuration is missing. Verification email was not sent; using console fallback instead."
-      );
-      console.log(`Email verification URL for ${email}: ${verificationUrl}`);
-      return;
-    }
-
-    throw new Error("SMTP configuration is missing");
-  }
-
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM,
+  await sendEmailWithResend({
     to: email,
     subject: "Verify your LostFound MY account",
     text: [
@@ -91,22 +80,7 @@ export const sendVerificationEmail = async ({ email, fullName, verificationUrl }
 };
 
 export const sendContactOwnerEmail = async ({ ownerEmail, ownerName, postTitle, senderEmail }) => {
-  const transporter = await getTransporter();
-
-  if (!transporter) {
-    if (isDevelopment) {
-      console.warn(
-        "SMTP configuration is missing. Contact Owner email was not sent; using console fallback instead."
-      );
-      console.log(`Contact Owner Email:\nTo: ${ownerEmail}\nSubject: Inquiry regarding your LostFound MY post: ${postTitle}\nFrom: ${senderEmail}`);
-      return;
-    }
-
-    throw new Error("SMTP configuration is missing");
-  }
-
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM,
+  await sendEmailWithResend({
     to: ownerEmail,
     subject: `Inquiry regarding your LostFound MY post: ${postTitle}`,
     text: [
@@ -129,7 +103,7 @@ const escapeHtml = (value = "") => String(value)
   .replace(/&/g, "&amp;")
   .replace(/</g, "&lt;")
   .replace(/>/g, "&gt;")
-  .replace(/\"/g, "&quot;")
+  .replace(/"/g, "&quot;")
   .replace(/'/g, "&#39;");
 
 export const buildNewMessageNotificationEmail = ({
@@ -168,24 +142,9 @@ export const sendNewMessageNotificationEmail = async ({
   itemTitle,
   conversationUrl,
 }) => {
-  const transporter = await getTransporter();
-
-  if (!transporter) {
-    if (isDevelopment) {
-      console.warn(
-        "SMTP configuration is missing. New message notification email was not sent; using console fallback instead."
-      );
-      console.log(`New Message Notification Email:\nTo: ${toEmail}\nSubject: New message about ${itemTitle}\nFrom: ${senderName}\nMessage: ${messageText}`);
-      return;
-    }
-
-    throw new Error("SMTP configuration is missing");
-  }
-
   const normalizedConversationUrl = conversationUrl || `${process.env.FRONTEND_URL || "http://localhost:5173"}/messages`;
 
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM,
+  await sendEmailWithResend({
     to: toEmail,
     subject: `New message about ${itemTitle || "your item"}`,
     text: [

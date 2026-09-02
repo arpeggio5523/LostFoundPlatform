@@ -32,7 +32,7 @@ describe("item status controller behavior", () => {
 
   // Tests that lost and found posts receive the expected initial status.
   it.each(["Lost", "Found"])("assigns %s to a newly submitted post", async (type) => {
-    const saved = { _id: "item-1", type, status: "Approved", ...body(type) };
+    const saved = { _id: "item-1", type, status: "Pending", ...body(type) };
     const save = vi.fn().mockResolvedValue(saved);
     // The controller saves once before and once after generating the QR code.
     saved.save = save;
@@ -40,7 +40,7 @@ describe("item status controller behavior", () => {
     const res = response();
     await createItem({ user: { id: "user-1" }, body: body(type) }, res);
     // New posts are assigned the backend moderation status.
-    expect(mockItem).toHaveBeenCalledWith(expect.objectContaining({ type, status: "Approved" }));
+    expect(mockItem).toHaveBeenCalledWith(expect.objectContaining({ type, status: "Pending" }));
     expect(res.status).toHaveBeenCalledWith(201);
   });
 

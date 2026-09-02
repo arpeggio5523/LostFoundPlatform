@@ -1,41 +1,45 @@
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 /**
- * Sends an email using the Resend API over standard HTTPS (Port 443).
- * This avoids Render's strict SMTP port blocks.
+ * Sends an email using the Brevo API (formerly Sendinblue) over standard HTTPS (Port 443).
+ * This avoids Render's strict SMTP port blocks and allows sending from a single verified free email address (like Gmail) to any recipient!
  */
-const sendEmailWithResend = async ({ to, subject, html, text }) => {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.EMAIL_FROM || process.env.SMTP_FROM || "onboarding@resend.dev";
+const sendEmailWithProvider = async ({ to, subject, html, text }) => {
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || "ramborkar2006@gmail.com";
+  const senderName = process.env.BREVO_SENDER_NAME || "LostFound MY";
 
   if (!apiKey) {
     if (isDevelopment) {
-      console.warn("RESEND_API_KEY is missing. Email was not sent; using console fallback instead.");
+      console.warn("BREVO_API_KEY is missing. Email was not sent; using console fallback instead.");
       console.log(`[Email Fallback]\nTo: ${to}\nSubject: ${subject}\nText:\n${text}`);
       return;
     }
-    throw new Error("RESEND_API_KEY is missing in production environment");
+    throw new Error("BREVO_API_KEY is missing in production environment");
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
+  const payload = {
+    sender: { name: senderName, email: senderEmail },
+    to: [{ email: to }],
+    subject,
+  };
+  
+  if (html) payload.htmlContent = html;
+  if (text) payload.textContent = text;
+
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
+      "api-key": apiKey,
     },
-    body: JSON.stringify({
-      from: fromEmail,
-      to,
-      subject,
-      html,
-      text,
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    console.error("Resend API Error:", errorData);
-    throw new Error(errorData.message || "Failed to send email via Resend API");
+    console.error("Brevo API Error:", errorData);
+    throw new Error(errorData.message || "Failed to send email via Brevo API");
   }
 
   return response.json();
@@ -56,7 +60,7 @@ export const sendVerificationEmail = async ({ email, fullName, verificationUrl }
   const apiBaseUrl = process.env.API_BASE_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:3000";
   const apiVerificationUrl = `${apiBaseUrl.replace(/\/$/, "")}/api/auth/verify-email`;
 
-  await sendEmailWithResend({
+  await sendEmailWithProvider({
     to: email,
     subject: "Verify your LostFound MY account",
     text: [
@@ -80,7 +84,7 @@ export const sendVerificationEmail = async ({ email, fullName, verificationUrl }
 };
 
 export const sendContactOwnerEmail = async ({ ownerEmail, ownerName, postTitle, senderEmail }) => {
-  await sendEmailWithResend({
+  await sendEmailWithProvider({
     to: ownerEmail,
     subject: `Inquiry regarding your LostFound MY post: ${postTitle}`,
     text: [
@@ -144,7 +148,7 @@ export const sendNewMessageNotificationEmail = async ({
 }) => {
   const normalizedConversationUrl = conversationUrl || `${process.env.FRONTEND_URL || "http://localhost:5173"}/messages`;
 
-  await sendEmailWithResend({
+  await sendEmailWithProvider({
     to: toEmail,
     subject: `New message about ${itemTitle || "your item"}`,
     text: [

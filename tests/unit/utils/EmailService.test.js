@@ -6,28 +6,30 @@ const loadEmailService = async () => {
   return { ...service };
 };
 
-describe("emailService (Resend via fetch)", () => {
+describe("emailService (Brevo via fetch)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.NODE_ENV = "development";
-    process.env.RESEND_API_KEY = "re_mock_test_key";
-    process.env.EMAIL_FROM = "LostFound MY <noreply@example.com>";
+    process.env.BREVO_API_KEY = "mock_brevo_key";
+    process.env.BREVO_SENDER_EMAIL = "ramborkar2006@gmail.com";
+    process.env.BREVO_SENDER_NAME = "LostFound MY Test";
     process.env.FRONTEND_URL = "http://localhost:5173";
     
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ id: "mock_resend_id" })
+      json: async () => ({ messageId: "mock_brevo_id" })
     });
   });
 
   afterEach(() => {
-    delete process.env.RESEND_API_KEY;
-    delete process.env.EMAIL_FROM;
+    delete process.env.BREVO_API_KEY;
+    delete process.env.BREVO_SENDER_EMAIL;
+    delete process.env.BREVO_SENDER_NAME;
     delete process.env.FRONTEND_URL;
     delete global.fetch;
   });
 
-  test("sendVerificationEmail sends a verification message when RESEND_API_KEY is configured", async () => {
+  test("sendVerificationEmail sends a verification message when BREVO_API_KEY is configured", async () => {
     const { sendVerificationEmail } = await loadEmailService();
 
     await sendVerificationEmail({
@@ -37,18 +39,18 @@ describe("emailService (Resend via fetch)", () => {
     });
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(global.fetch).toHaveBeenCalledWith("https://api.resend.com/emails", expect.objectContaining({
+    expect(global.fetch).toHaveBeenCalledWith("https://api.brevo.com/v3/smtp/email", expect.objectContaining({
       method: "POST",
       headers: expect.objectContaining({
-        "Authorization": "Bearer re_mock_test_key"
+        "api-key": "mock_brevo_key"
       })
     }));
 
     const callBody = JSON.parse(global.fetch.mock.calls[0][1].body);
-    expect(callBody.to).toBe("student@example.com");
+    expect(callBody.to[0].email).toBe("student@example.com");
     expect(callBody.subject).toBe("Verify your LostFound MY account");
-    expect(callBody.html).toContain("Aisha");
-    expect(callBody.html).toContain("http://localhost:5173/verify-email?email=student@example.com&token=abc123");
+    expect(callBody.htmlContent).toContain("Aisha");
+    expect(callBody.htmlContent).toContain("http://localhost:5173/verify-email?email=student@example.com&token=abc123");
   });
 
   test("sendNewMessageNotificationEmail includes the sender, item title, and conversation link", async () => {
@@ -78,11 +80,11 @@ describe("emailService (Resend via fetch)", () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
     const callBody = JSON.parse(global.fetch.mock.calls[0][1].body);
-    expect(callBody.to).toBe("owner@example.com");
+    expect(callBody.to[0].email).toBe("owner@example.com");
     expect(callBody.subject).toBe("New message about Red backpack");
-    expect(callBody.text).toContain("Aisha said:");
-    expect(callBody.text).toContain("Is this your red backpack?");
-    expect(callBody.text).toContain("http://localhost:5173/messages");
+    expect(callBody.textContent).toContain("Aisha said:");
+    expect(callBody.textContent).toContain("Is this your red backpack?");
+    expect(callBody.textContent).toContain("http://localhost:5173/messages");
   });
 
   test("sendContactOwnerEmail creates a direct owner inquiry email when configured", async () => {
@@ -97,9 +99,9 @@ describe("emailService (Resend via fetch)", () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
     const callBody = JSON.parse(global.fetch.mock.calls[0][1].body);
-    expect(callBody.to).toBe("owner@example.com");
+    expect(callBody.to[0].email).toBe("owner@example.com");
     expect(callBody.subject).toBe("Inquiry regarding your LostFound MY post: Red backpack");
-    expect(callBody.text).toContain("finder@example.com");
-    expect(callBody.text).toContain("Red backpack");
+    expect(callBody.textContent).toContain("finder@example.com");
+    expect(callBody.textContent).toContain("Red backpack");
   });
 });

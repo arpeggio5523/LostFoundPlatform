@@ -54,6 +54,11 @@ describe("ItemController QR generation", () => {
         location: "Universiti Malaya (UM)",
         date: "2026-08-30",
         user: "John Doe",
+        reportLocation: {
+          type: "Point",
+          coordinates: [101.65, 3.12],
+          formattedAddress: "Universiti Malaya",
+        },
       },
     };
     const res = {

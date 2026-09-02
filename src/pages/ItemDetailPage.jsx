@@ -1,3 +1,4 @@
+import React from "react";
 import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2 } from "lucide-react";

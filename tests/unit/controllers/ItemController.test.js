@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import path from "path";
 
 const saveMock = vi.fn();
 
@@ -77,7 +78,7 @@ describe("ItemController QR generation", () => {
     );
 
     expect(fs.mkdirSync).toHaveBeenCalledWith(
-      expect.stringContaining("uploads/qrcodes"),
+      expect.stringContaining(path.join("uploads", "qrcodes")),
       { recursive: true }
     );
 

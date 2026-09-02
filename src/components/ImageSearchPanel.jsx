@@ -14,7 +14,7 @@
  *   4. onResults(items) is called with the matching items
  */
 
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { apiFetch, authHeaders } from "../services/apiClient";
 
 export default function ImageSearchPanel({ type, onResults, onClear }) {

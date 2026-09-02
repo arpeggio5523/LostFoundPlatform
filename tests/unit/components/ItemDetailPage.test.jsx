@@ -35,6 +35,7 @@ vi.mock("../../../src/services/authState", () => ({
   isOwner: vi.fn(),
   isAdmin: vi.fn(),
   canEditItem: vi.fn(),
+  getCurrentUserId: vi.fn(),
 }));
 
 vi.mock("../../../src/context/ToastContext", () => ({

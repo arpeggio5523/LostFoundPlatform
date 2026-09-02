@@ -12,7 +12,7 @@ test.describe('Analytics Dashboard Page', () => {
 
     // Mock admin authentication
     await page.context().addInitScript(() => {
-      localStorage.setItem('authToken', 'mock-token-123');
+      localStorage.setItem('token', 'mock-token-123');
 
       localStorage.setItem(
         'user',
@@ -25,6 +25,14 @@ test.describe('Analytics Dashboard Page', () => {
       );
     });
 
+    // Mock messages API used by the Sidebar to prevent 401 redirects
+    await page.route('**/api/messages/conversations*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [] }),
+      });
+    });
   });
 
 
@@ -56,7 +64,7 @@ test.describe('Analytics Dashboard Page', () => {
       });
     });
 
-    await page.goto('http://localhost:3000/analytics', {
+    await page.goto('/analytics', {
       waitUntil: 'domcontentloaded',
     });
 
@@ -82,15 +90,15 @@ test.describe('Analytics Dashboard Page', () => {
 
     console.log('Screenshot saved: analytics-test-debug.png');
 
-    // Check Post statistics
-    const postsStats = page.getByText('Post statistics');
+    // Check Posts statistics
+    const postsStats = page.getByText('Posts statistics');
 
     const isVisible = await postsStats
       .isVisible()
       .catch(() => false);
 
     console.log(
-      'Post statistics visible:',
+      'Posts statistics visible:',
       isVisible
     );
 
@@ -100,7 +108,7 @@ test.describe('Analytics Dashboard Page', () => {
       console.log('All h2 texts:', h2s);
 
       throw new Error(
-        `Post statistics not found. Page h2s: ${h2s.join(', ')}`
+        `Posts statistics not found. Page h2s: ${h2s.join(', ')}`
       );
     }
 
@@ -164,13 +172,13 @@ test.describe('Analytics Dashboard Page', () => {
 
     });
 
-    await page.goto('http://localhost:3000/analytics', {
+    await page.goto('/analytics', {
       waitUntil: 'domcontentloaded',
     });
 
     // Make sure analytics loaded
     await expect(
-      page.getByText('Post statistics')
+      page.getByText('Posts statistics')
     ).toBeVisible();
 
     // Find refresh button
@@ -215,7 +223,7 @@ test.describe('Analytics Dashboard Page', () => {
     await context.addInitScript(() => {
 
       localStorage.setItem(
-        'authToken',
+        'token',
         'mock-token'
       );
 
@@ -232,7 +240,7 @@ test.describe('Analytics Dashboard Page', () => {
 
     const page = await context.newPage();
 
-    await page.goto('http://localhost:3000/analytics', {
+    await page.goto('/analytics', {
       waitUntil: 'domcontentloaded',
     });
 
@@ -258,7 +266,7 @@ test.describe('Analytics Dashboard Page', () => {
       await route.abort('failed');
     });
 
-    await page.goto('http://localhost:3000/analytics', {
+    await page.goto('/analytics', {
       waitUntil: 'domcontentloaded',
     });
 
@@ -301,13 +309,13 @@ test.describe('Analytics Dashboard Page', () => {
 
     });
 
-    await page.goto('http://localhost:3000/analytics', {
+    await page.goto('/analytics', {
       waitUntil: 'domcontentloaded',
     });
 
     // Make sure analytics loaded
     await expect(
-      page.getByText('Post statistics')
+      page.getByText('Posts statistics')
     ).toBeVisible();
 
     // Find logout button

@@ -28,6 +28,7 @@ test:e2e:
   stage: e2e
   script:
     - npm ci
+    - cp .env.example .env
     - npx playwright install chromium
     - npm run test:e2e
   after_script:

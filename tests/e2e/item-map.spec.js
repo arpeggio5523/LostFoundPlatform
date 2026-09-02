@@ -31,6 +31,19 @@ const mockFoundItem = {
 };
 
 test.describe('Item map feature', () => {
+  test.beforeEach(async ({ page }) => {
+    // Mock authentication so we don't get redirected to /login
+    await page.addInitScript(() => {
+      localStorage.setItem('token', 'mock-token-123');
+      localStorage.setItem('user', JSON.stringify({ id: 'mockuser', role: 'User' }));
+    });
+    
+    // Mock messages API used by the Sidebar to prevent 401 redirects
+    await page.route('**/api/messages/conversations*', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+    });
+  });
+
   test('opens the full-map view in a new tab and shows the item pin location', async ({ page }) => {
     await page.context().route('**/api/items/mock-item-123', async (route) => {
       await route.fulfill({

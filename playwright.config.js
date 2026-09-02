@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [['list'], ['junit', { outputFile: 'playwright-junit.xml' }], ['html'], ['./playwright-markdown-reporter.js']],
   webServer: {
-    command: 'npm run dev -- --host 0.0.0.0',
+    command: 'npm run dev:full',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

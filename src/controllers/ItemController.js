@@ -293,6 +293,12 @@ export const findSimilarItems = async (req, res) => {
     const filter = type ? { type: { $eq: type } } : undefined;
     const minScore = Number(req.body.minScore || req.query.minScore) || 0.80;
 
+    const matchStage = { similarityScore: { $gte: minScore } };
+    const isAdmin = isAdminUser(req.user);
+    if (!isAdmin) {
+      matchStage.status = { $in: PUBLIC_STATUSES };
+    }
+
     const pipeline = [
       {
         $vectorSearch: {
@@ -300,13 +306,13 @@ export const findSimilarItems = async (req, res) => {
           path: "imageEmbedding",
           queryVector,
           numCandidates: Math.max(numericLimit * 10, 100),
-          limit: numericLimit + (excludeId ? 1 : 0),
+          limit: Math.max(numericLimit * 3, 50),
           ...(filter ? { filter } : {}),
         },
       },
       { $set: { mongoScore: { $meta: "vectorSearchScore" } } },
       { $set: { similarityScore: { $subtract: [ { $multiply: ["$mongoScore", 2] }, 1 ] } } },
-      { $match: { similarityScore: { $gte: minScore } } },
+      { $match: matchStage },
       { $project: { imageEmbedding: 0 } },
     ];
 

@@ -12,3 +12,7 @@ playwright-report/
 
 # User uploaded files / QR codes
 uploads/
+
+# E2E Debug Screenshots
+analytics-test-debug.png
+*.png

@@ -71,7 +71,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["User", "Admin"],
+    enum: ["User", "Student", "Admin"],
     default: "User",
   },
   isEmailVerified: {
@@ -90,6 +90,10 @@ const userSchema = new mongoose.Schema({
   },
   lastVerificationEmailSentAt: {
     type: Date,
+  },
+  privacyMode: {
+    type: Boolean,
+    default: false,
   },
 }, { timestamps: true });
 

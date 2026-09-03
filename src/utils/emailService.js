@@ -1,40 +1,48 @@
-import nodemailer from "nodemailer";
-
 const isDevelopment = process.env.NODE_ENV !== "production";
-let verifiedTransporter = null;
 
-const getSmtpConfig = () => {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
+/**
+ * Sends an email using the Brevo API (formerly Sendinblue) over standard HTTPS (Port 443).
+ * This avoids Render's strict SMTP port blocks and allows sending from a single verified free email address (like Gmail) to any recipient!
+ */
+const sendEmailWithProvider = async ({ to, subject, html, text }) => {
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || "ramborkar2006@gmail.com";
+  const senderName = process.env.BREVO_SENDER_NAME || "LostFound MY";
 
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !SMTP_FROM) {
-    return null;
+  if (!apiKey) {
+    if (isDevelopment) {
+      console.warn("BREVO_API_KEY is missing. Email was not sent; using console fallback instead.");
+      console.log(`[Email Fallback]\nTo: ${to}\nSubject: ${subject}\nText:\n${text}`);
+      return;
+    }
+    throw new Error("BREVO_API_KEY is missing in production environment");
   }
 
-  return {
-    host: SMTP_HOST,
-    port: Number(SMTP_PORT),
-    secure: Number(SMTP_PORT) === 465,
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS,
-    },
+  const payload = {
+    sender: { name: senderName, email: senderEmail },
+    to: [{ email: to }],
+    subject,
   };
-};
+  
+  if (html) payload.htmlContent = html;
+  if (text) payload.textContent = text;
 
-const getTransporter = async () => {
-  const smtpConfig = getSmtpConfig();
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": apiKey,
+    },
+    body: JSON.stringify(payload),
+  });
 
-  if (!smtpConfig) {
-    return null;
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error("Brevo API Error:", errorData);
+    throw new Error(errorData.message || "Failed to send email via Brevo API");
   }
 
-  if (!verifiedTransporter) {
-    const transporter = nodemailer.createTransport(smtpConfig);
-    await transporter.verify();
-    verifiedTransporter = transporter;
-  }
-
-  return verifiedTransporter;
+  return response.json();
 };
 
 const buildVerificationEmailHtml = ({ fullName, verificationUrl, email, apiVerificationUrl }) => `
@@ -49,25 +57,10 @@ const buildVerificationEmailHtml = ({ fullName, verificationUrl, email, apiVerif
 `;
 
 export const sendVerificationEmail = async ({ email, fullName, verificationUrl }) => {
-  const apiBaseUrl = process.env.API_BASE_URL || "http://localhost:3000";
+  const apiBaseUrl = process.env.API_BASE_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:3000";
   const apiVerificationUrl = `${apiBaseUrl.replace(/\/$/, "")}/api/auth/verify-email`;
 
-  const transporter = await getTransporter();
-
-  if (!transporter) {
-    if (isDevelopment) {
-      console.warn(
-        "SMTP configuration is missing. Verification email was not sent; using console fallback instead."
-      );
-      console.log(`Email verification URL for ${email}: ${verificationUrl}`);
-      return;
-    }
-
-    throw new Error("SMTP configuration is missing");
-  }
-
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM,
+  await sendEmailWithProvider({
     to: email,
     subject: "Verify your LostFound MY account",
     text: [
@@ -91,22 +84,7 @@ export const sendVerificationEmail = async ({ email, fullName, verificationUrl }
 };
 
 export const sendContactOwnerEmail = async ({ ownerEmail, ownerName, postTitle, senderEmail }) => {
-  const transporter = await getTransporter();
-
-  if (!transporter) {
-    if (isDevelopment) {
-      console.warn(
-        "SMTP configuration is missing. Contact Owner email was not sent; using console fallback instead."
-      );
-      console.log(`Contact Owner Email:\nTo: ${ownerEmail}\nSubject: Inquiry regarding your LostFound MY post: ${postTitle}\nFrom: ${senderEmail}`);
-      return;
-    }
-
-    throw new Error("SMTP configuration is missing");
-  }
-
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM,
+  await sendEmailWithProvider({
     to: ownerEmail,
     subject: `Inquiry regarding your LostFound MY post: ${postTitle}`,
     text: [
@@ -122,5 +100,77 @@ export const sendContactOwnerEmail = async ({ ownerEmail, ownerName, postTitle, 
       "",
       "The LostFound MY Team",
     ].join("\n"),
+  });
+};
+
+const escapeHtml = (value = "") => String(value)
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#39;");
+
+export const buildNewMessageNotificationEmail = ({
+  recipientName,
+  senderName,
+  messageText,
+  itemTitle,
+  conversationUrl,
+}) => {
+  const safeRecipientName = recipientName || "there";
+  const safeSenderName = senderName || "Someone";
+  const safeItemTitle = itemTitle || "your item";
+  const safeMessageText = messageText || "(no message text provided)";
+  const safeConversationUrl = conversationUrl || `${process.env.FRONTEND_URL || "http://localhost:5173"}/messages`;
+
+  return `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+      <p>Hello ${escapeHtml(safeRecipientName)},</p>
+      <p>You have a new message about <strong>${escapeHtml(safeItemTitle)}</strong> on LostFound MY.</p>
+      <p><strong>${escapeHtml(safeSenderName)}</strong> sent you a message:</p>
+      <blockquote style="margin: 12px 0; padding: 12px 16px; background: #f3f4f6; border-left: 4px solid #2563eb; color: #111827;">
+        ${escapeHtml(safeMessageText).replace(/\n/g, "<br />")}
+      </blockquote>
+      <p>Reply to them here:</p>
+      <p><a href="${escapeHtml(safeConversationUrl)}">${escapeHtml(safeConversationUrl)}</a></p>
+      <p>Best regards,<br />The LostFound MY Team</p>
+    </div>
+  `;
+};
+
+export const sendNewMessageNotificationEmail = async ({
+  toEmail,
+  recipientName,
+  senderName,
+  messageText,
+  itemTitle,
+  conversationUrl,
+}) => {
+  const normalizedConversationUrl = conversationUrl || `${process.env.FRONTEND_URL || "http://localhost:5173"}/messages`;
+
+  await sendEmailWithProvider({
+    to: toEmail,
+    subject: `New message about ${itemTitle || "your item"}`,
+    text: [
+      `Hi ${recipientName || "there"},`,
+      "",
+      `You have a new message about "${itemTitle || "your item"}" on LostFound MY.`,
+      "",
+      `${senderName || "Someone"} said:`,
+      messageText || "(no message text provided)",
+      "",
+      `Reply here: ${normalizedConversationUrl}`,
+      "",
+      "Best regards,",
+      "",
+      "The LostFound MY Team",
+    ].join("\n"),
+    html: buildNewMessageNotificationEmail({
+      recipientName,
+      senderName,
+      messageText,
+      itemTitle,
+      conversationUrl: normalizedConversationUrl,
+    }),
   });
 };

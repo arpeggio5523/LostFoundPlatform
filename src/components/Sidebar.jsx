@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getAuthUser } from "../services/authState";
+import { fetchConversations } from "../services/messagesApi";
+import { useSocket } from "../context/SocketContext";
 import { 
   Home, 
   Search, 
@@ -10,13 +12,15 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Plus,
-  Shield 
+  Shield,
+  BarChart3,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Home",        path: "/dashboard",          icon: Home },
   { label: "Found Items", path: "/found-items",   icon: Search },
   { label: "Lost Items",  path: "/lost-items",    icon: FileText },
+  { label: "Messages",    path: "/messages",      icon: MessageSquare },
   { label: "Profile",     path: "/profile",       icon: User },
   { label: "Admin",       path: "/admin-dashboard", icon: Shield, adminOnly: true }
 ];
@@ -25,9 +29,47 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = getAuthUser();
-  const visibleNavItems = NAV_ITEMS.filter(
-    (item) => !item.adminOnly || currentUser?.role === "Admin"
-  );
+  const isAdmin = currentUser?.role === "Admin";
+  const visibleNavItems = (
+    isAdmin
+      ? [...NAV_ITEMS, { label: "Analytics", path: "/analytics", icon: BarChart3 }]
+      : NAV_ITEMS
+  ).filter((item) => !item.adminOnly || isAdmin);
+
+  const socket = useSocket();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    const checkUnread = async () => {
+      try {
+        const res = await fetchConversations();
+        const convos = Array.isArray(res.data) ? res.data : [];
+        let count = 0;
+        convos.forEach(c => {
+          const lastReadStr = localStorage.getItem(`lastRead_${c._id}`);
+          // If no lastRead is set, treat it as read until we receive a new message
+          const lastRead = lastReadStr ? new Date(lastReadStr).getTime() : new Date(c.lastMessageAt).getTime();
+          if (new Date(c.lastMessageAt).getTime() > lastRead) {
+            count++;
+          }
+        });
+        if (isMounted) setUnreadCount(count);
+      } catch (err) {}
+    };
+
+    checkUnread();
+    const interval = setInterval(checkUnread, 10000);
+    const handleStorage = () => checkUnread();
+    
+    window.addEventListener("updateUnread", handleStorage);
+
+    return () => { 
+      isMounted = false; 
+      clearInterval(interval);
+      window.removeEventListener("updateUnread", handleStorage);
+    };
+  }, []);
 
   return (
     <aside style={{
@@ -112,12 +154,43 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
                 marginBottom: 2,
                 textAlign: "left",
                 transition: "background 0.15s, color 0.15s",
+                position: "relative",
               }}
               onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--color-bg-hover)"; }}
               onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
             >
               <Icon size={isCollapsed ? 22 : 16} strokeWidth={2} style={{ flexShrink: 0 }} />
               {!isCollapsed && label}
+              
+              {label === "Messages" && unreadCount > 0 && !isCollapsed && (
+                <div style={{
+                  marginLeft: "auto",
+                  background: "var(--color-brand)",
+                  color: "var(--color-brand-text)",
+                  fontSize: 10,
+                  fontWeight: 800,
+                  height: 18,
+                  minWidth: 18,
+                  borderRadius: 9,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "0 5px",
+                }}>
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </div>
+              )}
+              {label === "Messages" && unreadCount > 0 && isCollapsed && (
+                <div style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  background: "var(--color-brand)",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                }} />
+              )}
             </button>
           );
         })}

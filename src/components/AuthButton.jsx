@@ -1,3 +1,4 @@
+import React from 'react';
 function AuthButton({ children, type = "button", ...props }) {
     return (
         <button

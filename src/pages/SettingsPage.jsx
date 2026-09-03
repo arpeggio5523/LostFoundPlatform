@@ -1,9 +1,42 @@
-import { Sun, Moon, ArrowLeft } from "lucide-react";
+import { useState } from "react";
+import { Sun, Moon, ArrowLeft, EyeOff, Eye } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import { useTheme } from "../context/ThemeContext";
+import { getAuthUser, setAuthUser } from "../services/authState";
+import { apiFetch } from "../services/apiClient";
 
 function SettingsPage() {
   const { isDark, toggleTheme } = useTheme();
+
+  const currentUser = getAuthUser();
+  const [privacyMode, setPrivacyMode] = useState(
+    currentUser?.privacyMode || false
+  );
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
+
+  const togglePrivacyMode = async () => {
+    const next = !privacyMode;
+    setPrivacyMode(next); // optimistic UI update
+    setSavingPrivacy(true);
+
+    try {
+      const res = await apiFetch("/api/users/me/privacy", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ privacyMode: next }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update privacy mode");
+
+      const data = await res.json();
+      setAuthUser({ ...currentUser, privacyMode: data.privacyMode ?? next });
+    } catch (err) {
+      console.error(err);
+      setPrivacyMode(!next); // revert on failure
+    } finally {
+      setSavingPrivacy(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-[var(--color-bg-base)]">
@@ -52,7 +85,6 @@ function SettingsPage() {
               </div>
             </div>
 
-            {/* Toggle Switch */}
             <button
               type="button"
               onClick={toggleTheme}
@@ -69,6 +101,46 @@ function SettingsPage() {
                 aria-hidden="true"
                 className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
                   isDark ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Privacy Mode Toggle Row — directly below Dark Mode, same card */}
+          <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-6 mt-6">
+            <div className="flex items-start gap-3">
+              {privacyMode
+                ? <EyeOff className="mt-0.5 h-5 w-5 text-[var(--color-brand)]" />
+                : <Eye className="mt-0.5 h-5 w-5 text-[var(--color-text-secondary)]" />
+              }
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                  Privacy Mode
+                </h3>
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  Hide your name — you'll appear as "Anonymous" in messages
+                  to and from other users
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={togglePrivacyMode}
+              disabled={savingPrivacy}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
+                privacyMode
+                  ? "bg-[var(--color-brand)] focus:ring-[var(--color-brand)]"
+                  : "bg-gray-300 focus:ring-teal-600"
+              }`}
+              role="switch"
+              aria-checked={privacyMode}
+              aria-label="Toggle privacy mode"
+            >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  privacyMode ? "translate-x-5" : "translate-x-0"
                 }`}
               />
             </button>

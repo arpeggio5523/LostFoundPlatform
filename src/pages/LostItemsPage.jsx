@@ -1,7 +1,9 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
+import ImageSearchPanel from "../components/ImageSearchPanel";
 import { Funnel, LogOut, X } from "lucide-react";
 import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { useTheme } from "../context/ThemeContext";
@@ -56,6 +58,8 @@ export default function LostItemsPage() {
   const [error, setError]       = useState(null);
   const [items, setItems]       = useState([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  // Image search state: when set, overrides the normal filtered list
+  const [imageSearchResults, setImageSearchResults] = useState(null);
 
   const hasActiveFilters = search !== "" || category !== "All Categories" ||
     location !== "All Locations" || status !== "All Status";
@@ -234,7 +238,11 @@ export default function LostItemsPage() {
 
           <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--color-text-muted)" }}>
-              <Funnel size={14} /> {filtered.length} item{filtered.length !== 1 ? "s" : ""} found
+              <Funnel size={14} />
+              {imageSearchResults
+                ? `${imageSearchResults.length} image match${imageSearchResults.length !== 1 ? "es" : ""} found`
+                : `${filtered.length} item${filtered.length !== 1 ? "s" : ""} found`
+              }
             </div>
             <button
               type="button"
@@ -256,6 +264,13 @@ export default function LostItemsPage() {
           </div>
         </div>
 
+        {/* Image search panel — shown above the items grid */}
+        <ImageSearchPanel
+          type="Lost"
+          onResults={(results) => setImageSearchResults(results)}
+          onClear={() => setImageSearchResults(null)}
+        />
+
         {error && (
           <div style={{ marginBottom: 16, borderRadius: 8, background: "#fef2f2", border: "1px solid #fee2e2", padding: "12px 16px", fontSize: 14, color: "#b91c1c" }}>
             {error}
@@ -266,6 +281,39 @@ export default function LostItemsPage() {
           <div style={{ textAlign: "center", padding: "64px 0", color: "var(--color-text-muted)" }}>
             <p style={{ margin: 0, fontSize: 14 }}>Loading items...</p>
           </div>
+        ) : imageSearchResults !== null ? (
+          // Image search results mode
+          imageSearchResults.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "64px 0", color: "var(--color-text-muted)" }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 12px", display: "block" }}>
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <p style={{ margin: 0, fontSize: 14 }}>No visually similar lost items found for your image.</p>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
+              {imageSearchResults.map(item => (
+                <div key={item._id} style={{ position: "relative" }}>
+                  {/* Similarity score badge */}
+                  {item.similarityScore != null && (
+                    <div style={{
+                      position: "absolute", top: 8, right: 8, zIndex: 1,
+                      background: "var(--color-brand)", color: "var(--color-brand-text)",
+                      borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    }}>
+                      {Math.round(item.similarityScore * 100)}% match
+                    </div>
+                  )}
+                  <ItemCard item={{
+                    ...item,
+                    image: item.images?.[0] || null,
+                    date: item.date ? new Date(item.date).toLocaleDateString() : "N/A",
+                  }} dateLabel="Lost On" />
+                </div>
+              ))}
+            </div>
+          )
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "64px 0", color: "var(--color-text-muted)" }}>
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 12px", display: "block" }}>

@@ -8,6 +8,9 @@ import {
   updateItem,
   deleteItem,
   contactOwner,
+  findSimilarItems,
+  findSimilarItemsById,
+  embedImage,
 } from "../controllers/ItemController.js";
 import { optionalAuth, requireAuth } from "../middleware/authMiddleware.js";
 
@@ -19,8 +22,17 @@ router.get("/", optionalAuth, getItems);
 // GET /api/items/my       — items reported by the logged-in user (must be before /:itemId)
 router.get("/my", requireAuth, getMyItems);
 
+// POST /api/items/similar — find items similar to an uploaded image embedding
+router.post("/similar", requireAuth, findSimilarItems);
+
+// POST /api/items/embed-image — generate an embedding for a base64 image (browse-page search proxy)
+router.post("/embed-image", requireAuth, embedImage);
+
 // GET /api/items/:itemId  — single item detail
 router.get("/:itemId", optionalAuth, getItemById);
+
+// GET /api/items/:itemId/similar — find items similar to an existing item
+router.get("/:itemId/similar", requireAuth, findSimilarItemsById);
 
 // POST /api/items         — create a new Lost or Found item report
 router.post("/", requireAuth, createItem);

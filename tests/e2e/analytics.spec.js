@@ -118,7 +118,7 @@ test.describe('Analytics Dashboard Page', () => {
 
     // Check moderation status
     await expect(
-      page.getByText('Moderation status')
+      page.getByRole('heading', { name: 'Moderation status' })
     ).toBeVisible({
       timeout: 10000,
     });

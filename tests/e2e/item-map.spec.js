@@ -39,8 +39,18 @@ test.describe('Item map feature', () => {
     });
     
     // Mock messages API used by the Sidebar to prevent 401 redirects
-    await page.route('**/api/messages/conversations*', async (route) => {
+    await page.context().route('**/api/messages/conversations*', async (route) => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+    });
+    
+    // Mock Mapbox API so the WebGL canvas initializes with our mock token
+    await page.context().route('https://api.mapbox.com/**', async (route) => {
+      // Mapbox just needs a valid style JSON to initialize the canvas
+      if (route.request().url().includes('/styles/')) {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ version: 8, name: "Empty", sources: {}, layers: [] }) });
+      } else {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({}) });
+      }
     });
   });
 

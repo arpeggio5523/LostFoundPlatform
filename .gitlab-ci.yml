@@ -1,3 +1,6 @@
+variables:
+  CI: "true"
+
 stages:
   - test
   - e2e
@@ -6,7 +9,7 @@ stages:
 test:unit:
   stage: test
   script:
-    - npm ci
+    - npm ci --no-progress --no-audit --no-fund
     - npm run test:coverage
   after_script:
     - node scripts/ci-after-test.js vitest
@@ -27,7 +30,7 @@ test:unit:
 test:e2e:
   stage: e2e
   script:
-    - npm ci
+    - npm ci --no-progress --no-audit --no-fund
     - cp .env.example .env
     - npx playwright install chromium
     - npm run test:e2e

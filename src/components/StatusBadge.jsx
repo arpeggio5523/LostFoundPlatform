@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function StatusBadge({ status }) {
   const normalizedStatus = status ? status.toLowerCase() : "";
 

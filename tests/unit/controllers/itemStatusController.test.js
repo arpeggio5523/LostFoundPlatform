@@ -72,4 +72,47 @@ describe("item status controller behavior", () => {
     expect(item.status).toBe("Approved");
     expect(item.save).toHaveBeenCalled();
   });
+
+  // Reject statuses outside the controller's allowed status list.
+  it("rejects an invalid item status", async () => {
+    const res = response();
+
+    await updateItemStatus(
+      { params: { itemId: "item-1" }, body: { status: "Unknown" }, user: { id: "admin-1", role: "admin" } },
+      res
+    );
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mockItem.findById).not.toHaveBeenCalled();
+  });
+
+  // Prevent users who do not own an item from changing its status.
+  it("rejects a status update from a non-owner", async () => {
+    const item = { status: "Pending", reportedBy: "owner-1", save: vi.fn() };
+    mockItem.findById.mockResolvedValue(item);
+    const res = response();
+
+    await updateItemStatus(
+      { params: { itemId: "item-1" }, body: { status: "Matched" }, user: { id: "other-user", role: "user" } },
+      res
+    );
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(item.save).not.toHaveBeenCalled();
+  });
+
+  // Ensure Lost and Found cannot be used as moderation updates by an owner.
+  it.each(["Lost", "Found"])("rejects owner updates to the %s status", async (status) => {
+    const item = { status: "Approved", reportedBy: "user-1", save: vi.fn() };
+    mockItem.findById.mockResolvedValue(item);
+    const res = response();
+
+    await updateItemStatus(
+      { params: { itemId: "item-1" }, body: { status }, user: { id: "user-1", role: "user" } },
+      res
+    );
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(item.save).not.toHaveBeenCalled();
+  });
 });

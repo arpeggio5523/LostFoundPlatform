@@ -48,4 +48,32 @@ describe("location tag controller behavior", () => {
     expect(item.reportLocation).toEqual(location);
     expect(item.save).toHaveBeenCalled();
   });
+
+  // Checks that malformed GeoJSON coordinates are rejected before saving.
+  it("rejects a location tag with invalid coordinates", async () => {
+    const res = response();
+    await createItem({
+      user: { id: "user-1" },
+      body: { ...body, reportLocation: { ...location, coordinates: [181, 3.12] } },
+    }, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mockItem).not.toHaveBeenCalled();
+  });
+
+  // Checks that only the report owner or an administrator can retag an item.
+  it("rejects a location update from a non-owner", async () => {
+    const item = { reportedBy: "owner-1", save: vi.fn() };
+    mockItem.findById.mockResolvedValue(item);
+    const res = response();
+
+    await updateItem({
+      params: { itemId: "item-1" },
+      user: { id: "other-user", role: "user" },
+      body: { reportLocation: location },
+    }, res);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(item.save).not.toHaveBeenCalled();
+  });
 });

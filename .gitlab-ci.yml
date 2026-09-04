@@ -1,6 +1,10 @@
 variables:
   CI: "true"
 
+default:
+  tags:
+    - FIT3170_RUNNER
+
 stages:
   - test
   - e2e

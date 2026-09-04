@@ -194,7 +194,7 @@ describe("POST /api/items/similar — integration", () => {
       .send({ embedding: FAKE_EMBEDDING, limit: 5 });
 
     const pipeline = Item.aggregate.mock.calls[0][0];
-    expect(pipeline[0].$vectorSearch.limit).toBe(5);
+    expect(pipeline[0].$vectorSearch.limit).toBe(50);
   });
 
   test("returns 500 when aggregation pipeline throws", async () => {

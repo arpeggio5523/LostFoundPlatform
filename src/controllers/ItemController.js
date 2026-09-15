@@ -215,31 +215,56 @@ export const createItem = async (req, res) => {
 
 export const getItems = async (req, res) => {
   try {
-    const filter = {};
     const isAdmin = isAdminUser(req.user);
- 
-    if (req.query.type) {
-      if (!ALLOWED_TYPES.includes(req.query.type)) {
-        return res.status(400).json({ error: `Invalid type filter. Must be Lost or Found.` });
-      }
-      filter.type = req.query.type;
-    }
- 
-    if (req.query.status) {
-      if (!ALLOWED_STATUSES.includes(req.query.status)) {
-        return res.status(400).json({ error: `Invalid status filter.` });
-      }
-      filter.status = req.query.status;
+    const currentUserId = req.user?.id;
+
+    // Validate type filter
+    if (req.query.type && !ALLOWED_TYPES.includes(req.query.type)) {
+      return res.status(400).json({ error: `Invalid type filter. Must be Lost or Found.` });
     }
 
-    if (!isAdmin) {
-      filter.status = req.query.status && PUBLIC_STATUSES.includes(req.query.status)
-        ? req.query.status
-        : { $in: PUBLIC_STATUSES };
+    // Validate status filter
+    if (req.query.status && !ALLOWED_STATUSES.includes(req.query.status)) {
+      return res.status(400).json({ error: `Invalid status filter.` });
     }
 
-    if (req.query.category) filter.category = req.query.category;
-    if (req.query.location) filter.location = new RegExp(req.query.location, "i");
+    const typeFilter = req.query.type ? { type: req.query.type } : {};
+    const categoryFilter = req.query.category ? { category: req.query.category } : {};
+    const locationFilter = req.query.location ? { location: new RegExp(req.query.location, "i") } : {};
+    const extraFilters = { ...typeFilter, ...categoryFilter, ...locationFilter };
+
+    let filter;
+
+    if (isAdmin) {
+      // Admins see everything; optional status filter applied directly
+      filter = { ...extraFilters };
+      if (req.query.status) filter.status = req.query.status;
+    } else {
+      // Non-admins: see public items from everyone, PLUS all their own items
+      const requestedStatus = req.query.status;
+
+      // Condition A: public items (not owned by current user, public statuses only)
+      const publicCondition = {
+        ...extraFilters,
+        status: requestedStatus && PUBLIC_STATUSES.includes(requestedStatus)
+          ? requestedStatus
+          : { $in: PUBLIC_STATUSES },
+        ...(currentUserId ? { reportedBy: { $ne: currentUserId } } : {}),
+      };
+
+      // Condition B: the current user's own items (any status)
+      const ownCondition = currentUserId
+        ? {
+            ...extraFilters,
+            reportedBy: currentUserId,
+            ...(requestedStatus ? { status: requestedStatus } : {}),
+          }
+        : null;
+
+      filter = ownCondition
+        ? { $or: [publicCondition, ownCondition] }
+        : publicCondition;
+    }
 
     const items = await Item.find(filter).populate("reportedBy", "fullName email").sort({ createdAt: -1 });
     return res.status(200).json({ count: items.length, data: items });

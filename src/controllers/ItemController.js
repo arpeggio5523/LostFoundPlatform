@@ -85,12 +85,13 @@ export const updateItemStatus = async (req, res) => {
       return res.status(400).json({ error: "Only approved items can be marked as matched." });
     }
 
+    // Use updateOne to avoid full document validation on legacy or E2E test data
+    await Item.updateOne({ _id: itemId }, { $set: { status } }, { runValidators: true });
     item.status = status;
-    const updatedItem = await item.save();
 
     res.status(200).json({
       message: "Item status updated",
-      data: updatedItem
+      data: item
     });
   } catch (err) {
     if (err.name === "ValidationError") {

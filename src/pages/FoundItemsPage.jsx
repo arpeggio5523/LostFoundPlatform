@@ -38,9 +38,7 @@ export default function FoundItemsPage() {
 
   const navigate = useNavigate();
   const { resetTheme } = useTheme();
-  const statusOptions = isAdmin()
-    ? STATUSES
-    : STATUSES.filter(option => option.toLowerCase() !== "pending");
+  const statusOptions = STATUSES;
 
   const handleLogout = () => {
     resetTheme();

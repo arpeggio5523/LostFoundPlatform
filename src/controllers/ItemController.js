@@ -85,12 +85,13 @@ export const updateItemStatus = async (req, res) => {
       return res.status(400).json({ error: "Only approved items can be marked as matched." });
     }
 
+    // Use updateOne to avoid full document validation on legacy or E2E test data
+    await Item.updateOne({ _id: itemId }, { $set: { status } }, { runValidators: true });
     item.status = status;
-    const updatedItem = await item.save();
 
     res.status(200).json({
       message: "Item status updated",
-      data: updatedItem
+      data: item
     });
   } catch (err) {
     if (err.name === "ValidationError") {
@@ -215,31 +216,56 @@ export const createItem = async (req, res) => {
 
 export const getItems = async (req, res) => {
   try {
-    const filter = {};
     const isAdmin = isAdminUser(req.user);
- 
-    if (req.query.type) {
-      if (!ALLOWED_TYPES.includes(req.query.type)) {
-        return res.status(400).json({ error: `Invalid type filter. Must be Lost or Found.` });
-      }
-      filter.type = req.query.type;
-    }
- 
-    if (req.query.status) {
-      if (!ALLOWED_STATUSES.includes(req.query.status)) {
-        return res.status(400).json({ error: `Invalid status filter.` });
-      }
-      filter.status = req.query.status;
+    const currentUserId = req.user?.id;
+
+    // Validate type filter
+    if (req.query.type && !ALLOWED_TYPES.includes(req.query.type)) {
+      return res.status(400).json({ error: `Invalid type filter. Must be Lost or Found.` });
     }
 
-    if (!isAdmin) {
-      filter.status = req.query.status && PUBLIC_STATUSES.includes(req.query.status)
-        ? req.query.status
-        : { $in: PUBLIC_STATUSES };
+    // Validate status filter
+    if (req.query.status && !ALLOWED_STATUSES.includes(req.query.status)) {
+      return res.status(400).json({ error: `Invalid status filter.` });
     }
 
-    if (req.query.category) filter.category = req.query.category;
-    if (req.query.location) filter.location = new RegExp(req.query.location, "i");
+    const typeFilter = req.query.type ? { type: req.query.type } : {};
+    const categoryFilter = req.query.category ? { category: req.query.category } : {};
+    const locationFilter = req.query.location ? { location: new RegExp(req.query.location, "i") } : {};
+    const extraFilters = { ...typeFilter, ...categoryFilter, ...locationFilter };
+
+    let filter;
+
+    if (isAdmin) {
+      // Admins see everything; optional status filter applied directly
+      filter = { ...extraFilters };
+      if (req.query.status) filter.status = req.query.status;
+    } else {
+      // Non-admins: see public items from everyone, PLUS all their own items
+      const requestedStatus = req.query.status;
+
+      // Condition A: public items (not owned by current user, public statuses only)
+      const publicCondition = {
+        ...extraFilters,
+        status: requestedStatus && PUBLIC_STATUSES.includes(requestedStatus)
+          ? requestedStatus
+          : { $in: PUBLIC_STATUSES },
+        ...(currentUserId ? { reportedBy: { $ne: currentUserId } } : {}),
+      };
+
+      // Condition B: the current user's own items (any status)
+      const ownCondition = currentUserId
+        ? {
+            ...extraFilters,
+            reportedBy: currentUserId,
+            ...(requestedStatus ? { status: requestedStatus } : {}),
+          }
+        : null;
+
+      filter = ownCondition
+        ? { $or: [publicCondition, ownCondition] }
+        : publicCondition;
+    }
 
     const items = await Item.find(filter).populate("reportedBy", "fullName email").sort({ createdAt: -1 });
     return res.status(200).json({ count: items.length, data: items });
@@ -293,6 +319,12 @@ export const findSimilarItems = async (req, res) => {
     const filter = type ? { type: { $eq: type } } : undefined;
     const minScore = Number(req.body.minScore || req.query.minScore) || 0.80;
 
+    const matchStage = { similarityScore: { $gte: minScore } };
+    const isAdmin = isAdminUser(req.user);
+    if (!isAdmin) {
+      matchStage.status = { $in: PUBLIC_STATUSES };
+    }
+
     const pipeline = [
       {
         $vectorSearch: {
@@ -300,13 +332,13 @@ export const findSimilarItems = async (req, res) => {
           path: "imageEmbedding",
           queryVector,
           numCandidates: Math.max(numericLimit * 10, 100),
-          limit: numericLimit + (excludeId ? 1 : 0),
+          limit: Math.max(numericLimit * 3, 50),
           ...(filter ? { filter } : {}),
         },
       },
       { $set: { mongoScore: { $meta: "vectorSearchScore" } } },
       { $set: { similarityScore: { $subtract: [ { $multiply: ["$mongoScore", 2] }, 1 ] } } },
-      { $match: { similarityScore: { $gte: minScore } } },
+      { $match: matchStage },
       { $project: { imageEmbedding: 0 } },
     ];
 

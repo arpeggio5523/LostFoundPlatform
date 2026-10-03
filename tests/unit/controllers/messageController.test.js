@@ -108,7 +108,7 @@ describe("getConversationMessages", () => {
     Conversation.findOne.mockResolvedValue({ _id: "conv-1" });
     Message.find.mockReturnValue(
       makeQuery([
-        { _id: "msg-1", sender: PRIVATE_OTHER, text: "cipher-1" },
+        { _id: "msg-1", sender: PRIVATE_OTHER, text: "cipher-1", image: "cipher-image" },
         { _id: "msg-2", sender: { _id: ME, fullName: "Me" }, text: "cipher-2" },
       ])
     );
@@ -117,6 +117,7 @@ describe("getConversationMessages", () => {
 
     const [msg1, msg2] = res.body.data;
     expect(msg1.text).toBe("decrypted:cipher-1");
+    expect(msg1.image).toBe("decrypted:cipher-image");
     expect(msg1.sender.fullName).toBe("Anonymous"); // private sender hidden from viewer
     expect(msg2.sender.fullName).toBe("Me");
   });
@@ -130,6 +131,36 @@ describe("sendMessage", () => {
     body: { text: "Hello there" },
     app: { get: vi.fn().mockReturnValue(undefined) }, // no io by default
     ...overrides,
+  });
+
+  test.each(["data:image/svg+xml;base64,PHN2Zz4=", "not-an-image", {}, "data:image/png;base64," + "A".repeat(2800000)])("rejects invalid or oversized image attachments", async (image) => {
+    const res = makeRes();
+    await sendMessage(baseReq({ body: { image } }), res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(Message.create).not.toHaveBeenCalled();
+  });
+
+  test("saves an encrypted image without a caption and broadcasts the decrypted image", async () => {
+    const image = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+    const res = makeRes();
+    const emit = vi.fn();
+    const io = { to: vi.fn(() => ({ emit })) };
+    const conversation = { _id: "conv-1", participants: [ME], save: vi.fn() };
+    Conversation.findOne.mockResolvedValue(conversation);
+    Message.create.mockResolvedValue({ _id: "image-message" });
+    Message.findById.mockReturnValue({ populate: vi.fn().mockResolvedValue({
+      toObject: () => ({ _id: "image-message", sender: { _id: ME }, text: "", image: `encrypted:${image}` }),
+    }) });
+    User.findById.mockReturnValue(makeQuery({ _id: ME }));
+    decrypt.mockImplementation((value) => value.replace(/^encrypted:/, ""));
+
+    await sendMessage(baseReq({ body: { image }, app: { get: () => io } }), res);
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(Message.create).toHaveBeenCalledWith(expect.objectContaining({ image: `encrypted:${image}` }));
+    expect(conversation.lastMessage).toBe("encrypted:Photo");
+    expect(res.body.data.image).toBe(image);
+    expect(emit).toHaveBeenCalledWith("message_received", expect.objectContaining({ data: expect.objectContaining({ image }) }));
   });
 
   test("400s when text is missing or blank", async () => {

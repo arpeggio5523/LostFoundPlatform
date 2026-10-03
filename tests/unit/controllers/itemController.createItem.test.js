@@ -35,7 +35,7 @@ beforeEach(() => {
 });
 
 describe("POST /api/items — createItem (Found post)", () => {
-  test("creates a Found item successfully and forces status to 'Approved'", async () => {
+  test("creates a Found item successfully and forces status to 'Pending'", async () => {
     const savedDoc = mockSavedDoc();
     Item.mockImplementation(function (payload) {
       Object.keys(payload || {}).forEach(k => Object.defineProperty(this, k, { value: payload[k], writable: true, enumerable: true, configurable: true }));
@@ -53,7 +53,7 @@ describe("POST /api/items — createItem (Found post)", () => {
     // reportedBy must come from the authenticated user, not the client body
     const constructedPayload = Item.mock.calls[0][0];
     expect(constructedPayload.reportedBy).toBe(FAKE_USER_ID);
-    expect(constructedPayload.status).toBe("Approved");
+    expect(constructedPayload.status).toBe("Pending");
   });
 
   test.each([

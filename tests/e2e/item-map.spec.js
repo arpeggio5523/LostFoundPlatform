@@ -31,6 +31,29 @@ const mockFoundItem = {
 };
 
 test.describe('Item map feature', () => {
+  test.beforeEach(async ({ page }) => {
+    // Mock authentication so we don't get redirected to /login
+    await page.addInitScript(() => {
+      localStorage.setItem('token', 'mock-token-123');
+      localStorage.setItem('user', JSON.stringify({ id: 'mockuser', role: 'User' }));
+    });
+    
+    // Mock messages API used by the Sidebar to prevent 401 redirects
+    await page.context().route('**/api/messages/conversations*', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+    });
+    
+    // Mock Mapbox API so the WebGL canvas initializes with our mock token
+    await page.context().route('https://api.mapbox.com/**', async (route) => {
+      // Mapbox just needs a valid style JSON to initialize the canvas
+      if (route.request().url().includes('/styles/')) {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ version: 8, name: "Empty", sources: {}, layers: [] }) });
+      } else {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({}) });
+      }
+    });
+  });
+
   test('opens the full-map view in a new tab and shows the item pin location', async ({ page }) => {
     await page.context().route('**/api/items/mock-item-123', async (route) => {
       await route.fulfill({

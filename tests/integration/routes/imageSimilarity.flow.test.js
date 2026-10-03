@@ -32,28 +32,28 @@ import request from "supertest";
 
 // ─── Module Mocks ───────────────────────────────────────────────────────────
 
-vi.mock("../../src/models/Item.js", () => {
+vi.mock("../../../src/models/Item.js", () => {
   const ItemMock = vi.fn();
   ItemMock.aggregate = vi.fn();
   ItemMock.findById = vi.fn();
   ItemMock.findOne = vi.fn();
   return { default: ItemMock };
 });
-vi.mock("../../src/models/User.js");
-vi.mock("../../src/utils/emailService.js");
-vi.mock("../../src/services/imageEmbedding.js");
-vi.mock("../../src/services/jinaEmbedding.js");
+vi.mock("../../../src/models/User.js");
+vi.mock("../../../src/utils/emailService.js");
+vi.mock("../../../src/services/imageEmbedding.js");
+vi.mock("../../../src/services/jinaEmbedding.js");
 
-import Item from "../../src/models/Item.js";
-import { validateImageEmbedding } from "../../src/services/imageEmbedding.js";
-import { generateImageEmbedding } from "../../src/services/jinaEmbedding.js";
-import { buildTestApp } from "../utils/buildTestApp.js";
+import Item from "../../../src/models/Item.js";
+import { validateImageEmbedding } from "../../../src/services/imageEmbedding.js";
+import { generateImageEmbedding } from "../../../src/services/jinaEmbedding.js";
+import { buildTestApp } from "../../utils/buildTestApp.js";
 import {
   createItem,
   findSimilarItems,
   findSimilarItemsById,
   embedImage,
-} from "../../src/controllers/ItemController.js";
+} from "../../../src/controllers/ItemController.js";
 import {
   FAKE_EMBEDDING,
   FAKE_EMBEDDING_ALT,
@@ -63,8 +63,8 @@ import {
   mockItemDoc,
   mockItemWithEmbedding,
   mockSimilarItemResults,
-} from "../mocks/imageSimilarity.mocks.js";
-import { VALID_FOUND_ITEM, mockSavedDoc } from "../utils/fixtures.js";
+} from "../../mocks/imageSimilarity.mocks.js";
+import { VALID_FOUND_ITEM, mockSavedDoc } from "../../utils/fixtures.js";
 
 
 // ─── App Builder ────────────────────────────────────────────────────────────

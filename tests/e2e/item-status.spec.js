@@ -23,6 +23,7 @@ test.beforeEach(async ({ page }) => {
   });
   await page.route("**/api/items?type=Lost", route => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: [item], count: 1 }) }));
   await page.route("**/api/items/status-item-1", route => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: item }) }));
+  await page.route("**/api/messages/conversations*", route => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: [] }) }));
 });
 
 // Checks that the status is visible in the list and on the item's details page.

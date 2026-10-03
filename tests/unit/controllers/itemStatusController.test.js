@@ -4,6 +4,7 @@ const mockItem = vi.hoisted(() => {
   const Item = vi.fn();
   Item.findById = vi.fn();
   Item.find = vi.fn();
+  Item.updateOne = vi.fn().mockResolvedValue({ acknowledged: true, matchedCount: 1, modifiedCount: 1 });
   return Item;
 });
 vi.mock("../../../src/models/Item.js", () => ({ default: mockItem }));
@@ -32,7 +33,7 @@ describe("item status controller behavior", () => {
 
   // Tests that lost and found posts receive the expected initial status.
   it.each(["Lost", "Found"])("assigns %s to a newly submitted post", async (type) => {
-    const saved = { _id: "item-1", type, status: "Approved", ...body(type) };
+    const saved = { _id: "item-1", type, status: "Pending", ...body(type) };
     const save = vi.fn().mockResolvedValue(saved);
     // The controller saves once before and once after generating the QR code.
     saved.save = save;
@@ -40,7 +41,7 @@ describe("item status controller behavior", () => {
     const res = response();
     await createItem({ user: { id: "user-1" }, body: body(type) }, res);
     // New posts are assigned the backend moderation status.
-    expect(mockItem).toHaveBeenCalledWith(expect.objectContaining({ type, status: "Approved" }));
+    expect(mockItem).toHaveBeenCalledWith(expect.objectContaining({ type, status: "Pending" }));
     expect(res.status).toHaveBeenCalledWith(201);
   });
 
@@ -70,6 +71,55 @@ describe("item status controller behavior", () => {
     const res = response();
     await updateItemStatus({ params: { itemId: "item-1" }, body: { status: "Approved" }, user: { id: "admin-1", role: "admin" } }, res);
     expect(item.status).toBe("Approved");
-    expect(item.save).toHaveBeenCalled();
+    expect(mockItem.updateOne).toHaveBeenCalledOnce();
+    expect(mockItem.updateOne).toHaveBeenCalledWith(
+      { _id: "item-1" }, { $set: { status: "Approved" } }, { runValidators: true }
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  // Reject statuses outside the controller's allowed status list.
+  it("rejects an invalid item status", async () => {
+    const res = response();
+
+    await updateItemStatus(
+      { params: { itemId: "item-1" }, body: { status: "Unknown" }, user: { id: "admin-1", role: "admin" } },
+      res
+    );
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mockItem.findById).not.toHaveBeenCalled();
+  });
+
+  // Prevent users who do not own an item from changing its status.
+  it("rejects a status update from a non-owner", async () => {
+    const item = { status: "Pending", reportedBy: "owner-1", save: vi.fn() };
+    mockItem.findById.mockResolvedValue(item);
+    const res = response();
+
+    await updateItemStatus(
+      { params: { itemId: "item-1" }, body: { status: "Matched" }, user: { id: "other-user", role: "user" } },
+      res
+    );
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(item.save).not.toHaveBeenCalled();
+    expect(mockItem.updateOne).not.toHaveBeenCalled();
+  });
+
+  // Ensure Lost and Found cannot be used as moderation updates by an owner.
+  it.each(["Lost", "Found"])("rejects owner updates to the %s status", async (status) => {
+    const item = { status: "Approved", reportedBy: "user-1", save: vi.fn() };
+    mockItem.findById.mockResolvedValue(item);
+    const res = response();
+
+    await updateItemStatus(
+      { params: { itemId: "item-1" }, body: { status }, user: { id: "user-1", role: "user" } },
+      res
+    );
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(item.save).not.toHaveBeenCalled();
+    expect(mockItem.updateOne).not.toHaveBeenCalled();
   });
 });

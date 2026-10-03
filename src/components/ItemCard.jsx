@@ -1,3 +1,4 @@
+import React from "react";
 import StatusBadge from "./StatusBadge";
 import QRIcon from "./QRIcon";
 import NoImagePlaceholder from "./NoImagePlaceHolder";
@@ -16,8 +17,9 @@ export default function ItemCard({ item, dateLabel, returnTo }) {
   }
 
   const currentUserId = getCurrentUserId();
-  const showActions = item && currentUserId &&
+  const isOwnPost = item && currentUserId &&
     String(item.reportedBy?._id || item.reportedBy) === String(currentUserId);
+  const showActions = isOwnPost;
 
   const handleEdit = (e) => {
     e.stopPropagation();
@@ -43,6 +45,31 @@ export default function ItemCard({ item, dateLabel, returnTo }) {
                 setShowQRModal(true);
               }}
             />
+            {/* Pending/Rejected banner for item owner */}
+        {isOwnPost && item.status === "Pending" && (
+          <div style={{
+            position: "absolute", bottom: 0, left: 0, right: 0,
+            background: "rgba(161, 98, 7, 0.92)",
+            color: "#fef9c3",
+            fontSize: 11, fontWeight: 700,
+            textAlign: "center", padding: "5px 8px",
+            letterSpacing: "0.03em",
+          }}>
+            ⏳ Pending Approval — only visible to you
+          </div>
+        )}
+        {isOwnPost && item.status === "Rejected" && (
+          <div style={{
+            position: "absolute", bottom: 0, left: 0, right: 0,
+            background: "rgba(153, 27, 27, 0.92)",
+            color: "#fee2e2",
+            fontSize: 11, fontWeight: 700,
+            textAlign: "center", padding: "5px 8px",
+            letterSpacing: "0.03em",
+          }}>
+            ❌ Rejected — not visible to others
+          </div>
+        )}
         </div>
 
         {/* Content */}

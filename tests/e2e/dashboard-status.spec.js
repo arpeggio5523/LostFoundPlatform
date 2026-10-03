@@ -26,6 +26,10 @@ test("shows an item's current status in the admin dashboard", async ({ page }) =
     }] }),
   }));
 
+  await page.route("**/api/messages/conversations*", (route) => route.fulfill({
+    status: 200, contentType: "application/json", body: JSON.stringify({ data: [] })
+  }));
+
   await page.goto("/admin-dashboard");
 
   // The moderation card displays the persisted status badge.

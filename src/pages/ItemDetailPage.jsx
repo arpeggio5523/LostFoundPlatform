@@ -1,3 +1,4 @@
+import React from "react";
 import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2, ExternalLink, MessageSquare, Search, Loader2 } from "lucide-react";
@@ -111,9 +112,6 @@ export default function ItemDetailPage() {
     }
   };
 
-  const updateItemStatus = async (status) => {
-    setUpdatingStatus(status);
-
   const handleStartChat = async () => {
     if (!item) return;
     const ownerId = item.reportedBy?._id || item.reportedBy;
@@ -134,6 +132,9 @@ export default function ItemDetailPage() {
       setStartingChat(false);
     }
   };
+
+  const updateItemStatus = async (status) => {
+    setUpdatingStatus(status);
 
     try {
       const response = await apiFetch(`/api/items/${item._id}/status`, {
@@ -346,15 +347,14 @@ export default function ItemDetailPage() {
             </div>
 
             {/* Actions Block for Owner/Admin */}
-            {canEdit && !["Pending", "Rejected"].includes(item.status) &&
-              (userIsAdmin || ["Approved", "Matched"].includes(item.status)) && (
+            {canEdit && (userIsAdmin || ["Approved", "Matched", "Returned"].includes(item.status)) && (
               <div className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 sm:p-6 transition-all duration-300">
                 <div className="mb-4 text-xl font-bold text-[var(--color-text-primary)]">
                   Actions
                 </div>
 
                 <div className={`grid grid-cols-1 gap-3 ${userIsAdmin ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
-                  {userIsAdmin && (
+                  {canEdit && (
                     <button
                       onClick={() =>
                         navigate(
@@ -369,7 +369,8 @@ export default function ItemDetailPage() {
                     </button>
                   )}
 
-                  {item.status === "Approved" && (
+
+                  {["Approved", "Returned"].includes(item.status) && (
                     <button
                       onClick={handleMarkAsMatched}
                       disabled={Boolean(updatingStatus)}

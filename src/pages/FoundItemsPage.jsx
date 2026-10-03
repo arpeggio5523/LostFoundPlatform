@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
@@ -37,9 +38,7 @@ export default function FoundItemsPage() {
 
   const navigate = useNavigate();
   const { resetTheme } = useTheme();
-  const statusOptions = isAdmin()
-    ? STATUSES
-    : STATUSES.filter(option => option.toLowerCase() !== "pending");
+  const statusOptions = STATUSES;
 
   const handleLogout = () => {
     resetTheme();

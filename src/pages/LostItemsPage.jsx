@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
@@ -40,9 +41,7 @@ const LOCATIONS = [
 export default function LostItemsPage() {
   const navigate = useNavigate();
   const { resetTheme } = useTheme();
-  const statusOptions = isAdmin()
-    ? STATUSES
-    : STATUSES.filter(option => option !== "Pending");
+  const statusOptions = STATUSES;
 
   const handleLogout = () => {
     resetTheme();

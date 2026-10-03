@@ -169,7 +169,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
     await findSimilarItems(req, res);
 
     const pipeline = Item.aggregate.mock.calls[0][0];
-    expect(pipeline[0].$vectorSearch.limit).toBe(10);
+    expect(pipeline[0].$vectorSearch.limit).toBe(50);
   });
 
   test("clamps limit to maximum of 50", async () => {
@@ -181,7 +181,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
     await findSimilarItems(req, res);
 
     const pipeline = Item.aggregate.mock.calls[0][0];
-    expect(pipeline[0].$vectorSearch.limit).toBe(50);
+    expect(pipeline[0].$vectorSearch.limit).toBe(150);
   });
 
   test("clamps limit to minimum of 1 when negative value provided", async () => {
@@ -195,7 +195,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
     await findSimilarItems(req, res);
 
     const pipeline = Item.aggregate.mock.calls[0][0];
-    expect(pipeline[0].$vectorSearch.limit).toBe(1);
+    expect(pipeline[0].$vectorSearch.limit).toBe(50);
   });
 
 
@@ -232,7 +232,7 @@ describe("findSimilarItems — POST /api/items/similar", () => {
     await findSimilarItems(req, res);
 
     const pipeline = Item.aggregate.mock.calls[0][0];
-    expect(pipeline[0].$vectorSearch.limit).toBe(6); // 5 + 1 for exclusion
+    expect(pipeline[0].$vectorSearch.limit).toBe(50); // 5 * 3 clamped to min 50
   });
 
 

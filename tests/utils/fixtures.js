@@ -20,7 +20,7 @@ export const mockSavedDoc = (overrides = {}) => {
   const doc = {
     _id: "64f000000000000000000099",
     ...VALID_FOUND_ITEM,
-    status: "Approved",
+    status: "Pending",
     reportedBy: FAKE_USER_ID,
     ...overrides,
   };

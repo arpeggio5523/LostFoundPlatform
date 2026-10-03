@@ -4,6 +4,7 @@ dist/
 .DS_Store
 
 # Test reports and coverage
+coverage/
 reports/
 html/
 test-results/
@@ -12,3 +13,7 @@ playwright-report/
 
 # User uploaded files / QR codes
 uploads/
+
+# E2E Debug Screenshots
+analytics-test-debug.png
+*.png

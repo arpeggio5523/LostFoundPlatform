@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Send, MessageSquare, ArrowLeft, Paperclip } from "lucide-react";
+import { Search, Send, MessageSquare, ArrowLeft, Paperclip, X } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import NavBar2 from "../components/NavBar2";
 import { getAuthUser, getCurrentUserId } from "../services/authState";
 import { fetchConversations, fetchMessages, sendMessage } from "../services/messagesApi";
 import { useSocket } from "../context/SocketContext";
 import { useToast } from "../context/ToastContext";
+import { MAX_MESSAGE_IMAGE_BYTES, MESSAGE_IMAGE_TYPES } from "../utils/messageAttachments";
 
 function Avatar({ initials }) {
   return (
@@ -48,6 +49,19 @@ export default function MessagesPage() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [attachment, setAttachment] = useState(null);
+  const [readingImage, setReadingImage] = useState(false);
+  const fileInputRef = useRef(null);
+  const imageReaderRef = useRef(null);
+  const activeConversationRef = useRef(selectedId);
+  activeConversationRef.current = selectedId;
+
+  useEffect(() => {
+    setAttachment(null);
+    setReadingImage(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    return () => imageReaderRef.current?.abort();
+  }, [selectedId]);
 
   const scrollRef = useRef(null);
   const socket = useSocket();
@@ -184,7 +198,7 @@ export default function MessagesPage() {
         }
         const next = prev.map((c) =>
           String(c._id) === convIdStr
-            ? { ...c, lastMessage: data.text, lastMessageAt: data.createdAt }
+            ? { ...c, lastMessage: data.text || (data.image ? "Photo" : ""), lastMessageAt: data.createdAt }
             : c
         );
         return next.sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
@@ -217,7 +231,7 @@ export default function MessagesPage() {
         }
         const next = prev.map((c) =>
           String(c._id) === convIdStr
-            ? { ...c, lastMessage: data.text, lastMessageAt: data.createdAt }
+            ? { ...c, lastMessage: data.text || (data.image ? "Photo" : ""), lastMessageAt: data.createdAt }
             : c
         );
         return next.sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
@@ -262,36 +276,66 @@ export default function MessagesPage() {
     return haystack.includes(search.toLowerCase());
   });
 
+  const handleImageSelected = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!MESSAGE_IMAGE_TYPES.includes(file.type)) {
+      showToast("Choose a JPEG, PNG, GIF or WebP image.", "error");
+      return;
+    }
+    if (!file.size || file.size > MAX_MESSAGE_IMAGE_BYTES) {
+      showToast("Choose an image no larger than 2 MB.", "error");
+      return;
+    }
+    imageReaderRef.current?.abort();
+    const reader = new FileReader();
+    imageReaderRef.current = reader;
+    setReadingImage(true);
+    reader.onload = () => {
+      setAttachment({ name: file.name, data: reader.result });
+      setReadingImage(false);
+    };
+    reader.onerror = () => {
+      setReadingImage(false);
+      showToast("Could not read this image. Please try again.", "error");
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSend = async () => {
     const text = draft.trim();
-    if (!text || !selectedId || sending) return;
+    if ((!text && !attachment) || !selectedId || sending || readingImage) return;
 
-    if (socket && socket.connected) {
+    if (socket && socket.connected && !attachment) {
       setSending(true);
       socket.emit("send_message", { conversationId: selectedId, text });
     } else {
-      // Fallback to HTTP if socket is disconnected
+      // Send images over HTTP; the server broadcasts them to live participants.
       setSending(true);
       try {
-        const data = await sendMessage(selectedId, text);
+        const data = await sendMessage(selectedId, text, attachment?.data);
         if (data.data) {
           const sentDate = data.data.createdAt || new Date().toISOString();
           localStorage.setItem(`lastRead_${selectedId}`, sentDate);
           window.dispatchEvent(new Event("updateUnread"));
 
-          setMessages((prev) => [...prev, data.data]);
-          setDraft("");
+          if (activeConversationRef.current === selectedId) {
+            setMessages((prev) => prev.some((m) => String(m._id) === String(data.data._id)) ? prev : [...prev, data.data]);
+            setDraft("");
+            setAttachment(null);
+          }
           setConversations((prev) => {
             const next = prev.map((c) =>
               c._id === selectedId
-                ? { ...c, lastMessage: text, lastMessageAt: sentDate }
+                ? { ...c, lastMessage: text || "Photo", lastMessageAt: sentDate }
                 : c
             );
             return next.sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
           });
         }
       } catch (err) {
-        showToast("Failed to send message", "error");
+        showToast(err.message || "Failed to send message", "error");
       } finally {
         setSending(false);
       }
@@ -451,7 +495,17 @@ export default function MessagesPage() {
                                 : "rounded-bl-md bg-white text-gray-800 dark:bg-[var(--color-bg-surface)] dark:text-[var(--color-text-primary)] border border-gray-200 dark:border-[var(--color-border-subtle)]"
                             }`}
                           >
-                            <p>{m.text}</p>
+                            {m.image && (
+                              <img
+                                src={m.image}
+                                alt="Image attachment"
+                                className="mb-1 max-h-72 max-w-full rounded-lg object-contain"
+                                onLoad={() => {
+                                  if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+                                }}
+                              />
+                            )}
+                            {m.text && <p>{m.text}</p>}
                             <p
                               className={`mt-1 text-[10px] ${
                                 isMine
@@ -470,12 +524,24 @@ export default function MessagesPage() {
 
                 {/* Composer */}
                 <div className="border-t border-gray-200 dark:border-[var(--color-border-subtle)] bg-white dark:bg-[var(--color-bg-surface)] px-4 py-3">
+                  {attachment && (
+                    <div className="mb-3 flex items-center gap-3 text-sm text-gray-600 dark:text-[var(--color-text-secondary)]">
+                      <img src={attachment.data} alt="Selected attachment" className="h-20 w-20 rounded-lg object-cover" />
+                      <span className="min-w-0 truncate">{attachment.name}</span>
+                      <button type="button" aria-label="Remove attachment" disabled={sending} onClick={() => setAttachment(null)} className="rounded-lg p-2 disabled:opacity-40">
+                        <X size={18} />
+                      </button>
+                    </div>
+                  )}
+                  {readingImage && <p role="status" className="mb-2 text-sm text-gray-500">Reading image...</p>}
+                  <input ref={fileInputRef} type="file" accept={MESSAGE_IMAGE_TYPES.join(",")} onChange={handleImageSelected} className="hidden" aria-label="Choose image attachment" />
                   <div className="flex items-center gap-2">
-                    <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-[var(--color-text-secondary)] dark:hover:bg-[var(--color-bg-raised)]">
+                    <button type="button" aria-label="Attach image" title="Attach image (up to 2 MB)" onClick={() => fileInputRef.current?.click()} disabled={sending || readingImage} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-[var(--color-text-secondary)] dark:hover:bg-[var(--color-bg-raised)] disabled:opacity-40">
                       <Paperclip size={18} />
                     </button>
                     <input
                       value={draft}
+                      disabled={sending}
                       onChange={(e) => setDraft(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSend()}
                       placeholder="Type a message..."
@@ -483,7 +549,8 @@ export default function MessagesPage() {
                     />
                     <button
                       onClick={handleSend}
-                      disabled={!draft.trim() || sending}
+                      aria-label="Send message"
+                      disabled={(!draft.trim() && !attachment) || sending || readingImage}
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand)] text-[var(--color-brand-text)] transition-opacity disabled:opacity-40"
                     >
                       <Send size={16} />

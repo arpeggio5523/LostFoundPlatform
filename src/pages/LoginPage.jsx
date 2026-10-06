@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import {Eye, EyeOff} from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
@@ -34,6 +35,7 @@ function LoginPage(){
     const [isResending, setIsResending] = useState(false);
     const [popupMessage, setPopupMessage] = useState("");
     const [showPopup, setShowPopup] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const redirectPath = getSafeRedirectPath(searchParams.get("redirect"));
 
     useEffect(() => {
@@ -188,14 +190,24 @@ function LoginPage(){
                                 onChange={(e) => handleChange(e, "email")}
                                 required
                             />
-                            <AuthInput
+                            <div className="relative">
+                                <AuthInput
                                 label="Password"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 placeholder={"••••••••"}
                                 value={formData.password}
                                 onChange={(e) => handleChange(e, "password")}
                                 required
-                            />
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-10 text-gray-500 hover:text-gray-700"
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                             <div className="flex items-center text-sm">
                                 <label className="flex items-center gap-2 text-[var(--color-text-primary)]">
                                     <input

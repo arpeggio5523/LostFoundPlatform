@@ -1,4 +1,4 @@
-import { notifyModeration, notifyReportChange } from "../services/notificationService.js";
+import { notifyModeration, notifyReportChange, notifyAdminsOfPendingReport } from "../services/notificationService.js";
 import Item from "../models/Item.js";
 import User from "../models/User.js";
 import { sendContactOwnerEmail } from "../utils/emailService.js";
@@ -202,6 +202,13 @@ export const createItem = async (req, res) => {
 
     savedItem.qrCodePath = `/uploads/qrcodes/${qrFileName}`;
     await savedItem.save();
+
+    // The report is already saved; notification failures must not invite a duplicate submission.
+    try {
+      await notifyAdminsOfPendingReport(req.app?.get("io"), savedItem);
+    } catch (err) {
+      console.error("Pending report notification error:", err);
+    }
 
     return res.status(201).json({
       message: `${type} item report submitted successfully.`,

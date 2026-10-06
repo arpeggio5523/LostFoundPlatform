@@ -1,10 +1,23 @@
 import Notification from "../models/Notification.js";
+import User from "../models/User.js";
 import { maskUserForViewer } from "../utils/privacy.js";
 
 export async function createNotification(io, fields) {
   const notification = await Notification.create(fields);
   io?.to(String(fields.recipient)).emit("notification_received", { data: notification });
   return notification;
+}
+
+export async function notifyAdminsOfPendingReport(io, item) {
+  if (item.status !== "Pending") return;
+  const admins = await User.find({ role: "Admin" }).select("_id").lean();
+  await Promise.all(admins.map((admin) => createNotification(io, {
+    recipient: admin._id,
+    type: "pending_review",
+    title: "Report awaiting review",
+    body: `A new ${item.type.toLowerCase()} item report "${item.title}" needs review.`,
+    item: item._id,
+  })));
 }
 
 export async function notifyMessageRecipients(io, conversation, sender) {

@@ -13,6 +13,7 @@ const FILTERS = [
   { id: "moderation", label: "Report updates" },
 ];
 const TYPES = {
+  pending_review: { icon: Inbox, label: "Report awaiting review", action: "Review report", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" },
   message: { icon: MessageSquare, label: "Message", action: "Open conversation", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
   approved: { icon: CheckCircle2, label: "Report approved", action: "View report", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300" },
   rejected: { icon: XCircle, label: "Report rejected", action: "Review report", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" },
@@ -58,7 +59,7 @@ export default function NotificationsPage() {
       const matching = all.data.filter((entry) =>
         filter === "unread" ? !entry.readAt :
         filter === "messages" ? entry.type === "message" :
-        filter === "moderation" ? ["approved", "rejected", "edited", "deleted", "matched", "returned"].includes(entry.type) : true
+        filter === "moderation" ? ["approved", "rejected", "edited", "deleted", "matched", "returned", "pending_review"].includes(entry.type) : true
       );
       cached = { ...all, data: matching.slice((page - 1) * 25, page * 25), total: matching.length, page };
       cache.current.set(key, cached);

@@ -70,6 +70,7 @@ export default function ReportLostItemPage() {
   const [dragOver, setDragOver] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Pre-fill form if editing
   useEffect(() => {
@@ -152,10 +153,15 @@ export default function ReportLostItemPage() {
   }
 
   async function handleSubmit() {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     setSubmitError("");
+
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setIsSubmitting(false);
       return;
     }
 
@@ -251,6 +257,8 @@ export default function ReportLostItemPage() {
       );
     } catch (error) {
       setSubmitError(error.message || "Failed to submit report");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 

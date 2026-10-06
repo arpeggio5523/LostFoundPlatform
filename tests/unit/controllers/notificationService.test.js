@@ -1,10 +1,41 @@
 vi.mock("../../../src/models/Notification.js");
+vi.mock("../../../src/models/User.js");
+import User from "../../../src/models/User.js";
 import Notification from "../../../src/models/Notification.js";
-import { notifyMessageRecipients, notifyModeration, notifyReportChange } from "../../../src/services/notificationService.js";
+import { notifyMessageRecipients, notifyModeration, notifyReportChange, notifyAdminsOfPendingReport } from "../../../src/services/notificationService.js";
 
 beforeEach(() => {
   vi.clearAllMocks();
   Notification.create.mockImplementation(async (fields) => fields);
+});
+
+test.each(["Lost", "Found"])("notifies every admin of a new %s report with a review destination", async (type) => {
+  const lean = vi.fn().mockResolvedValue([{ _id: "admin1" }, { _id: "admin2" }]);
+  const select = vi.fn().mockReturnValue({ lean });
+  User.find.mockReturnValue({ select });
+  const emit = vi.fn();
+  const io = { to: vi.fn().mockReturnValue({ emit }) };
+  await notifyAdminsOfPendingReport(io, { _id: "item", title: "Wallet", status: "Pending", type });
+  expect(User.find).toHaveBeenCalledWith({ role: "Admin" });
+  expect(select).toHaveBeenCalledWith("_id");
+  expect(Notification.create).toHaveBeenCalledTimes(2);
+  for (const recipient of ["admin1", "admin2"]) {
+    expect(Notification.create).toHaveBeenCalledWith({ recipient, type: "pending_review", title: "Report awaiting review", body: `A new ${type.toLowerCase()} item report "Wallet" needs review.`, item: "item" });
+    expect(io.to).toHaveBeenCalledWith(recipient);
+  }
+  expect(emit).toHaveBeenCalledTimes(2);
+});
+
+test("does not notify admins about reports that are not pending", async () => {
+  await notifyAdminsOfPendingReport(null, { status: "Approved" });
+  expect(User.find).not.toHaveBeenCalled();
+  expect(Notification.create).not.toHaveBeenCalled();
+});
+
+test("handles having no admin accounts", async () => {
+  User.find.mockReturnValue({ select: () => ({ lean: async () => [] }) });
+  await notifyAdminsOfPendingReport(null, { status: "Pending", type: "Lost" });
+  expect(Notification.create).not.toHaveBeenCalled();
 });
 
 test("notifies recipients, excludes sender, and masks private names", async () => {

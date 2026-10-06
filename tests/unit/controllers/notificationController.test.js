@@ -28,7 +28,7 @@ test("cannot mark someone else's notification read", async () => {
 test.each([
   ["unread", { readAt: null }],
   ["messages", { type: "message" }],
-  ["moderation", { type: { $in: ["approved", "rejected", "edited", "deleted", "matched", "returned"] } }],
+  ["moderation", { type: { $in: ["approved", "rejected", "edited", "deleted", "matched", "returned", "pending_review"] } }],
 ])("filters %s notifications before pagination and keeps the global unread count", async (filter, fields) => {
   const query = { sort: vi.fn().mockReturnThis(), skip: vi.fn().mockReturnThis(), limit: vi.fn().mockReturnThis(), lean: vi.fn().mockResolvedValue([]) };
   Notification.find.mockReturnValue(query);

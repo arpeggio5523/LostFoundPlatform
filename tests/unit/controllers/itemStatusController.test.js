@@ -1,4 +1,4 @@
-vi.mock("../../../src/services/notificationService.js", () => ({ notifyMessageRecipients: vi.fn(), notifyModeration: vi.fn(), notifyReportChange: vi.fn() }));
+vi.mock("../../../src/services/notificationService.js", () => ({ notifyMessageRecipients: vi.fn(), notifyModeration: vi.fn(), notifyReportChange: vi.fn(), notifyAdminsOfPendingReport: vi.fn() }));
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { notifyModeration, notifyReportChange } from "../../../src/services/notificationService.js";
 

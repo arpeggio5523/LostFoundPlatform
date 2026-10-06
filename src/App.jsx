@@ -1,3 +1,4 @@
+import NotificationsPage from "./pages/NotificationsPage";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard"
 import Home from "./pages/Home";
@@ -35,6 +36,7 @@ function App() {
         <Route path="/report-lost" element={<ReportLostItemPage />} />
         <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/messages" element={<MessagesPage />} />
       </Routes>
   );

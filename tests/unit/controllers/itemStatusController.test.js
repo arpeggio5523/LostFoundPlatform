@@ -1,9 +1,12 @@
+vi.mock("../../../src/services/notificationService.js", () => ({ notifyMessageRecipients: vi.fn(), notifyModeration: vi.fn() }));
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { notifyModeration } from "../../../src/services/notificationService.js";
 
 const mockItem = vi.hoisted(() => {
   const Item = vi.fn();
   Item.findById = vi.fn();
   Item.find = vi.fn();
+  Item.updateOne = vi.fn().mockResolvedValue({ modifiedCount: 1 });
   return Item;
 });
 vi.mock("../../../src/models/Item.js", () => ({ default: mockItem }));
@@ -70,7 +73,10 @@ describe("item status controller behavior", () => {
     const res = response();
     await updateItemStatus({ params: { itemId: "item-1" }, body: { status: "Approved" }, user: { id: "admin-1", role: "admin" } }, res);
     expect(item.status).toBe("Approved");
-    expect(item.save).toHaveBeenCalled();
+    expect(mockItem.updateOne).toHaveBeenCalledWith(
+      { _id: "item-1" }, { $set: { status: "Approved" } }, { runValidators: true },
+    );
+    expect(notifyModeration).toHaveBeenCalledWith(undefined, item, "Pending");
   });
 
   // Reject statuses outside the controller's allowed status list.

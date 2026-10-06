@@ -1,3 +1,4 @@
+vi.mock("../../../src/services/notificationService.js", () => ({ notifyMessageRecipients: vi.fn(), notifyModeration: vi.fn() }));
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import path from "path";
 

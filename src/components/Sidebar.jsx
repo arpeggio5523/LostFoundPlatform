@@ -3,7 +3,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { getAuthUser } from "../services/authState";
 import { fetchConversations } from "../services/messagesApi";
 import { useSocket } from "../context/SocketContext";
+import useNotificationCount from "../hooks/useNotificationCount";
 import { 
+  Bell,
   Home, 
   Search, 
   FileText, 
@@ -17,6 +19,7 @@ import {
 } from "lucide-react";
 
 const NAV_ITEMS = [
+  { label: "Notifications", path: "/notifications", icon: Bell },
   { label: "Home",        path: "/dashboard",          icon: Home },
   { label: "Found Items", path: "/found-items",   icon: Search },
   { label: "Lost Items",  path: "/lost-items",    icon: FileText },
@@ -37,6 +40,7 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
   ).filter((item) => !item.adminOnly || isAdmin);
 
   const socket = useSocket();
+  const notificationCount = useNotificationCount();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -161,6 +165,11 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
             >
               <Icon size={isCollapsed ? 22 : 16} strokeWidth={2} style={{ flexShrink: 0 }} />
               {!isCollapsed && label}
+              {label === "Notifications" && notificationCount > 0 && (
+                <span aria-label={`${notificationCount} unread notifications`} style={{ marginLeft: "auto", fontSize: 11, color: "var(--color-brand)", fontWeight: 800 }}>
+                  {notificationCount > 99 ? "99+" : notificationCount}
+                </span>
+              )}
               
               {label === "Messages" && unreadCount > 0 && !isCollapsed && (
                 <div style={{

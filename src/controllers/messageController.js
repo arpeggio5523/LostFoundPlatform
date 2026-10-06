@@ -1,3 +1,4 @@
+import { notifyMessageRecipients } from "../services/notificationService.js";
 import Conversation from "../models/Conversation.js";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
@@ -104,6 +105,7 @@ export const sendMessage = async (req, res) => {
     populatedObj.text = decrypt(populatedObj.text);
     
     const io = req.app.get("io");
+    await notifyMessageRecipients(io, conversation, populatedObj.sender);
 
     if (io) {
       conversation.participants.forEach((participantId) => {

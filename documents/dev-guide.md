@@ -1,5 +1,24 @@
 # Developer Guide: Running & Building the App
 
+## In-app notifications
+
+Open **Notifications** in the sidebar or use the header bell. New messages and
+admin approval/rejection decisions are stored in MongoDB and delivered through
+Socket.IO while connected. Offline users see their stored notifications when
+they return. Click an entry to mark it read and open the conversation or report,
+or use **Mark all as read**. No additional environment variables are required.
+
+Authenticated API endpoints:
+
+- `GET /api/notifications?page=1&limit=25&filter=all`: newest notifications, total and unread count (maximum limit: 100). Filters: `all`, `unread`, `messages`, `moderation`. The unread count always covers all notifications.
+- `PATCH /api/notifications/:id/read`: mark one of the current user's notifications read.
+- `PATCH /api/notifications/read-all`: mark the current user's notifications read.
+
+Socket events `notification_received` and `notifications_updated` are sent only
+to the recipient's authenticated user room. Message notifications omit message
+contents and respect anonymous sender names. Moderation notifications are created
+when an administrator changes a report to Approved or Rejected.
+
 
 ## Quick Start (minimal)
 1. Ensure Node.js and npm are installed and `npm` is available in your PATH. If not, install Node.js and follow a short YouTube tutorial to add npm to your PATH : https://www.youtube.com/watch?v=YfC8tEfjKCM&t=51s

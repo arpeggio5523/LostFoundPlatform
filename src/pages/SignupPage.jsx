@@ -149,7 +149,7 @@ function SignupPage(){
                                 />
                                 <button
                                     type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
+                                    onClick={() => setShowPassword(prev => !prev)}
                                     className="absolute right-4 top-10 text-gray-400 hover:text-gray-700"
                                     aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
@@ -168,7 +168,7 @@ function SignupPage(){
                                 />
                                 <button
                                     type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    onClick={() => setShowConfirmPassword(prev => !prev)}
                                     className="absolute right-4 top-10 text-gray-400 hover:text-gray-700"
                                     aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                                 >

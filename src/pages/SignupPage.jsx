@@ -8,6 +8,7 @@ import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { getCurrentUserId } from "../services/authState";
 import { useForceLightMode } from "../hooks/useForceLightMode";
 import { useToast } from "../context/ToastContext";
+import {Eye, EyeOff} from "lucide-react";
 
 function SignupPage(){
     const navigate = useNavigate();
@@ -21,6 +22,8 @@ function SignupPage(){
     const [occupation, setOccupation] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     async function handleSignup(event){
         event.preventDefault(); // prevent refresh
@@ -134,24 +137,44 @@ function SignupPage(){
                                 value = {occupation}
                                 onChange = {(event) => setOccupation(event.target.value)}
                             />
-                            <AuthInput
+                            <div className="relative">
+                                <AuthInput
                                 label = "Password *"
-                                type = "password"
+                                type = {showPassword ? "text" : "password"}
                                 placeholder={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
                                 value = {password}
                                 onChange = {(event) => setPassword(event.target.value)}
                                 required
                                 minLength = {8}
-                            />
-                            <AuthInput
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-10 text-gray-400 hover:text-gray-700"
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                            <div className="relative">
+                                <AuthInput
                                 label = "Confirm Password *"
-                                type = "password"
+                                type = {showConfirmPassword ? "text" : "password"}
                                 placeholder={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
                                 value = {confirmPassword}
                                 onChange = {(event) => setConfirmPassword(event.target.value)}
                                 required
                                 minLength = {8}
-                            />
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-4 top-10 text-gray-400 hover:text-gray-700"
+                                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                             <AuthButton type = "submit">Create Account</AuthButton>
                             </form>
                             <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">

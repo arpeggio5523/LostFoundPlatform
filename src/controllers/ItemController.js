@@ -1,3 +1,4 @@
+import { notifyModeration } from "../services/notificationService.js";
 import Item from "../models/Item.js";
 import User from "../models/User.js";
 import { sendContactOwnerEmail } from "../utils/emailService.js";
@@ -87,7 +88,9 @@ export const updateItemStatus = async (req, res) => {
 
     // Use updateOne to avoid full document validation on legacy or E2E test data
     await Item.updateOne({ _id: itemId }, { $set: { status } }, { runValidators: true });
+    const previousStatus = item.status;
     item.status = status;
+    if (isAdmin) await notifyModeration(req.app?.get("io"), item, previousStatus);
 
     res.status(200).json({
       message: "Item status updated",
@@ -381,6 +384,7 @@ export const updateItem = async (req, res) => {
       return res.status(403).json({ error: "You do not have permission to update this item." });
     }
 
+    const previousStatus = item.status;
     const {
       title, description, category, type, location, exactLocation, date, color, distMark, images, status, reportLocation, user, embedding
     } = req.body;
@@ -423,6 +427,7 @@ export const updateItem = async (req, res) => {
     }
 
     const updated = await item.save();
+    if (isAdmin) await notifyModeration(req.app?.get("io"), updated, previousStatus);
     return res.status(200).json({ message: "Item updated.", data: updated });
   } catch (err) {
     if (err.name === "ValidationError") {

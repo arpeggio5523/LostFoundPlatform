@@ -3,7 +3,7 @@
 ## In-app notifications
 
 Open **Notifications** in the sidebar or use the header bell. New messages and
-admin approval/rejection decisions are stored in MongoDB and delivered through
+admin edits, deletions, and approval/rejection/match/return decisions are stored in MongoDB and delivered through
 Socket.IO while connected. Offline users see their stored notifications when
 they return. Click an entry to mark it read and open the conversation or report,
 or use **Mark all as read**. No additional environment variables are required.
@@ -17,7 +17,10 @@ Authenticated API endpoints:
 Socket events `notification_received` and `notifications_updated` are sent only
 to the recipient's authenticated user room. Message notifications omit message
 contents and respect anonymous sender names. Moderation notifications are created
-when an administrator changes a report to Approved or Rejected.
+when an administrator edits or deletes a report, or changes its status to Approved,
+Rejected, Matched, or Returned. An edit that changes status sends one specific
+status notification. Deleted-report notifications keep the report title but do
+not link to the removed report. Owner actions do not create admin notifications.
 
 
 ## Quick Start (minimal)

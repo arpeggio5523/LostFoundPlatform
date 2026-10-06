@@ -1,4 +1,4 @@
-import { notifyModeration } from "../services/notificationService.js";
+import { notifyModeration, notifyReportChange, notifyAdminsOfPendingReport } from "../services/notificationService.js";
 import Item from "../models/Item.js";
 import User from "../models/User.js";
 import { sendContactOwnerEmail } from "../utils/emailService.js";
@@ -202,6 +202,13 @@ export const createItem = async (req, res) => {
 
     savedItem.qrCodePath = `/uploads/qrcodes/${qrFileName}`;
     await savedItem.save();
+
+    // The report is already saved; notification failures must not invite a duplicate submission.
+    try {
+      await notifyAdminsOfPendingReport(req.app?.get("io"), savedItem);
+    } catch (err) {
+      console.error("Pending report notification error:", err);
+    }
 
     return res.status(201).json({
       message: `${type} item report submitted successfully.`,
@@ -427,7 +434,7 @@ export const updateItem = async (req, res) => {
     }
 
     const updated = await item.save();
-    if (isAdmin) await notifyModeration(req.app?.get("io"), updated, previousStatus);
+    if (isAdmin) await notifyReportChange(req.app?.get("io"), updated, "edited", previousStatus);
     return res.status(200).json({ message: "Item updated.", data: updated });
   } catch (err) {
     if (err.name === "ValidationError") {
@@ -451,6 +458,7 @@ export const deleteItem = async (req, res) => {
     }
 
     await item.deleteOne();
+    if (isAdmin) await notifyReportChange(req.app?.get("io"), item, "deleted");
     return res.status(200).json({ message: "Item deleted successfully." });
   } catch (err) {
     return res.status(500).json({ error: err.message });

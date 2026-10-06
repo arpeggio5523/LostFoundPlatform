@@ -21,12 +21,28 @@ export async function notifyMessageRecipients(io, conversation, sender) {
 }
 
 export async function notifyModeration(io, item, previousStatus) {
-  if (item.status === previousStatus || !["Approved", "Rejected"].includes(item.status)) return;
+  if (item.status === previousStatus || !["Approved", "Rejected", "Matched", "Returned"].includes(item.status)) return;
   await createNotification(io, {
     recipient: item.reportedBy?._id || item.reportedBy,
     type: item.status.toLowerCase(),
     title: `Report ${item.status.toLowerCase()}`,
     body: `Your report "${item.title}" was ${item.status.toLowerCase()} by an administrator.`,
     item: item._id,
+  });
+}
+
+export async function notifyReportChange(io, item, action, previousStatus) {
+  // A status change during an edit gets one specific notification.
+  if (action === "edited" && item.status !== previousStatus &&
+      ["Approved", "Rejected", "Matched", "Returned"].includes(item.status)) {
+    return notifyModeration(io, item, previousStatus);
+  }
+  await createNotification(io, {
+    recipient: item.reportedBy?._id || item.reportedBy,
+    type: action,
+    title: `Report ${action}`,
+    body: `Your report "${item.title}" was ${action} by an administrator.`,
+    // Deleted reports no longer have a destination to open.
+    ...(action === "deleted" ? {} : { item: item._id }),
   });
 }

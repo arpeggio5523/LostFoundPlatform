@@ -8,7 +8,7 @@ export async function getNotifications(req, res) {
     const filter = { recipient: req.user.id };
     if (req.query.filter === "unread") filter.readAt = null;
     if (req.query.filter === "messages") filter.type = "message";
-    if (req.query.filter === "moderation") filter.type = { $in: ["approved", "rejected"] };
+    if (req.query.filter === "moderation") filter.type = { $in: ["approved", "rejected", "edited", "deleted", "matched", "returned"] };
     const [data, total, unreadCount] = await Promise.all([
       Notification.find(filter).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * limit).limit(limit).lean(),
       Notification.countDocuments(filter),

@@ -16,6 +16,10 @@ const TYPES = {
   message: { icon: MessageSquare, label: "Message", action: "Open conversation", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
   approved: { icon: CheckCircle2, label: "Report approved", action: "View report", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300" },
   rejected: { icon: XCircle, label: "Report rejected", action: "Review report", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" },
+  edited: { icon: RefreshCw, label: "Report edited", action: "View report", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
+  deleted: { icon: XCircle, label: "Report deleted", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" },
+  matched: { icon: CheckCircle2, label: "Report matched", action: "View report", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300" },
+  returned: { icon: CheckCheck, label: "Report returned", action: "View report", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300" },
 };
 function friendlyTime(value) {
   const date = new Date(value);
@@ -54,7 +58,7 @@ export default function NotificationsPage() {
       const matching = all.data.filter((entry) =>
         filter === "unread" ? !entry.readAt :
         filter === "messages" ? entry.type === "message" :
-        filter === "moderation" ? ["approved", "rejected"].includes(entry.type) : true
+        filter === "moderation" ? ["approved", "rejected", "edited", "deleted", "matched", "returned"].includes(entry.type) : true
       );
       cached = { ...all, data: matching.slice((page - 1) * 25, page * 25), total: matching.length, page };
       cache.current.set(key, cached);
@@ -166,7 +170,7 @@ export default function NotificationsPage() {
               <div className="px-6 py-16 text-center">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-brand-active-bg)] text-[var(--color-brand)]">{filter === "unread" ? <CheckCheck size={28} /> : <Inbox size={28} />}</div>
                 <h2 className="text-lg font-semibold">{filter === "unread" ? "You're all caught up" : filter === "messages" ? "No message notifications yet" : filter === "moderation" ? "No report updates yet" : "You're up to date"}</h2>
-                <p className="mx-auto mt-2 max-w-sm text-sm text-[var(--color-text-secondary)]">{filter === "unread" ? "You've read all your notifications. You can still find them in All." : filter === "messages" ? "When someone sends you a message, you'll see it here." : filter === "moderation" ? "When an admin approves or rejects your report, you'll see the decision here." : "New messages and admin decisions will appear here when they arrive."}</p>
+                <p className="mx-auto mt-2 max-w-sm text-sm text-[var(--color-text-secondary)]">{filter === "unread" ? "You've read all your notifications. You can still find them in All." : filter === "messages" ? "When someone sends you a message, you'll see it here." : filter === "moderation" ? "When an admin edits, deletes, or changes your report's status, you'll see the update here." : "New messages and admin decisions will appear here when they arrive."}</p>
                 {filter !== "all" && <button onClick={() => { setFilter("all"); setPage(1); }} className="mt-5 text-sm font-semibold text-[var(--color-brand)]">View all notifications</button>}
               </div>
             ) : (
@@ -185,7 +189,7 @@ export default function NotificationsPage() {
                         <div className="mt-1 flex items-center gap-2"><h2 className={`break-words text-sm ${notification.readAt ? "font-medium" : "font-bold"}`}>{notification.title}</h2>{!notification.readAt && <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-[var(--color-brand)]"><span className="h-1.5 w-1.5 rounded-full bg-[var(--color-brand)]" />New</span>}</div>
                         <p className="mt-1 break-words text-sm leading-relaxed text-[var(--color-text-secondary)]">{notification.body}</p>
                         <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-                          <button disabled={!!busy} onClick={() => markRead(notification, true)} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--color-brand)] hover:underline disabled:opacity-50">{style.action}<ArrowUpRight size={15} aria-hidden="true" /></button>
+                          {style.action && <button disabled={!!busy} onClick={() => markRead(notification, true)} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--color-brand)] hover:underline disabled:opacity-50">{style.action}<ArrowUpRight size={15} aria-hidden="true" /></button>}
                           {!notification.readAt && <button disabled={!!busy} onClick={() => markRead(notification)} className="inline-flex items-center gap-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-brand)] disabled:opacity-50"><CheckCheck size={14} aria-hidden="true" />{busy === notification._id ? "Marking..." : "Mark as read"}</button>}
                         </div>
                       </div>

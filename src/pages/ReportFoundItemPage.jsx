@@ -64,6 +64,7 @@ export default function ReportFoundItemPage() {
   const [dragOver, setDragOver] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
  // Pre-fill form if editing
@@ -134,10 +135,18 @@ export default function ReportFoundItemPage() {
     return e;
   }
 
-    async function handleSubmit() {
+  async function handleSubmit() {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     setSubmitError("");
+
     const newErrors = validate();
-    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
+    if (Object.keys(newErrors).length > 0) { 
+      setErrors(newErrors); 
+      setIsSubmitting(false);
+      return; 
+    }
 
     try {
       const authUser = getAuthUser();
@@ -222,6 +231,8 @@ export default function ReportFoundItemPage() {
       );
     } catch (error) {
       setSubmitError(error.message || "Failed to submit report");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 

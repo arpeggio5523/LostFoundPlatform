@@ -1,6 +1,0 @@
-<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="6.584938">
-<testsuite name="example.spec.js" timestamp="2026-08-21T07:18:21.375Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.603" errors="0">
-<testcase name="basic e2e check" classname="example.spec.js" time="3.603">
-</testcase>
-</testsuite>
-</testsuites>

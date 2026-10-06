@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
+import ImageSearchPanel from "../components/ImageSearchPanel";
 import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { LogOut, X } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
@@ -37,9 +38,7 @@ export default function FoundItemsPage() {
 
   const navigate = useNavigate();
   const { resetTheme } = useTheme();
-  const statusOptions = isAdmin()
-    ? STATUSES
-    : STATUSES.filter(option => option.toLowerCase() !== "pending");
+  const statusOptions = STATUSES;
 
   const handleLogout = () => {
     resetTheme();
@@ -54,6 +53,8 @@ export default function FoundItemsPage() {
   const [location, setLocation] = useState("All Locations");
   const [status, setStatus]     = useState("All Status");
   const [isCollapsed, setIsCollapsed] = useState(false);
+  // Image search state: when set, overrides the normal filtered list
+  const [imageSearchResults, setImageSearchResults] = useState(null);
 
   const hasActiveFilters = search !== "" || category !== "All Categories" ||
     location !== "All Locations" || status !== "All Status";
@@ -240,7 +241,10 @@ export default function FoundItemsPage() {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
               </svg>
-              {filtered.length} item{filtered.length !== 1 ? "s" : ""} found
+              {imageSearchResults
+                ? `${imageSearchResults.length} image match${imageSearchResults.length !== 1 ? "es" : ""} found`
+                : `${filtered.length} item${filtered.length !== 1 ? "s" : ""} found`
+              }
             </div>
             <button
               type="button"
@@ -262,6 +266,13 @@ export default function FoundItemsPage() {
           </div>
         </div>
 
+        {/* Image search panel — shown above the items grid */}
+        <ImageSearchPanel
+          type="Found"
+          onResults={(results) => setImageSearchResults(results)}
+          onClear={() => setImageSearchResults(null)}
+        />
+
         {/* Cards grid */}
         {loading ? (
           <div style={{ textAlign: "center", padding: "64px 0", color: "var(--color-text-muted)" }}>
@@ -271,6 +282,38 @@ export default function FoundItemsPage() {
           <div style={{ textAlign: "center", padding: "64px 0", color: "#f87171" }}>
             <p style={{ margin: 0, fontSize: 14 }}>Error: {error}</p>
           </div>
+        ) : imageSearchResults !== null ? (
+          // Image search results mode
+          imageSearchResults.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "64px 0", color: "var(--color-text-muted)" }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 12px", display: "block" }}>
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <p style={{ margin: 0, fontSize: 14 }}>No visually similar found items for your image.</p>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
+              {imageSearchResults.map(item => (
+                <div key={item._id} style={{ position: "relative" }}>
+                  {item.similarityScore != null && (
+                    <div style={{
+                      position: "absolute", top: 8, right: 8, zIndex: 1,
+                      background: "var(--color-brand)", color: "var(--color-brand-text)",
+                      borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    }}>
+                      {Math.round(item.similarityScore * 100)}% match
+                    </div>
+                  )}
+                  <ItemCard item={{
+                    ...item,
+                    image: item.images?.[0] || null,
+                    date: item.date ? new Date(item.date).toLocaleDateString() : "N/A",
+                  }} />
+                </div>
+              ))}
+            </div>
+          )
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "64px 0", color: "var(--color-text-muted)" }}>
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 12px", display: "block" }}>

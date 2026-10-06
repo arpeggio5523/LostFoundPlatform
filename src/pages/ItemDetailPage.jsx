@@ -1,13 +1,16 @@
+import React from "react";
 import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2 } from "lucide-react";
+import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2, ExternalLink, MessageSquare, Search, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isOwner, isAdmin, canEditItem } from "../services/authState";
 import { authHeaders, apiFetch, getToken } from "../services/apiClient";
 import ConfirmModal from "../components/ConfirmModal";
+import LocationMap from "../components/LocationMap";
 import { useToast } from "../context/ToastContext";
 import StatusBadge from "../components/StatusBadge";
 import QRCodeModal from "../components/QRcode";
+import { startConversation } from "../services/messagesApi";
 
 export default function ItemDetailPage() {
   const { id } = useParams();
@@ -21,8 +24,14 @@ export default function ItemDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(null);
+  const [startingChat, setStartingChat] = useState(false);
   const { showToast } = useToast();
   const [showQRModal, setShowQRModal] = useState(false);
+
+  // Possible matches
+  const [matchesChecked, setMatchesChecked] = useState(false);
+  const [matchesLoading, setMatchesLoading] = useState(false);
+  const [matches, setMatches] = useState([]);
 
   useEffect(() => {
     if (!getToken()) {
@@ -45,6 +54,13 @@ export default function ItemDetailPage() {
     };
     fetchItem();
   }, [id, location.pathname, location.search, navigate]);
+
+  // Reset match results whenever we land on a different item
+  useEffect(() => {
+    setMatchesChecked(false);
+    setMatchesLoading(false);
+    setMatches([]);
+  }, [id]);
 
   const handleDelete = async () => {
     setShowDeleteModal(false);
@@ -96,6 +112,27 @@ export default function ItemDetailPage() {
     }
   };
 
+  const handleStartChat = async () => {
+    if (!item) return;
+    const ownerId = item.reportedBy?._id || item.reportedBy;
+    if (!ownerId) {
+      showToast("Cannot start chat: unknown owner.", "error");
+      return;
+    }
+    
+    setStartingChat(true);
+    try {
+      const res = await startConversation(ownerId, item._id);
+      if (res.data) {
+        navigate(`/messages?conversationId=${res.data._id}`);
+      }
+    } catch (err) {
+      showToast("Failed to start conversation.", "error");
+    } finally {
+      setStartingChat(false);
+    }
+  };
+
   const updateItemStatus = async (status) => {
     setUpdatingStatus(status);
 
@@ -122,6 +159,43 @@ export default function ItemDetailPage() {
 
   const handleMarkAsMatched = () => updateItemStatus("Matched");
   const handleMarkAsReturned = () => updateItemStatus("Returned");
+
+  // Fetch visually similar items using the stored imageEmbedding.
+  // We search the opposite type: a Lost item finds similar Found items, and vice versa.
+  const handleViewPossibleMatches = async () => {
+    setMatchesLoading(true);
+    try {
+      const oppositeType = item.type === "Lost" ? "Found" : "Lost";
+      const res = await apiFetch(
+        `/api/items/${item._id}/similar?type=${oppositeType}&limit=5`,
+        { headers: authHeaders() }
+      );
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        // 400 means no embedding stored — show friendly empty state, not an error toast
+        if (res.status === 400) {
+          setMatches([]);
+          setMatchesChecked(true);
+          return;
+        }
+        throw new Error(body.error || "Failed to load matches");
+      }
+
+      const data = await res.json();
+      setMatches(data.data || []);
+    } catch (err) {
+      showToast(err.message || "Could not load possible matches.", "error");
+      setMatches([]);
+    } finally {
+      setMatchesLoading(false);
+      setMatchesChecked(true);
+    }
+  };
+
+  const handleMatchClick = (matchId) => {
+    navigate(`/item/${matchId}`);
+  };
 
   if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>Loading...</div>;
   if (error || !item) return <div style={{ padding: 40, color: "#f87171" }}>Item not found.</div>;
@@ -226,20 +300,38 @@ export default function ItemDetailPage() {
 
                 {/* Contact Owner CTA */}
                 {!userIsOwner && (
-                  <button 
-                    onClick={handleContactOwner}
-                    disabled={sendingEmail}
-                    style={{
-                      width: "100%", padding: "16px", background: "var(--color-brand)",
-                      color: "var(--color-brand-text)", border: "none", borderRadius: 12,
-                      fontSize: 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
-                      transition: "background 0.15s", opacity: sendingEmail ? 0.7 : 1,
-                    }}
-                    onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand-hover)")}
-                    onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand)")}
-                  >
-                    {sendingEmail ? "Sending..." : "Contact owner"}
-                  </button>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <button 
+                      onClick={handleContactOwner}
+                      disabled={sendingEmail}
+                      style={{
+                        width: "100%", padding: "16px", background: "var(--color-brand)",
+                        color: "var(--color-brand-text)", border: "none", borderRadius: 12,
+                        fontSize: 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
+                        transition: "background 0.15s", opacity: sendingEmail ? 0.7 : 1,
+                      }}
+                      onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand-hover)")}
+                      onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand)")}
+                    >
+                      {sendingEmail ? "Sending..." : "Contact owner"}
+                    </button>
+                    <button 
+                      onClick={handleStartChat}
+                      disabled={startingChat}
+                      style={{
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                        width: "100%", padding: "16px", background: "var(--color-bg-raised)",
+                        color: "var(--color-text-primary)", border: "1px solid var(--color-border)", borderRadius: 12,
+                        fontSize: 15, fontWeight: 700, cursor: startingChat ? "not-allowed" : "pointer", 
+                        transition: "background 0.15s", opacity: startingChat ? 0.7 : 1,
+                      }}
+                      onMouseEnter={e => !startingChat && (e.currentTarget.style.background = "var(--color-bg-hover)")}
+                      onMouseLeave={e => !startingChat && (e.currentTarget.style.background = "var(--color-bg-raised)")}
+                    >
+                      <MessageSquare size={18} />
+                      {startingChat ? "Starting chat..." : `Chat with ${item.user || "owner"}`}
+                    </button>
+                  </div>
                 )}
 
                 {canEdit && (
@@ -255,15 +347,14 @@ export default function ItemDetailPage() {
             </div>
 
             {/* Actions Block for Owner/Admin */}
-            {canEdit && !["Pending", "Rejected"].includes(item.status) &&
-              (userIsAdmin || ["Approved", "Matched"].includes(item.status)) && (
+            {canEdit && (userIsAdmin || ["Approved", "Matched", "Returned"].includes(item.status)) && (
               <div className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 sm:p-6 transition-all duration-300">
                 <div className="mb-4 text-xl font-bold text-[var(--color-text-primary)]">
                   Actions
                 </div>
 
                 <div className={`grid grid-cols-1 gap-3 ${userIsAdmin ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
-                  {userIsAdmin && (
+                  {canEdit && (
                     <button
                       onClick={() =>
                         navigate(
@@ -278,7 +369,8 @@ export default function ItemDetailPage() {
                     </button>
                   )}
 
-                  {item.status === "Approved" && (
+
+                  {["Approved", "Returned"].includes(item.status) && (
                     <button
                       onClick={handleMarkAsMatched}
                       disabled={Boolean(updatingStatus)}
@@ -303,7 +395,27 @@ export default function ItemDetailPage() {
           </div>
 
           {/* RIGHT COLUMN */}
-          <aside style={{ position: "sticky", top: 40, alignSelf: "start" }}>
+          <aside style={{ position: "sticky", top: 40, alignSelf: "start", display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ marginBottom: 20, background: "var(--color-bg-surface)", border: "1px solid var(--color-border)", borderRadius: 20, overflow: "hidden" }}>
+              <div style={{ padding: "20px 20px 14px" }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "var(--color-text-primary)" }}>Reported location</h3>
+                <p style={{ margin: "5px 0 0", fontSize: 13, color: "var(--color-text-secondary)" }}>
+                  {item.reportLocation?.formattedAddress || item.location}
+                </p>
+              </div>
+              <LocationMap location={item.reportLocation} itemType={item.type} title={item.title} />
+              {item.reportLocation?.coordinates?.length === 2 && (
+                <button
+                  onClick={() => {
+                    const mapUrl = `/item/${item._id}/map`;
+                    window.open(mapUrl, "_blank", "noopener,noreferrer");
+                  }}
+                  style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, background: "var(--color-bg-surface)", border: "none", borderTop: "1px solid var(--color-border)", color: "var(--color-brand)", fontWeight: 700, cursor: "pointer" }}
+                >
+                  <ExternalLink size={16} /> View full map
+                </button>
+              )}
+            </div>
             <div style={{
               background: "var(--color-bg-surface)",
               border: "1px solid var(--color-border)",
@@ -352,6 +464,104 @@ export default function ItemDetailPage() {
                 View QR Code
               </button>
             </div>
+
+            {/* View Possible Matches Button */}
+            <button
+              onClick={handleViewPossibleMatches}
+              disabled={matchesLoading}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 10, padding: 14, background: "var(--color-bg-surface)",
+                border: "1.5px solid var(--color-border)", borderRadius: 12,
+                fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
+                cursor: matchesLoading ? "not-allowed" : "pointer", transition: "background 0.2s",
+                opacity: matchesLoading ? 0.7 : 1,
+              }}
+              onMouseEnter={e => !matchesLoading && (e.currentTarget.style.background = "var(--color-bg-hover)")}
+              onMouseLeave={e => !matchesLoading && (e.currentTarget.style.background = "var(--color-bg-surface)")}
+            >
+              {matchesLoading ? (
+                <Loader2 size={18} className="spin" style={{ animation: "spin 1s linear infinite" }} />
+              ) : (
+                <Search size={18} />
+              )}
+              {matchesLoading ? "Searching..." : "View possible matches"}
+            </button>
+
+            {/* Possible Matches Panel */}
+            {matchesChecked && (
+              <div style={{
+                background: "var(--color-bg-surface)",
+                border: "1px solid var(--color-border)",
+                borderRadius: 20,
+                padding: 24,
+                boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)",
+              }}>
+                <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: "var(--color-text-primary)" }}>
+                  Possible Matches
+                </h3>
+
+                {matches.length === 0 ? (
+                  <div style={{
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    justifyContent: "center", gap: 10, padding: "24px 8px",
+                    color: "var(--color-text-muted)", textAlign: "center",
+                  }}>
+                    <Search size={28} style={{ opacity: 0.4 }} />
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>No matches found</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                      We couldn't find any potential matches for this item yet. Check back later.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gap: 12 }}>
+                    {matches.map((match) => (
+                      <button
+                        key={match._id}
+                        onClick={() => handleMatchClick(match._id)}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 12, width: "100%",
+                          padding: 12, background: "var(--color-bg-raised)",
+                          border: "1px solid var(--color-border)", borderRadius: 12,
+                          cursor: "pointer", textAlign: "left", transition: "background 0.15s",
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = "var(--color-bg-hover)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "var(--color-bg-raised)"}
+                      >
+                        {match.images?.[0] ? (
+                          <img
+                            src={match.images[0]}
+                            alt={match.title}
+                            style={{ width: 48, height: 48, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: 48, height: 48, borderRadius: 8, flexShrink: 0,
+                            background: "var(--color-bg-surface)", display: "flex",
+                            alignItems: "center", justifyContent: "center",
+                          }}>
+                            <Tag size={18} style={{ opacity: 0.3 }} />
+                          </div>
+                        )}
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{
+                            fontSize: 14, fontWeight: 700, color: "var(--color-text-primary)",
+                            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                          }}>
+                            {match.title}
+                          </div>
+                          <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
+                            {match.similarityScore
+                              ? `${Math.round(match.similarityScore * 100)}% match`
+                              : "Possible match"}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </aside>
 
         </div>

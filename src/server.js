@@ -11,6 +11,7 @@ import authRoutes from "./routes/authRoutes.js";
 import itemsRouter from "./routes/ItemRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import { notifyMessageRecipients } from "./services/notificationService.js";
 import connectDB from "./config/db.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import { verifyAccessToken } from "./utils/authSession.js";
@@ -145,6 +146,7 @@ io.on("connection", (socket) => {
       );
       const populatedObj = populated.toObject();
       populatedObj.text = decrypt(populatedObj.text);
+      await notifyMessageRecipients(io, conversation, populatedObj.sender);
 
       // Each participant gets their own masked view — sender sees their own
       // real name, everyone else sees "Anonymous" if privacyMode is on.

@@ -10,6 +10,7 @@ import { Server } from "socket.io";
 import authRoutes from "./routes/authRoutes.js";
 import itemsRouter from "./routes/ItemRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import connectDB from "./config/db.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import { verifyAccessToken } from "./utils/authSession.js";
@@ -202,6 +203,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/items", itemsRouter);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/users", userRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 

@@ -334,7 +334,7 @@ export default function ItemDetailPage() {
                   </div>
                 )}
 
-                {canEdit && (
+                {(userIsOwner || userIsAdmin) && (
                   <button
                     onClick={() => setShowDeleteModal(true)}
                     className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-none bg-red-600 p-4 text-[15px] font-bold text-white transition hover:bg-red-700"
@@ -347,7 +347,7 @@ export default function ItemDetailPage() {
             </div>
 
             {/* Actions Block for Owner/Admin */}
-            {canEdit && (userIsAdmin || ["Approved", "Matched", "Returned"].includes(item.status)) && (
+            {(canEdit || ((userIsOwner || userIsAdmin) && ["Approved", "Matched"].includes(item.status))) && (
               <div className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 sm:p-6 transition-all duration-300">
                 <div className="mb-4 text-xl font-bold text-[var(--color-text-primary)]">
                   Actions
@@ -370,7 +370,7 @@ export default function ItemDetailPage() {
                   )}
 
 
-                  {["Approved", "Returned"].includes(item.status) && (
+                  {item.status === "Approved" && (
                     <button
                       onClick={handleMarkAsMatched}
                       disabled={Boolean(updatingStatus)}

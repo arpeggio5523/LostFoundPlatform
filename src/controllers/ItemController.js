@@ -391,6 +391,10 @@ export const updateItem = async (req, res) => {
       return res.status(403).json({ error: "You do not have permission to update this item." });
     }
 
+    if (!isAdmin && item.status !== "Pending") {
+      return res.status(403).json({ error: "You can only edit posts while they are pending approval." });
+    }
+
     const previousStatus = item.status;
     const {
       title, description, category, type, location, exactLocation, date, color, distMark, images, status, reportLocation, user, embedding

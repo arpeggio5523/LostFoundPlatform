@@ -45,7 +45,7 @@ describe("item status controller behavior", () => {
   it.each(["edit", "delete"])("notifies for an admin %s after persistence, but not an owner action", async (action) => {
     for (const role of ["admin", "user"]) {
       vi.clearAllMocks();
-      const item = { _id: "item-1", reportedBy: "owner", title: "Wallet", status: "Approved" };
+      const item = { _id: "item-1", reportedBy: "owner", title: "Wallet", status: role === "user" && action === "edit" ? "Pending" : "Approved" };
       item.save = vi.fn().mockResolvedValue(item);
       item.deleteOne = vi.fn().mockResolvedValue({});
       mockItem.findById.mockResolvedValue(item);

@@ -72,5 +72,5 @@ export function isAdmin() {
 }
 
 export function canEditItem(item) {
-  return isOwner(item) || isAdmin();
+  return isAdmin() || (isOwner(item) && item.status === "Pending");
 }

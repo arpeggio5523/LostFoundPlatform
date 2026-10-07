@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2, ExternalLink, MessageSquare, Search, Loader2 } from "lucide-react";
+import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2, ExternalLink, MessageSquare, Search, Loader2, Pencil, Handshake, CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isOwner, isAdmin, canEditItem } from "../services/authState";
 import { authHeaders, apiFetch, getToken } from "../services/apiClient";
@@ -275,10 +275,37 @@ export default function ItemDetailPage() {
                 </div>
 
                 {/* Title */}
-                <h1 style={{ fontSize: 32, fontWeight: 850, color: "var(--color-text-primary)", marginBottom: 20 }}>
-                  {item.title}
-                </h1>
-
+                <div className="mb-5 flex items-start justify-between gap-4">
+                  <h1 style={{ fontSize: 32, fontWeight: 850, color: "var(--color-text-primary)", marginBottom: 0, minWidth: 0, overflowWrap: "anywhere" }}>
+                    {item.title}
+                  </h1>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {canEdit && (
+                      <button
+                        aria-label="Edit"
+                        title="Edit item"
+                        onClick={() => navigate(
+                          item.type === "Lost"
+                            ? `/report-lost?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
+                            : `/report-found?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
+                        )}
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-[var(--color-text-secondary)] transition hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-brand)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)]"
+                      >
+                        <Pencil size={20} aria-hidden="true" />
+                      </button>
+                    )}
+                    {(userIsOwner || userIsAdmin) && (
+                      <button
+                        aria-label="Delete item"
+                        title="Delete item"
+                        onClick={() => setShowDeleteModal(true)}
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-[var(--color-text-secondary)] transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                      >
+                        <Trash2 size={20} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                </div>
                 {/* Description */}
                 <div style={{ marginBottom: 32 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)", textTransform: "uppercase", marginBottom: 8 }}>
@@ -297,6 +324,32 @@ export default function ItemDetailPage() {
                   <InfoBlock label="Exact Location" icon={<MapPin size={16} />} value={item.exactLocation || "Not specified"} />
                   <InfoBlock label="Date" icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString() : "N/A"} />
                 </div>
+
+                {/* Recovery actions */}
+                {(userIsOwner || userIsAdmin) && ["Approved", "Matched"].includes(item.status) && (
+                  <div className="mb-6 flex flex-col gap-3">
+                    {item.status === "Approved" && (
+                      <button
+                        onClick={handleMarkAsMatched}
+                        disabled={Boolean(updatingStatus)}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border-none bg-[var(--color-brand)] p-4 text-[15px] font-bold text-[var(--color-brand-text)] transition hover:bg-[var(--color-brand-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {updatingStatus === "Matched" ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : <Handshake size={18} aria-hidden="true" />}
+                        {updatingStatus === "Matched" ? "Updating..." : "Mark as matched"}
+                      </button>
+                    )}
+                    {["Approved", "Matched"].includes(item.status) && (
+                      <button
+                        onClick={handleMarkAsReturned}
+                        disabled={Boolean(updatingStatus)}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-raised)] p-4 text-[15px] font-bold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {updatingStatus === "Returned" ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : <CheckCircle2 size={18} aria-hidden="true" />}
+                        {updatingStatus === "Returned" ? "Updating..." : "Mark as returned"}
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {/* Contact Owner CTA */}
                 {!userIsOwner && (
@@ -334,66 +387,10 @@ export default function ItemDetailPage() {
                   </div>
                 )}
 
-                {canEdit && (
-                  <button
-                    onClick={() => setShowDeleteModal(true)}
-                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-none bg-red-600 p-4 text-[15px] font-bold text-white transition hover:bg-red-700"
-                  >
-                    <Trash2 size={18} />
-                    Delete item
-                  </button>
-                )}
+
               </div>
             </div>
-
-            {/* Actions Block for Owner/Admin */}
-            {canEdit && (userIsAdmin || ["Approved", "Matched", "Returned"].includes(item.status)) && (
-              <div className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 sm:p-6 transition-all duration-300">
-                <div className="mb-4 text-xl font-bold text-[var(--color-text-primary)]">
-                  Actions
-                </div>
-
-                <div className={`grid grid-cols-1 gap-3 ${userIsAdmin ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
-                  {canEdit && (
-                    <button
-                      onClick={() =>
-                        navigate(
-                          item.type === "Lost"
-                            ? `/report-lost?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
-                            : `/report-found?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
-                        )
-                      }
-                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
-                    >
-                      Edit
-                    </button>
-                  )}
-
-
-                  {["Approved", "Returned"].includes(item.status) && (
-                    <button
-                      onClick={handleMarkAsMatched}
-                      disabled={Boolean(updatingStatus)}
-                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {updatingStatus === "Matched" ? "Updating..." : "Mark as matched"}
-                    </button>
-                  )}
-
-                  {["Approved", "Matched"].includes(item.status) && (
-                    <button
-                      onClick={handleMarkAsReturned}
-                      disabled={Boolean(updatingStatus)}
-                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {updatingStatus === "Returned" ? "Updating..." : "Mark as returned"}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
-
           {/* RIGHT COLUMN */}
           <aside style={{ position: "sticky", top: 40, alignSelf: "start", display: "flex", flexDirection: "column", gap: 20 }}>
             <div style={{ marginBottom: 20, background: "var(--color-bg-surface)", border: "1px solid var(--color-border)", borderRadius: 20, overflow: "hidden" }}>

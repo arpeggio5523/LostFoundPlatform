@@ -79,6 +79,11 @@ export default function ReportLostItemPage() {
       .then((res) => res.json())
       .then((data) => {
         const item = data.data;
+        if (!isAdmin() && item.status !== "Pending") {
+          showToast("You can only edit posts while they are pending approval.", "error");
+          navigate(`/item/${editId}?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
+          return;
+        }
         setForm({
           title: item.title || "",
           description: item.description || "",

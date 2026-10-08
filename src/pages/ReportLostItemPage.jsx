@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import React from "react";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -33,13 +34,14 @@ const LOCATIONS = [
 ];
 
 function Field({ label, required, error, children }) {
+  const { t } = useLanguage();
   return (
     <div className="mb-5">
       <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       {children}
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && <p className="mt-1 text-xs text-red-500">{t(error)}</p>}
     </div>
   );
 }
@@ -50,6 +52,7 @@ const inputErrorClass =
   "w-full px-3.5 py-2.5 rounded-lg border border-red-400 bg-[var(--color-bg-raised)]  text-sm text-[var(--color-text-primary)] outline-none focus:border-red-400 focus:bg-[var(--color-bg-surface)] transition-colors font-sans";
 
 export default function ReportLostItemPage() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
@@ -274,60 +277,54 @@ export default function ReportLostItemPage() {
           >
             <line x1="19" y1="12" x2="5" y2="12" />
             <polyline points="12 19 5 12 12 5" />
-          </svg>
-          Back
-        </button>
+          </svg>{t("Back")}</button>
       </div>
 
       {/* Card */}
       <div className="max-w-2xl mx-auto bg-[var(--color-bg-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-10 transition-colors duration-200">
         <h1 className="text-2xl font-extrabold text-[var(--color-text-primary)] tracking-tight mb-1">
-          {editId ? "Edit Lost Item" : "Report Lost Item"}
+          {editId ? t("Edit Lost Item") : t("Report Lost Item")}
         </h1>
         <p className="text-sm text-[var(--color-text-muted)] mb-8">
           {editId
-            ? "Update the details below and save."
-            : "Provide detailed information to help others identify your item."}
+            ? t("Update the details below and save.")
+            : t("Provide detailed information to help others identify your item.")}
         </p>
 
         {submitError && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {submitError}
+            {t(submitError)}
           </div>
         )}
 
         {/* Item Title */}
-        <Field label="Item Title" required error={errors.title}>
+        <Field label={t("Item Title")} required error={errors.title}>
           <input
             name="title"
             value={form.title}
             onChange={handleChange}
-            placeholder="e.g., iPhone with Blue Case"
+            placeholder={t("e.g., iPhone with Blue Case")}
             className={errors.title ? inputErrorClass : inputClass}
           />
         </Field>
 
         {/* Description */}
-        <Field label="Description" required error={errors.description}>
+        <Field label={t("Description")} required error={errors.description}>
           <textarea
             name="description"
             value={form.description}
             onChange={handleChange}
-            placeholder="Describe the item you lost..."
+            placeholder={t("Describe the item you lost...")}
             rows={3}
             className={`${errors.description ? inputErrorClass : inputClass} resize-y`}
           />
-          <p className="mt-1.5 text-xs text-[var(--color-text-muted)]">
-            Note: For security, don't reveal all identifying details. You should
-            be able to describe specific features to claim it later.
-          </p>
+          <p className="mt-1.5 text-xs text-[var(--color-text-muted)]">{t("Note: For security, don't reveal all identifying details. You should be able to describe specific features to claim it later.")}</p>
         </Field>
 
         {/* Category + Color */}
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
-              Category <span className="text-red-500">*</span>
+            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">{t("Category ")}<span className="text-red-500">*</span>
             </label>
             <select
               name="category"
@@ -335,38 +332,36 @@ export default function ReportLostItemPage() {
               onChange={handleChange}
               className={`${errors.category ? inputErrorClass : inputClass} appearance-none cursor-pointer`}
             >
-              <option value="">Select category</option>
+              <option value="">{t("Select category")}</option>
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
-                  {c}
+                  {t(c)}
                 </option>
               ))}
             </select>
             {errors.category && (
-              <p className="mt-1 text-xs text-red-500">{errors.category}</p>
+              <p className="mt-1 text-xs text-red-500">{t(errors.category)}</p>
             )}
           </div>
           <div>
-            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
-              Color
-            </label>
+            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">{t("Color")}</label>
             <input
               name="color"
               value={form.color}
               onChange={handleChange}
-              placeholder="e.g., Black, Blue"
+              placeholder={t("e.g., Black, Blue")}
               className={inputClass}
             />
           </div>
         </div>
 
         {/* Distinctive Marks */}
-        <Field label="Distinctive Marks or Features">
+        <Field label={t("Distinctive Marks or Features")}>
           <textarea
             name="marks"
             value={form.marks}
             onChange={handleChange}
-            placeholder="Any unique identifiers (optional - for verification purposes)"
+            placeholder={t("Any unique identifiers (optional - for verification purposes)")}
             rows={2}
             className={`${inputClass} resize-y`}
           />
@@ -374,7 +369,7 @@ export default function ReportLostItemPage() {
 
         {/* Location */}
         <Field
-          label="Last Seen Location (University)"
+          label={t("Last Seen Location (University)")}
           required
           error={errors.location}
         >
@@ -384,7 +379,7 @@ export default function ReportLostItemPage() {
             onChange={handleChange}
             className={`${errors.location ? inputErrorClass : inputClass} appearance-none cursor-pointer`}
           >
-            <option value="">Select location</option>
+            <option value="">{t("Select location")}</option>
             {LOCATIONS.map((l) => (
               <option key={l} value={l}>
                 {l}
@@ -394,12 +389,12 @@ export default function ReportLostItemPage() {
         </Field>
 
         {/* Exact Location */}
-        <Field label="Exact Place (e.g., Library 2nd floor, Cafe table)">
+        <Field label={t("Exact Place (e.g., Library 2nd floor, Cafe table)")}>
           <input
             name="exactLocation"
             value={form.exactLocation}
             onChange={handleChange}
-            placeholder="Where exactly?"
+            placeholder={t("Where exactly?")}
             className={inputClass}
           />
         </Field>
@@ -412,7 +407,7 @@ export default function ReportLostItemPage() {
         />
 
         {/* Date */}
-        <Field label="Date Lost" required error={errors.date}>
+        <Field label={t("Date Lost")} required error={errors.date}>
           <input
             type="date"
             name="date"
@@ -423,29 +418,26 @@ export default function ReportLostItemPage() {
         </Field>
 
         {editId && isAdmin() && (
-          <Field label="Status" required>
+          <Field label={t("Status")} required>
             <select
               name="status"
               value={form.status}
               onChange={handleChange}
               className={`${inputClass} appearance-none cursor-pointer`}
             >
-              <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
-              <option value="Matched">Matched</option>
-              <option value="Returned">Returned</option>
+              <option value="Pending">{t("Pending")}</option>
+              <option value="Approved">{t("Approved")}</option>
+              <option value="Rejected">{t("Rejected")}</option>
+              <option value="Matched">{t("Matched")}</option>
+              <option value="Returned">{t("Returned")}</option>
             </select>
           </Field>
         )}
 
         {/* Image Upload */}
         <div className="mb-3">
-          <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
-            Images{" "}
-            <span className="text-[var(--color-text-muted)] font-normal">
-              (Optional, max 1)
-            </span>
+          <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">{t("Images")}{" "}
+            <span className="text-[var(--color-text-muted)] font-normal">{t("(Optional, max 1)")}</span>
           </label>
 
           {/* Dropzone */}
@@ -483,14 +475,8 @@ export default function ReportLostItemPage() {
                   e.stopPropagation();
                   fileInputRef.current.click();
                 }}
-              >
-                Upload files
-              </span>{" "}
-              or drag and drop
-            </p>
-            <p className="text-xs text-[var(--color-text-muted)]">
-              PNG, JPG, GIF up to 10MB
-            </p>
+              >{t("Upload files")}</span>{" "}{t("or drag and drop")}</p>
+            <p className="text-xs text-[var(--color-text-muted)]">{t("PNG, JPG, GIF up to 10MB")}</p>
           </div>
 
           <input
@@ -538,9 +524,7 @@ export default function ReportLostItemPage() {
           <label
             htmlFor="anonToggleLost"
             className="ml-2 text-sm font-semibold text-[var(--color-text-primary)] cursor-pointer select-none"
-          >
-            Post Anonymously (Hide my name)
-          </label>
+          >{t("Post Anonymously (Hide my name)")}</label>
         </div>
 
         {/* Actions */}
@@ -549,14 +533,12 @@ export default function ReportLostItemPage() {
             onClick={handleSubmit}
             className="flex-1 py-3 bg-[var(--color-brand)] text-[var(--color-brand-text)] border-none rounded-xl text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity"
           >
-            {editId ? "Save Changes" : "Submit Report"}
+            {editId ? t("Save Changes") : t("Submit Report")}
           </button>
           <button
             onClick={() => navigate(-1)}
             className="px-6 py-3 bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-xl text-sm font-semibold cursor-pointer hover:bg-[var(--color-bg-raised)] transition-colors"
-          >
-            Cancel
-          </button>
+          >{t("Cancel")}</button>
         </div>
       </div>
     </div>

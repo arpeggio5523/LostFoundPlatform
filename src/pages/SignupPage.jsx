@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import React from 'react';
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -10,6 +11,7 @@ import { useForceLightMode } from "../hooks/useForceLightMode";
 import { useToast } from "../context/ToastContext";
 
 function SignupPage(){
+  const { t } = useLanguage();
     const navigate = useNavigate();
     const { showToast } = useToast();
 
@@ -85,7 +87,7 @@ function SignupPage(){
                 );
                 navigate(`/verify-email?email=${encodeURIComponent(email.trim())}`);
             } else {
-                showToast("Signup failed: " + result.message, "error");
+                showToast(t("Signup failed: {{message}}", { message: t(result.message || "Could not connect to the server.") }), "error");
             }
         } catch (err) {
             console.error("Connection error:", err);
@@ -99,13 +101,11 @@ function SignupPage(){
             <div className = "mx-auto flex min-h-[80vh] max-w-lg items-center justify-center px-4 pt-12 pb-10">
                 <div className="grid w-full overflow-hidden rounded-3xl bg-[var(--color-bg-surface)] dark:shadow-black/40 shadow-xl border border-[var(--color-border)]">
                         <div className = "p-8 md:p-10">
-                            <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]"> Create An Account </h2>
-                            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-                                Join the university lost and found community
-                            </p>
+                            <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">{t(" Create An Account ")}</h2>
+                            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{t("Join the university lost and found community")}</p>
                             <form onSubmit={handleSignup} className = "mt-8 space-y-3">
                             <AuthInput
-                                label = "Full Name *"
+                                label = {t("Full Name *")}
                                 type = "text"
                                 placeholder="John Doe"
                                 value = {fullName}
@@ -113,7 +113,7 @@ function SignupPage(){
                                 required
                             />
                             <AuthInput
-                                label = "Email *"
+                                label = {t("Email *")}
                                 type = "email"
                                 placeholder="your.email@university.edu"
                                 value = {email}
@@ -121,21 +121,21 @@ function SignupPage(){
                                 required
                             />
                             <AuthInput
-                                label = "Phone Number (Optional)"
+                                label = {t("Phone Number (Optional)")}
                                 type = "tel"
                                 placeholder="+ 1 234 567 8900"
                                 value = {phoneNumber}
                                 onChange = {(event) => setPhoneNumber(event.target.value)}
                             />
                             <AuthInput
-                                label = "Occupation (Optional)"
+                                label = {t("Occupation (Optional)")}
                                 type = "text"
-                                placeholder="eg. Student, Faculty, Staff"
+                                placeholder={t("eg. Student, Faculty, Staff")}
                                 value = {occupation}
                                 onChange = {(event) => setOccupation(event.target.value)}
                             />
                             <AuthInput
-                                label = "Password *"
+                                label = {t("Password *")}
                                 type = "password"
                                 placeholder={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
                                 value = {password}
@@ -144,7 +144,7 @@ function SignupPage(){
                                 minLength = {8}
                             />
                             <AuthInput
-                                label = "Confirm Password *"
+                                label = {t("Confirm Password *")}
                                 type = "password"
                                 placeholder={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
                                 value = {confirmPassword}
@@ -152,16 +152,13 @@ function SignupPage(){
                                 required
                                 minLength = {8}
                             />
-                            <AuthButton type = "submit">Create Account</AuthButton>
+                            <AuthButton type = "submit">{t("Create Account")}</AuthButton>
                             </form>
-                            <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">
-                                Already have an account?{" "}
+                            <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">{t("Already have an account?")}{" "}
                                 <span
                                     onClick={() => navigate("/login")}
                                     className = "font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
-                                >
-                                    Sign In
-                                </span>
+                                >{t("Sign In")}</span>
                             </p>
                         </div>
                     </div>

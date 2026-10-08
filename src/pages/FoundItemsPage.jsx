@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import React from "react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -35,6 +36,7 @@ const LOCATIONS = [
 const STATUSES = ["All Status", "Approved", "Pending", "Returned"];
 
 export default function FoundItemsPage() {
+  const { t } = useLanguage();
 
   const navigate = useNavigate();
   const { resetTheme } = useTheme();
@@ -88,7 +90,8 @@ export default function FoundItemsPage() {
           title: item.title,
           description: item.description,
           location: item.location,
-          date: new Date(item.date).toLocaleDateString(),
+          date: item.date ? new Date(item.date).toLocaleDateString() : "",
+          dateValue: item.date,
           category: item.category,
           status: item.status,
           image: item.images && item.images.length > 0 ? item.images[0] : null,
@@ -132,12 +135,8 @@ export default function FoundItemsPage() {
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28 }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: "var(--color-brand)", letterSpacing: "-0.02em" }}>
-              Found Items
-            </h1>
-            <p style={{ margin: "4px 0 0", fontSize: 14, color: "var(--color-text-secondary)" }}>
-              Browse items that have been found by the community
-            </p>
+            <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: "var(--color-brand)", letterSpacing: "-0.02em" }}>{t("Found Items")}</h1>
+            <p style={{ margin: "4px 0 0", fontSize: 14, color: "var(--color-text-secondary)" }}>{t("Browse items that have been found by the community")}</p>
           </div>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
             <button
@@ -152,8 +151,7 @@ export default function FoundItemsPage() {
               onMouseEnter={e => { e.currentTarget.style.background = "var(--color-brand-hover)"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "var(--color-brand)"; }}
             >
-              <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Report Found Item
-            </button>
+              <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>{t(" Report Found Item")}</button>
 
             <button
               onClick={handleLogout}
@@ -178,9 +176,7 @@ export default function FoundItemsPage() {
                 e.currentTarget.style.background = "#064e3b";
               }}
             >
-              <LogOut size={18} />
-              Logout
-            </button>
+              <LogOut size={18} />{t("Logout")}</button>
           </div>
         </div>
 
@@ -200,7 +196,7 @@ export default function FoundItemsPage() {
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
               <input
-                type="text" placeholder="Search items..." value={search}
+                type="text" placeholder={t("Search items...")} value={search}
                 onChange={e => setSearch(e.target.value)}
                 style={{
                   width: "100%", padding: "9px 14px 9px 36px",
@@ -229,7 +225,7 @@ export default function FoundItemsPage() {
                   minWidth: 150, outline: "none",
                   transition: "background 0.2s ease, border-color 0.2s ease",
                 }}>
-                {options.map(o => <option key={o}>{o}</option>)}
+                {options.map(o => <option key={o} value={o}>{t(o)}</option>)}
               </select>
             ))}
 
@@ -242,8 +238,8 @@ export default function FoundItemsPage() {
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
               </svg>
               {imageSearchResults
-                ? `${imageSearchResults.length} image match${imageSearchResults.length !== 1 ? "es" : ""} found`
-                : `${filtered.length} item${filtered.length !== 1 ? "s" : ""} found`
+                ? t(imageSearchResults.length === 1 ? "{{count}} image match found" : "{{count}} image matches found", { count: imageSearchResults.length })
+                : t(filtered.length === 1 ? "{{count}} item found" : "{{count}} items found", { count: filtered.length })
               }
             </div>
             <button
@@ -261,8 +257,7 @@ export default function FoundItemsPage() {
                 visibility: hasActiveFilters ? "visible" : "hidden",
               }}
             >
-              <X size={12} /> Clear
-            </button>
+              <X size={12} />{t(" Clear")}</button>
           </div>
         </div>
 
@@ -276,11 +271,11 @@ export default function FoundItemsPage() {
         {/* Cards grid */}
         {loading ? (
           <div style={{ textAlign: "center", padding: "64px 0", color: "var(--color-text-muted)" }}>
-            <p style={{ margin: 0, fontSize: 14 }}>Loading items...</p>
+            <p style={{ margin: 0, fontSize: 14 }}>{t("Loading items...")}</p>
           </div>
         ) : error ? (
           <div style={{ textAlign: "center", padding: "64px 0", color: "#f87171" }}>
-            <p style={{ margin: 0, fontSize: 14 }}>Error: {error}</p>
+            <p style={{ margin: 0, fontSize: 14 }}>{t("Error: ")}{t(error)}</p>
           </div>
         ) : imageSearchResults !== null ? (
           // Image search results mode
@@ -289,7 +284,7 @@ export default function FoundItemsPage() {
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 12px", display: "block" }}>
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
-              <p style={{ margin: 0, fontSize: 14 }}>No visually similar found items for your image.</p>
+              <p style={{ margin: 0, fontSize: 14 }}>{t("No visually similar found items for your image.")}</p>
             </div>
           ) : (
             <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
@@ -302,13 +297,13 @@ export default function FoundItemsPage() {
                       borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700,
                       boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
                     }}>
-                      {Math.round(item.similarityScore * 100)}% match
-                    </div>
+                      {Math.round(item.similarityScore * 100)}{t("% match")}</div>
                   )}
                   <ItemCard item={{
                     ...item,
                     image: item.images?.[0] || null,
-                    date: item.date ? new Date(item.date).toLocaleDateString() : "N/A",
+                    date: item.date ? new Date(item.date).toLocaleDateString() : "",
+          dateValue: item.date,
                   }} />
                 </div>
               ))}
@@ -319,7 +314,7 @@ export default function FoundItemsPage() {
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 12px", display: "block" }}>
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
-            <p style={{ margin: 0, fontSize: 14 }}>No items match your filters.</p>
+            <p style={{ margin: 0, fontSize: 14 }}>{t("No items match your filters.")}</p>
           </div>
         ) : (
           <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>

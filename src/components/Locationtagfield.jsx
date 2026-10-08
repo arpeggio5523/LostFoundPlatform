@@ -1,13 +1,14 @@
+import { useLanguage } from "../context/LanguageContext";
 import React, { useState } from "react";
 import LocationPicker from "./Locationpicker";
 
 export default function LocationTagField({ value, onChange, error }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   return (
     <div className="mb-5">
-      <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
-        Location Tag <span className="text-red-500">*</span>
+      <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">{t("Location Tag ")}<span className="text-red-500">*</span>
       </label>
 
       {value?.coordinates ? (
@@ -39,16 +40,12 @@ export default function LocationTagField({ value, onChange, error }) {
               type="button"
               onClick={() => setOpen(true)}
               className="text-xs font-semibold text-blue-500 hover:underline cursor-pointer"
-            >
-              Change
-            </button>
+            >{t("Change")}</button>
             <button
               type="button"
               onClick={() => onChange(null)}
               className="text-xs font-semibold text-red-500 hover:underline cursor-pointer"
-            >
-              Remove
-            </button>
+            >{t("Remove")}</button>
           </div>
         </div>
       ) : (
@@ -58,12 +55,10 @@ export default function LocationTagField({ value, onChange, error }) {
           className={`w-full px-3.5 py-2.5 rounded-lg border border-dashed ${
             error ? "border-red-400" : "border-[var(--color-border)]"
           } bg-[var(--color-bg-raised)] text-sm text-[var(--color-text-muted)] hover:border-gray-400 transition-colors cursor-pointer text-left`}
-        >
-          + Tag location on map
-        </button>
+        >{t("+ Tag location on map")}</button>
       )}
 
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && <p className="mt-1 text-xs text-red-500">{t(error)}</p>}
 
       {open && (
         <LocationPicker

@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -13,6 +14,7 @@ export default function LocationPicker({
   onConfirm,
   onClose
 }) {
+  const { t } = useLanguage();
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
@@ -108,33 +110,25 @@ export default function LocationPicker({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-lg bg-[var(--color-bg-surface)] rounded-2xl shadow-xl overflow-hidden">
         <div className="p-5 border-b border-[var(--color-border)]">
-          <h2 className="text-base font-bold text-[var(--color-text-primary)]">
-            Tag Location
-          </h2>
-          <p className="text-xs text-[var(--color-text-muted)] mt-1">
-            Click the map to drop a pin, or drag the pin to adjust.
-          </p>
+          <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t("Tag Location")}</h2>
+          <p className="text-xs text-[var(--color-text-muted)] mt-1">{t("Click the map to drop a pin, or drag the pin to adjust.")}</p>
         </div>
 
         {tokenMissing ? (
-          <div className="p-8 text-center text-sm text-red-500">
-            Missing VITE_MAPBOX_TOKEN — map cannot load.
-          </div>
+          <div className="p-8 text-center text-sm text-red-500">{t("Missing VITE_MAPBOX_TOKEN — map cannot load.")}</div>
         ) : (
           <div ref={mapContainer} className="w-full h-80" />
         )}
 
         <div className="p-5">
-          <p className="text-xs text-[var(--color-text-muted)] mb-1">
-            Selected address
-          </p>
+          <p className="text-xs text-[var(--color-text-muted)] mb-1">{t("Selected address")}</p>
           <p className="text-sm text-[var(--color-text-primary)] min-h-[1.25rem]">
             {geocoding
-              ? "Looking up address…"
+              ? t("Looking up address…")
               : address ||
                 (coords
                   ? `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`
-                  : "No pin dropped yet")}
+                  : t("No pin dropped yet"))}
           </p>
         </div>
 
@@ -143,15 +137,11 @@ export default function LocationPicker({
             onClick={handleConfirm}
             disabled={!coords}
             className="flex-1 py-2.5 bg-[var(--color-brand)] text-[var(--color-brand-text)] border-none rounded-lg text-sm font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Confirm Location
-          </button>
+          >{t("Confirm Location")}</button>
           <button
             onClick={onClose}
             className="px-5 py-2.5 bg-[var(--color-bg-raised)] text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg text-sm font-semibold cursor-pointer"
-          >
-            Cancel
-          </button>
+          >{t("Cancel")}</button>
         </div>
       </div>
     </div>

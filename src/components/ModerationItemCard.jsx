@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import React from "react";
 import {
   ArrowRight,
@@ -11,6 +12,7 @@ import {
 import StatusBadge from "../components/StatusBadge";
 
 function ModerationItemCard({ item, onApprove, onReject, onViewDetails, moderationStatus }) {
+  const { t, locale } = useLanguage();
   const openDetails = () => onViewDetails(item.id);
   const isModerating = Boolean(moderationStatus);
 
@@ -27,7 +29,7 @@ function ModerationItemCard({ item, onApprove, onReject, onViewDetails, moderati
     <div
       role="link"
       tabIndex={0}
-      aria-label={`View details for ${item.title}`}
+      aria-label={t("View details for {{title}}", { title: item.title })}
       onClick={openDetails}
       onKeyDown={handleKeyDown}
       className="group flex flex-col sm:flex-row gap-5 border border-[var(--color-border)] rounded-2xl p-4 sm:p-5 bg-[var(--color-bg-surface)] cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--color-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2"
@@ -66,7 +68,7 @@ function ModerationItemCard({ item, onApprove, onReject, onViewDetails, moderati
         <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-[var(--color-text-secondary)]">
           <span className="flex items-center gap-1.5">
             <UserRound size={14} />
-            {item.author}
+            {item.author === "Unknown user" ? t("Unknown user") : item.author}
           </span>
           <span className="flex items-center gap-1.5">
             <MapPin size={14} />
@@ -74,14 +76,12 @@ function ModerationItemCard({ item, onApprove, onReject, onViewDetails, moderati
           </span>
           <span className="flex items-center gap-1.5">
             <CalendarDays size={14} />
-            {item.date}
+            {item.dateValue ? new Date(item.dateValue).toLocaleDateString(locale) : item.date}
           </span>
         </div>
 
         <div className="mt-5 flex flex-col gap-3 border-t border-[var(--color-border)] pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <span className="flex items-center gap-1.5 text-sm font-semibold text-[var(--color-brand)]">
-            Click to review
-            <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+          <span className="flex items-center gap-1.5 text-sm font-semibold text-[var(--color-brand)]">{t("Click to review")}<ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
           </span>
 
           {item.status === "Pending" && (
@@ -96,7 +96,7 @@ function ModerationItemCard({ item, onApprove, onReject, onViewDetails, moderati
                 className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-100 px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
               >
                 <XCircle size={17} />
-                {moderationStatus === "Rejected" ? "Rejecting..." : "Reject"}
+                {moderationStatus === "Rejected" ? t("Rejecting...") : t("Reject")}
               </button>
               <button
                 type="button"
@@ -108,7 +108,7 @@ function ModerationItemCard({ item, onApprove, onReject, onViewDetails, moderati
                 className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-100 px-4 py-2 text-sm font-semibold text-green-700 transition-colors hover:bg-green-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
               >
                 <CheckCircle size={17} />
-                {moderationStatus === "Approved" ? "Approving..." : "Approve"}
+                {moderationStatus === "Approved" ? t("Approving...") : t("Approve")}
               </button>
             </div>
           )}

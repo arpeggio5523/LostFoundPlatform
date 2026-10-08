@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
@@ -36,6 +37,7 @@ const verifyEmailRequest = async ({ email, token }) => {
 };
 
 function VerifyEmailPage() {
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const emailFromQuery = searchParams.get("email") || "";
   const tokenFromQuery = searchParams.get("token") || "";
@@ -123,10 +125,8 @@ function VerifyEmailPage() {
       <div className="mx-auto flex min-h-[80vh] max-w-lg items-center justify-center px-4 pt-12 pb-10">
         <div className="grid w-full overflow-hidden rounded-3xl bg-[var(--color-bg-surface)] shadow-xl border border-[var(--color-border)]">
           <div className="p-8 md:p-10">
-            <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">Verify Your Email</h2>
-            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-              Complete email verification before signing in to your account.
-            </p>
+            <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">{t("Verify Your Email")}</h2>
+            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{t("Complete email verification before signing in to your account.")}</p>
 
             <div
               className={`mt-6 rounded-2xl border px-4 py-4 text-sm ${
@@ -137,7 +137,7 @@ function VerifyEmailPage() {
                     : "border-[var(--color-border)] bg-[var(--color-bg-raised)] text-[var(--color-text-secondary)]"
               }`}
             >
-              {message}
+              {t(message)}
             </div>
 
             {status === "success" ? (
@@ -145,14 +145,12 @@ function VerifyEmailPage() {
                 <Link
                   to={`/login${emailFromQuery ? `?email=${encodeURIComponent(emailFromQuery)}` : ""}`}
                   className="block w-full rounded-lg bg-[var(--color-brand)] px-4 py-3 text-center font-semibold text-[var(--color-brand-text)] transition hover:opacity-90"
-                >
-                  Go To Login
-                </Link>
+                >{t("Go To Login")}</Link>
               </div>
             ) : (
               <form onSubmit={handleResendVerification} className="mt-8 space-y-4">
                 <AuthInput
-                  label="Email"
+                  label={t("Email")}
                   type="email"
                   placeholder="your.email@university.edu"
                   value={resendEmail}
@@ -160,7 +158,7 @@ function VerifyEmailPage() {
                   required
                 />
                 <AuthButton type="submit">
-                  {isResending ? "Sending..." : "Resend Verification Email"}
+                  {isResending ? t("Sending...") : t("Resend Verification Email")}
                 </AuthButton>
               </form>
             )}

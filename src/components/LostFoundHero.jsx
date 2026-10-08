@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, Search, TrendingUp, Shield, FileText, MessageSquare } from "lucide-react";
@@ -10,39 +11,28 @@ const stats = [
 ];
 
 export default function LostFoundHero() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-background)] flex flex-col items-center px-6 py-20 transition-colors duration-200">
       <div className="max-w-4xl text-center">
-        <h1 className="text-[72px] leading-[78px] font-extrabold text-[var(--color-text-primary)]">
-          Lost Something?
-        </h1>
+        <h1 className="text-[72px] leading-[78px] font-extrabold text-[var(--color-text-primary)]">{t("Lost Something?")}</h1>
 
-        <h2 className="text-[72px] leading-[78px] font-extrabold text-[var(--color-brand)] mt-1">
-          We'll Help You Find It
-        </h2>
+        <h2 className="text-[72px] leading-[78px] font-extrabold text-[var(--color-brand)] mt-1">{t("We'll Help You Find It")}</h2>
 
-        <p className="text-[26px] leading-[42px] text-[var(--color-text-secondary)] mt-10 max-w-4xl mx-auto">
-          The university community's trusted platform for lost and found
-          items. Report, search, and reunite with your belongings quickly
-          and securely.
-        </p>
+        <p className="text-[26px] leading-[42px] text-[var(--color-text-secondary)] mt-10 max-w-4xl mx-auto">{t("The university community's trusted platform for lost and found items. Report, search, and reunite with your belongings quickly and securely.")}</p>
 
         <div className="flex items-center justify-center gap-6 mt-12">
           <button
             onClick={() => navigate("/signup")}
             className="bg-[var(--color-brand)] text-[var(--color-brand-text)] text-xl font-semibold px-10 py-5 rounded-2xl hover:opacity-90 transition-opacity"
-          >
-            Get Started free
-          </button>
+          >{t("Get Started free")}</button>
 
           <button
             onClick={() => navigate("/login")}
             className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xl font-semibold px-10 py-5 rounded-2xl hover:bg-[var(--color-bg-raised)] transition-colors"
-          >
-            Sign in
-          </button>
+          >{t("Sign in")}</button>
         </div>
       </div>
 
@@ -60,7 +50,7 @@ export default function LostFoundHero() {
             </h3>
 
             <p className="text-[24px] text-[var(--color-text-secondary)] mt-2">
-              {item.label}
+              {t(item.label)}
             </p>
           </div>
         ))}
@@ -68,13 +58,9 @@ export default function LostFoundHero() {
 
       {/* How It Works */}
       <div className="mt-40 text-center">
-        <h2 className="text-[64px] font-extrabold text-[var(--color-text-primary)]">
-          How It Works
-        </h2>
+        <h2 className="text-[64px] font-extrabold text-[var(--color-text-primary)]">{t("How It Works")}</h2>
 
-        <p className="text-[28px] text-[var(--color-text-secondary)] mt-4">
-          Simple steps to reunite with your belongings
-        </p>
+        <p className="text-[28px] text-[var(--color-text-secondary)] mt-4">{t("Simple steps to reunite with your belongings")}</p>
       </div>
 
 
@@ -89,14 +75,9 @@ export default function LostFoundHero() {
             </span>
           </div>
 
-          <h3 className="text-[36px] font-bold text-[var(--color-text-primary)] mt-8">
-            Create a Post
-          </h3>
+          <h3 className="text-[36px] font-bold text-[var(--color-text-primary)] mt-8">{t("Create a Post")}</h3>
 
-          <p className="text-[24px] text-[var(--color-text-secondary)] leading-[42px] mt-6">
-            Report your lost item with detailed descriptions,
-            photos, and location information.
-          </p>
+          <p className="text-[24px] text-[var(--color-text-secondary)] leading-[42px] mt-6">{t("Report your lost item with detailed descriptions, photos, and location information.")}</p>
         </div>
 
         {/* Step 2 */}
@@ -107,14 +88,9 @@ export default function LostFoundHero() {
             </span>
           </div>
 
-          <h3 className="text-[36px] font-bold text-[var(--color-text-primary)] mt-8">
-            Search & Match
-          </h3>
+          <h3 className="text-[36px] font-bold text-[var(--color-text-primary)] mt-8">{t("Search & Match")}</h3>
 
-          <p className="text-[24px] text-[var(--color-text-secondary)] leading-[42px] mt-6">
-            Browse through found items or wait for potential
-            matches from our community.
-          </p>
+          <p className="text-[24px] text-[var(--color-text-secondary)] leading-[42px] mt-6">{t("Browse through found items or wait for potential matches from our community.")}</p>
         </div>
 
         {/* Step 3 */}
@@ -125,14 +101,9 @@ export default function LostFoundHero() {
             </span>
           </div>
 
-          <h3 className="text-[36px] font-bold text-[var(--color-text-primary)] mt-8">
-            Connect Securely
-          </h3>
+          <h3 className="text-[36px] font-bold text-[var(--color-text-primary)] mt-8">{t("Connect Securely")}</h3>
 
-          <p className="text-[24px] text-[var(--color-text-secondary)] leading-[42px] mt-6">
-            Use our secure messaging to arrange pickup and
-            reunite with your items safely.
-          </p>
+          <p className="text-[24px] text-[var(--color-text-secondary)] leading-[42px] mt-6">{t("Use our secure messaging to arrange pickup and reunite with your items safely.")}</p>
         </div>
       </div>
 
@@ -140,13 +111,9 @@ export default function LostFoundHero() {
       <div className="w-full mt-40 bg-[var(--color-bg-background)] py-28 px-6 transition-colors duration-200">
         
         <div className="text-center">
-          <h2 className="text-[64px] font-extrabold text-[var(--color-text-primary)]">
-            Key Features
-          </h2>
+          <h2 className="text-[64px] font-extrabold text-[var(--color-text-primary)]">{t("Key Features")}</h2>
 
-          <p className="text-[28px] text-[var(--color-text-secondary)] mt-4">
-            Everything you need to find your lost items
-          </p>
+          <p className="text-[28px] text-[var(--color-text-secondary)] mt-4">{t("Everything you need to find your lost items")}</p>
         </div>
 
         {/* Feature Cards */}
@@ -159,14 +126,9 @@ export default function LostFoundHero() {
             </div>
 
             <div>
-              <h3 className="text-[34px] font-bold text-[var(--color-text-primary)]">
-                Report Lost Items
-              </h3>
+              <h3 className="text-[34px] font-bold text-[var(--color-text-primary)]">{t("Report Lost Items")}</h3>
 
-              <p className="text-[24px] leading-[40px] text-[var(--color-text-secondary)] mt-4">
-                Easily create detailed posts about your lost items with
-                descriptions and images.
-              </p>
+              <p className="text-[24px] leading-[40px] text-[var(--color-text-secondary)] mt-4">{t("Easily create detailed posts about your lost items with descriptions and images.")}</p>
             </div>
           </div>
 
@@ -177,14 +139,9 @@ export default function LostFoundHero() {
             </div>
 
             <div>
-              <h3 className="text-[34px] font-bold text-[var(--color-text-primary)]">
-                Post Found Items
-              </h3>
+              <h3 className="text-[34px] font-bold text-[var(--color-text-primary)]">{t("Post Found Items")}</h3>
 
-              <p className="text-[24px] leading-[40px] text-[var(--color-text-secondary)] mt-4">
-                Help others by posting items you've found with
-                location and date information.
-              </p>
+              <p className="text-[24px] leading-[40px] text-[var(--color-text-secondary)] mt-4">{t("Help others by posting items you've found with location and date information.")}</p>
             </div>
           </div>
 
@@ -195,14 +152,9 @@ export default function LostFoundHero() {
             </div>
 
             <div>
-              <h3 className="text-[34px] font-bold text-[var(--color-text-primary)]">
-                Secure Messaging
-              </h3>
+              <h3 className="text-[34px] font-bold text-[var(--color-text-primary)]">{t("Secure Messaging")}</h3>
 
-              <p className="text-[24px] leading-[40px] text-[var(--color-text-secondary)] mt-4">
-                Communicate privately with other users while keeping your
-                contact details safe.
-              </p>
+              <p className="text-[24px] leading-[40px] text-[var(--color-text-secondary)] mt-4">{t("Communicate privately with other users while keeping your contact details safe.")}</p>
             </div>
           </div>
 
@@ -213,14 +165,9 @@ export default function LostFoundHero() {
             </div>
 
             <div>
-              <h3 className="text-[34px] font-bold text-[var(--color-text-primary)]">
-                Admin Moderation
-              </h3>
+              <h3 className="text-[34px] font-bold text-[var(--color-text-primary)]">{t("Admin Moderation")}</h3>
 
-              <p className="text-[24px] leading-[40px] text-[var(--color-text-secondary)] mt-4">
-                All posts are reviewed by admins to ensure quality and
-                prevent spam.
-              </p>
+              <p className="text-[24px] leading-[40px] text-[var(--color-text-secondary)] mt-4">{t("All posts are reviewed by admins to ensure quality and prevent spam.")}</p>
             </div>
           </div>
         </div>
@@ -231,13 +178,9 @@ export default function LostFoundHero() {
 
       {/* Heading */}
       <div className="text-center">
-        <h2 className="text-[64px] font-extrabold text-[var(--color-text-primary)]">
-          What Users Say
-        </h2>
+        <h2 className="text-[64px] font-extrabold text-[var(--color-text-primary)]">{t("What Users Say")}</h2>
 
-        <p className="text-[28px] text-[var(--color-text-secondary)] mt-4">
-          Real stories from our community
-        </p>
+        <p className="text-[28px] text-[var(--color-text-secondary)] mt-4">{t("Real stories from our community")}</p>
       </div>
 
       {/* Testimonial Cards */}
@@ -250,10 +193,7 @@ export default function LostFoundHero() {
             ★★★★★
           </div>
 
-          <p className="text-[22px] italic leading-[40px] text-[var(--color-text-secondary)] mt-8">
-            "I found my lost laptop within 2 days! The platform made it so easy
-            to connect with the person who found it."
-          </p>
+          <p className="text-[22px] italic leading-[40px] text-[var(--color-text-secondary)] mt-8">{t("\"I found my lost laptop within 2 days! The platform made it so easy to connect with the person who found it.\"")}</p>
 
           <div className="border-t border-[var(--color-border)] mt-8 pt-6">
             <h4 className="text-[28px] font-bold text-[var(--color-text-primary)]">
@@ -273,10 +213,7 @@ export default function LostFoundHero() {
             ★★★★★
           </div>
 
-          <p className="text-[22px] italic leading-[40px] text-[var(--color-text-secondary)] mt-8">
-            "Great service! I was able to return a wallet I found to its rightful
-            owner. The secure messaging feature is excellent."
-          </p>
+          <p className="text-[22px] italic leading-[40px] text-[var(--color-text-secondary)] mt-8">{t("\"Great service! I was able to return a wallet I found to its rightful owner. The secure messaging feature is excellent.\"")}</p>
 
           <div className="border-t border-[var(--color-border)] mt-8 pt-6">
             <h4 className="text-[28px] font-bold text-[var(--color-text-primary)]">
@@ -296,10 +233,7 @@ export default function LostFoundHero() {
             ★★★★★
           </div>
 
-          <p className="text-[22px] italic leading-[40px] text-[var(--color-text-secondary)] mt-8">
-            "Simple and effective platform! I was able to post my lost item report
-            and someone found it within days."
-          </p>
+          <p className="text-[22px] italic leading-[40px] text-[var(--color-text-secondary)] mt-8">{t("\"Simple and effective platform! I was able to post my lost item report and someone found it within days.\"")}</p>
 
           <div className="border-t border-[var(--color-border)] mt-8 pt-6">
             <h4 className="text-[28px] font-bold text-[var(--color-text-primary)]">
@@ -317,21 +251,14 @@ export default function LostFoundHero() {
     {/* CTA Section */}
       <div className="w-screen bg-[var(--color-brand)] py-32 px-6 text-center flex flex-col items-center justify-center">
 
-        <h2 className="text-[72px] font-extrabold text-white">
-          Ready to Find Your Items?
-        </h2>
+        <h2 className="text-[72px] font-extrabold text-white">{t("Ready to Find Your Items?")}</h2>
 
-        <p className="text-[28px] text-[var(--color-brand-text)] mt-8 max-w-5xl mx-auto leading-[44px]">
-          Join thousands of university students who have successfully reunited
-          with their belongings.
-        </p>
+        <p className="text-[28px] text-[var(--color-brand-text)] mt-8 max-w-5xl mx-auto leading-[44px]">{t("Join thousands of university students who have successfully reunited with their belongings.")}</p>
 
         <button
           onClick={() => navigate("/signup")}
           className="mt-14 bg-white text-[var(--color-text-primary)] text-[24px] font-semibold px-12 py-5 rounded-2xl hover:scale-105 transition-transform"
-        >
-          Create Free Account
-        </button>
+        >{t("Create Free Account")}</button>
       </div>
     </div>
   );

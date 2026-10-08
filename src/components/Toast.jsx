@@ -1,7 +1,9 @@
+import { useLanguage } from "../context/LanguageContext";
 import React, { useEffect, useState } from "react";
 import { CheckCircle2, XCircle, X } from "lucide-react";
 
 export default function Toast({ message, type = "success", onClose }) {
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function Toast({ message, type = "success", onClose }) {
       )}
       
       <p className="text-sm font-semibold text-[var(--color-text-primary)] flex-1">
-        {message}
+        {t(message)}
       </p>
 
       <button

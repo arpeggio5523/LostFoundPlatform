@@ -6,17 +6,20 @@ import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { ToastProvider } from "./context/ToastContext.jsx";
 import { SocketProvider } from "./context/SocketContext.jsx";
+import { LanguageProvider } from "./context/LanguageContext.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <ThemeProvider>
-        <ToastProvider>
-          <SocketProvider>
-            <App />
-          </SocketProvider>
-        </ToastProvider>
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <SocketProvider>
+              <App />
+            </SocketProvider>
+          </ToastProvider>
+        </ThemeProvider>
+      </LanguageProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

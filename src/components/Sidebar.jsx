@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLanguage } from "../context/LanguageContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getAuthUser } from "../services/authState";
 import { fetchConversations } from "../services/messagesApi";
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = getAuthUser();
@@ -89,6 +91,7 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
       {/* Collapse Toggle Button */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
+        aria-label={t(isCollapsed ? "Expand sidebar" : "Collapse sidebar")}
         style={{
           position: "absolute",
           right: -12,
@@ -136,7 +139,7 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
             <button
               key={label}
               onClick={() => navigate(path)}
-              title={isCollapsed ? label : undefined}
+              title={isCollapsed ? t(label) : undefined}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -160,7 +163,7 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
               onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
             >
               <Icon size={isCollapsed ? 22 : 16} strokeWidth={2} style={{ flexShrink: 0 }} />
-              {!isCollapsed && label}
+              {!isCollapsed && t(label)}
               
               {label === "Messages" && unreadCount > 0 && !isCollapsed && (
                 <div style={{

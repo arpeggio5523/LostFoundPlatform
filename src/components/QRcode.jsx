@@ -1,8 +1,10 @@
+import { useLanguage } from "../context/LanguageContext";
 import React, { useEffect, useRef, useState } from "react";
 import { Check, Download, Share2, X } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 
 export default function QRCodeModal({ isOpen, onClose, item }) {
+  const { t } = useLanguage();
   const qrCanvasRef = useRef(null);
   const modalRef = useRef(null);
   const closeButtonRef = useRef(null);
@@ -90,8 +92,8 @@ export default function QRCodeModal({ isOpen, onClose, item }) {
       const blob = await getQrBlob();
       const file = new File([blob], fileName, { type: "image/png" });
       const shareData = {
-        title: `${item.title || "Item"} QR code`,
-        text: `View the details for ${item.title || "this item"}`,
+        title: t("{{title}} QR code", { title: item.title || t("Item") }),
+        text: t("View the details for {{title}}", { title: item.title || t("this item") }),
         url: itemUrl,
       };
 
@@ -127,22 +129,20 @@ export default function QRCodeModal({ isOpen, onClose, item }) {
           ref={closeButtonRef}
           type="button"
           onClick={onClose}
-          aria-label="Close QR code dialog"
+          aria-label={t("Close QR code dialog")}
           className="absolute right-4 top-4 rounded-md border p-1 hover:bg-gray-100"
         >
           <X size={15} />
         </button>
 
-        <h2 id="qr-modal-title" className="mb-6 pr-8 text-xl font-bold text-[var(--color-text-primary)]">
-          QR Code
-        </h2>
+        <h2 id="qr-modal-title" className="mb-6 pr-8 text-xl font-bold text-[var(--color-text-primary)]">{t("QR Code")}</h2>
 
         <div className="flex flex-col items-center">
           {itemUrl ? (
             <div
               className="rounded-xl bg-white p-3"
               role="img"
-              aria-label={`QR code for ${item.title || "item"}`}
+              aria-label={t("QR code for {{title}}", { title: item.title || t("Item") })}
             >
               <QRCodeCanvas
                 ref={qrCanvasRef}
@@ -150,18 +150,15 @@ export default function QRCodeModal({ isOpen, onClose, item }) {
                 size={250}
                 level="H"
                 marginSize={2}
-                title={`Open ${item.title || "item"} details`}
+                title={t("Open {{title}} details", { title: item.title || t("Item") })}
                 className="h-auto max-w-full"
               />
             </div>
           ) : (
-            <div className="flex h-[250px] w-[250px] items-center justify-center rounded-xl bg-gray-100 text-sm text-gray-500">
-              No QR code available
-            </div>
+            <div className="flex h-[250px] w-[250px] items-center justify-center rounded-xl bg-gray-100 text-sm text-gray-500">{t("No QR code available")}</div>
           )}
 
-          <p className="mt-2 text-center text-sm text-[var(--color-text-secondary)]">
-            Scan to open the details for {item.title || "this item"}.
+          <p className="mt-2 text-center text-sm text-[var(--color-text-secondary)]">{t("Scan to open the details for ")}{item.title || t("this item")}.
           </p>
 
           {itemUrl && (
@@ -171,16 +168,14 @@ export default function QRCodeModal({ isOpen, onClose, item }) {
                 onClick={handleDownload}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-gray-100"
               >
-                <Download size={17} />
-                Download
-              </button>
+                <Download size={17} />{t("Download")}</button>
               <button
                 type="button"
                 onClick={handleShare}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--color-brand)] px-4 py-3 text-sm font-semibold text-[var(--color-brand-text)] transition hover:bg-[var(--color-brand-hover)]"
               >
                 {shareStatus === "Link copied" ? <Check size={17} /> : <Share2 size={17} />}
-                {shareStatus || "Share"}
+                {t(shareStatus || "Share")}
               </button>
             </div>
           )}

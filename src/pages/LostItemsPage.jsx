@@ -50,6 +50,7 @@ export default function LostItemsPage() {
     navigate("/login", { replace: true });
   };
   const [search, setSearch]     = useState("");
+  const [translatedSearch, setTranslatedSearch] = useState("");
   const [category, setCategory] = useState("All Categories");
   const [location, setLocation] = useState("All Locations");
   const [status, setStatus]     = useState("All Status");
@@ -113,9 +114,37 @@ export default function LostItemsPage() {
     fetchItems();
   }, []);
 
+  useEffect(() => {
+    const query = search.trim();
+    setTranslatedSearch("");
+    if (query.length < 2) return undefined;
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const response = await apiFetch("/api/language/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: query }),
+        });
+        if (!response.ok) return;
+        const result = await response.json();
+        if (!cancelled) setTranslatedSearch(result.translatedText || query);
+      } catch {
+        if (!cancelled) setTranslatedSearch(query);
+      }
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [search]);
+
   const filtered = items.filter(item => {
-    const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
-                        item.description.toLowerCase().includes(search.toLowerCase());
+    const searchTerm = (translatedSearch || search).toLowerCase();
+    const matchSearch = item.title.toLowerCase().includes(searchTerm) ||
+                        item.description.toLowerCase().includes(searchTerm);
     const matchCat    = category === "All Categories" || item.category === category;
     const matchLoc    = location === "All Locations" || item.location === location;
     const matchStatus = status   === "All Status"     || item.status === status;
@@ -203,16 +232,18 @@ export default function LostItemsPage() {
         }}>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             {/* Search */}
-            <div style={{ position: "relative", flex: 1, minWidth: 180 }}>
-              <svg style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--color-text-muted)" }}
-                width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <input
-                type="text" placeholder="Search items..." value={search}
-                onChange={e => setSearch(e.target.value)}
-                style={{ ...inputStyle, width: "100%", padding: "9px 14px 9px 36px", boxSizing: "border-box" }}
-              />
+            <div style={{ flex: 1, minWidth: 180 }}>
+              <div style={{ position: "relative" }}>
+                <svg style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--color-text-muted)" }}
+                  width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input
+                  type="text" placeholder="Search items..." value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  style={{ ...inputStyle, width: "100%", padding: "9px 14px 9px 36px", boxSizing: "border-box" }}
+                />
+              </div>
               <DetectedLanguageBadge text={search} />
             </div>
 

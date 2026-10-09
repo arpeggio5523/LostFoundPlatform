@@ -35,3 +35,21 @@ export async function detectLanguage(text) {
   };
 }
 
+export async function translateToEnglish(text) {
+  const query = typeof text === "string" ? text.trim() : "";
+  if (!query) throw new Error("Text is required.");
+
+  const result = await getTranslator().translate(query, undefined, "en", {
+    noTrace: true,
+  });
+
+  const translatedText = typeof result?.translation === "string"
+    ? result.translation
+    : Array.isArray(result?.translation)
+      ? result.translation[0]
+      : "";
+
+  if (!translatedText) throw new Error("Lara returned no translation.");
+  return translatedText;
+}
+

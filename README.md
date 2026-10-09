@@ -91,6 +91,8 @@
 5.2 Running Development Servers  
 5.3 Admin & User Account Setup  
 6. Deployment  
+7. Versioning Strategy
+8. Pull Request Strategy
 
 ## 1. Project Overview
 **LostFound MY** is a centralized platform designed to streamline the reporting and recovery of lost items within specific communities such as universities, shopping malls, and residential areas. 
@@ -151,3 +153,40 @@
 | `ADMIN_FULL_NAME` | Admin account full name | 
 | `ADMIN_PASSWORD` | Admin account password |  
 | `VITE_MAPBOX_TOKEN` | Mapbox API token |
+
+### 8. Pull Request Strategy  
+Merge Requests (MRs) are used to review, test, and approve code changes before they are merged into the protected `main` branch. This process helps maintain code quality, prevent conflicts, and ensure that changes meet the project's requirements.
+
+Contributors must follow these steps when submitting changes:  
+
+**1. Create a Branch**  
+Create a separate branch from the appropriate base branch for each new feature or bug fix. Follow the project's branch naming conventions, such as `main/Subteam1/Subteam1Member1`.  
+
+**2. Implement and Test Changes**  
+Make the neccessary changes and run relevant unit, integration or end-to-end tests to verify that the implementation works as expected.  
+
+**3. Commit and Push Changes**  
+Commit changes using clear and descriptive commit messages, following the project's commit conventions (e.g., `feat:`, `fix:`, `docs:`, and `test:`). Push the branch to GitLab.  
+
+**4. Create a Merge Request**  
+Open a merge request in GitLab targeting the appropriate subteam branch or the protected `main` branch. The MR should contain a clear title and a description of the changes.
+
+**5. Provide Required Information**  
+Each merge request must include:
+- An implementation summary explaining what changed and why
+- The related user story, issue or development task
+- Relevant engineering decisions and trade-offs, where applicable
+- Test performed and their results
+- Known limitations or outstanding issues, where applicable
+- Updated documentation, if necessary
+
+**6. Code Review**
+At least 1 team member must review and approve the merge request before changes are merged into `main`. Contributors must address reviewer comments and resolve any merge conflicts before merging. 
+
+**7. Verify CI/CD Checks**  
+All applicable automated checks in the GitLab CI/CD pipeline must pass before merging. Any failed checks must be investigated and resolved. 
+
+**8. Merge and Clean Up**  
+Once the merge request has been approved and all requirements are satisfied, merge the changes into the target branch. Delete the merged feature branch unless it is intentionally retained for an agreed reason.  
+
+Each merge request should represent 1 coherent feature, bug fix, or development task. Unrelated changes should be submitted through separate merge requests to make code review and maintenance easier. 

@@ -8,6 +8,7 @@ import { Funnel, LogOut, X } from "lucide-react";
 import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { useTheme } from "../context/ThemeContext";
 import { getAuthUser, clearAuth, isAdmin } from "../services/authState";
+import DetectedLanguageBadge from "../components/DetectedLanguageBadge";
 
 const CATEGORIES = [
   "All Categories",
@@ -212,6 +213,7 @@ export default function LostItemsPage() {
                 onChange={e => setSearch(e.target.value)}
                 style={{ ...inputStyle, width: "100%", padding: "9px 14px 9px 36px", boxSizing: "border-box" }}
               />
+              <DetectedLanguageBadge text={search} />
             </div>
 
             {/* Category */}

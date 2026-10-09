@@ -8,6 +8,7 @@ import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { LogOut, X } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { getAuthUser, clearAuth, isAdmin } from "../services/authState";
+import DetectedLanguageBadge from "../components/DetectedLanguageBadge";
 
 const CATEGORIES = [
     "All Categories",
@@ -210,6 +211,7 @@ export default function FoundItemsPage() {
                   transition: "background 0.2s ease, border-color 0.2s ease",
                 }}
               />
+              <DetectedLanguageBadge text={search} />
             </div>
 
             {[

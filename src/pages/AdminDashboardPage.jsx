@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import NotificationButton from "../components/NotificationButton";
 import { LogOut, Users, FileText, Search, Trophy, ArrowRight, TrendingUp} from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { getAuthUser, clearAuth } from "../services/authState";
@@ -185,13 +186,16 @@ export default function AdminDashboardPage() {
               </p>
             </div>
             
-            <button
-              onClick={handleLogout}
-              className="group flex items-center gap-2 bg-[#064e3b] hover:bg-[#022c22] text-white rounded-xl px-6 py-3 font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md"
-            >
-              <LogOut size={18} className="text-white/80 group-hover:text-white transition-colors" />
-              Logout
-            </button>
+            <div className="flex items-center gap-3">
+              <NotificationButton />
+              <button
+                onClick={handleLogout}
+                className="group flex items-center gap-2 bg-[#064e3b] hover:bg-[#022c22] text-white rounded-xl px-6 py-3 font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                <LogOut size={18} className="text-white/80 group-hover:text-white transition-colors" />
+                Logout
+              </button>
+            </div>
           </div>
 
           {/* Primary Actions Grid */}

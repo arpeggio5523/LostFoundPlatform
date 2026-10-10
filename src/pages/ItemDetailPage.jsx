@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import NotificationButton from "../components/NotificationButton";
 import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2, ExternalLink, MessageSquare, Search, Loader2, Pencil, Handshake, CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isOwner, isAdmin, canEditItem } from "../services/authState";
@@ -219,20 +220,23 @@ export default function ItemDetailPage() {
 
       <main style={{ marginLeft: isCollapsed ? 70 : 220, transition: "margin-left 0.3s ease", flex: 1, padding: "40px" }}>
         
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(returnTo)}
-          style={{
-            display: "flex", alignItems: "center", gap: 8, marginBottom: 32,
-            color: "var(--color-text-muted)", fontSize: 14, fontWeight: 600,
-            background: "none", border: "none", cursor: "pointer", transition: "color 0.15s",
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = "var(--color-text-primary)"}
-          onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-muted)"}
-        >
-          <ArrowLeft size={16} />
-          Back to {backLabel}
-        </button>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center", marginBottom: 32 }}>
+          {/* Back Button */}
+          <button
+            onClick={() => navigate(returnTo)}
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              color: "var(--color-text-muted)", fontSize: 14, fontWeight: 600,
+              background: "none", border: "none", cursor: "pointer", transition: "color 0.15s",
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = "var(--color-text-primary)"}
+            onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-muted)"}
+          >
+            <ArrowLeft size={16} />
+            Back to {backLabel}
+          </button>
+          <NotificationButton />
+        </div>
 
         {/* Two Column Layout */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 350px", gap: 32, maxWidth: 1100 }}>

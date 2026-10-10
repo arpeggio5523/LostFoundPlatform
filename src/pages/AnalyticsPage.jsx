@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, CheckCircle2, Clock3, FileText, RefreshCw, Trash2, XCircle } from "lucide-react";
 import Sidebar from "../components/Sidebar";
+import NotificationButton from "../components/NotificationButton";
 import { apiFetch } from "../services/apiClient";
 import { clearAuth, getAuthUser } from "../services/authState";
 import { useTheme } from "../context/ThemeContext";
@@ -100,6 +101,7 @@ export default function AnalyticsPage() {
               <p style={{ margin: 0, color: "var(--color-text-secondary)", fontSize: 14 }}>Monitor reporting activity and moderation status.</p>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <NotificationButton />
               {lastUpdated && <span style={{ color: "var(--color-text-muted)", fontSize: 12 }}>Updated {lastUpdated.toLocaleTimeString()}</span>}
               <button onClick={handleRefresh} disabled={loading} title="Refresh analytics" style={{ border: "1px solid var(--color-border)", borderRadius: 10, background: "var(--color-bg-surface)", color: "var(--color-text-primary)", padding: 10, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}><RefreshCw size={17} style={{ animation: loading ? "spin 0.6s linear infinite" : "none" }} /></button>
               <button onClick={handleLogout} style={{ border: "none", borderRadius: 10, background: "#064e3b", color: "white", padding: "11px 18px", fontWeight: 700, cursor: "pointer" }}>Logout</button>

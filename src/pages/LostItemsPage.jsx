@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
 import ImageSearchPanel from "../components/ImageSearchPanel";
+import NotificationButton from "../components/NotificationButton";
 import { Funnel, LogOut, X } from "lucide-react";
 import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { useTheme } from "../context/ThemeContext";
@@ -148,6 +149,7 @@ export default function LostItemsPage() {
             </p>
           </div>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <NotificationButton />
             <button
               onClick={() => navigate("/report-lost")}
               style={{

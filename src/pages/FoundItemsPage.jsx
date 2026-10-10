@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ItemCard from "../components/ItemCard";
 import ImageSearchPanel from "../components/ImageSearchPanel";
+import NotificationButton from "../components/NotificationButton";
 import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { LogOut, X } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
@@ -140,6 +141,7 @@ export default function FoundItemsPage() {
             </p>
           </div>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <NotificationButton />
             <button
               onClick={() => navigate("/report-found")}
               style={{

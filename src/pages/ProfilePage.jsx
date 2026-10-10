@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import NotificationButton from "../components/NotificationButton";
 import { getAuthUser, clearAuth } from "../services/authState";
 import { buildApiUrl, authHeaders, apiFetch } from "../services/apiClient";
 import { LogOut } from "lucide-react";
@@ -83,6 +84,7 @@ function ProfilePage() {
               View and manage your account information and activity
             </p>
           </div>
+          <NotificationButton />
         </div>
 
         <div
@@ -310,4 +312,3 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
-

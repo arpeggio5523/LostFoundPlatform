@@ -365,7 +365,7 @@ export default function ItemDetailPage() {
                           onClick={handleContactOwner}
                           disabled={sendingEmail}
                           title="Contact owner by email"
-                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--color-brand)_20%,transparent)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-bg-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {sendingEmail ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Mail size={16} aria-hidden="true" />}
                           {sendingEmail ? "Sending..." : "Contact owner"}
@@ -374,7 +374,7 @@ export default function ItemDetailPage() {
                           onClick={handleStartChat}
                           disabled={startingChat}
                           title={`Chat with ${item.user || "owner"}`}
-                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--color-brand)_20%,transparent)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-bg-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {startingChat ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <MessageSquare size={16} aria-hidden="true" />}
                           {startingChat ? "Starting..." : "Chat"}

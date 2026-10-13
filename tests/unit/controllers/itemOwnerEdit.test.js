@@ -4,9 +4,17 @@ import { canEditItem, setAuthUser } from "../../../src/services/authState.js";
 vi.mock("../../../src/models/Item.js", () => ({ default: { findById: vi.fn() } }));
 vi.mock("../../../src/services/notificationService.js", () => ({ notifyModeration: vi.fn(), notifyReportChange: vi.fn(), notifyAdminsOfPendingReport: vi.fn() }));
 import Item from "../../../src/models/Item.js";
-import { updateItem } from "../../../src/controllers/ItemController.js";
+import { updateItem, getItemById } from "../../../src/controllers/ItemController.js";
 
 beforeEach(() => { vi.clearAllMocks(); localStorage.clear(); });
+
+it.each(['owner', 'other-user'])('returns ownership for the authenticated viewer %s', async (viewerId) => {
+  const item = { reportedBy: { _id: 'owner' }, status: 'Approved', user: 'Anonymous' };
+  Item.findById.mockReturnValue({ populate: vi.fn().mockResolvedValue(item) });
+  const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+  await getItemById({ params: { itemId: 'item-1' }, user: { id: viewerId } }, res);
+  expect(res.json).toHaveBeenCalledWith({ data: item, isOwner: viewerId === 'owner' });
+});
 
 it.each(["Pending", "Approved", "Rejected", "Matched", "Returned"])("enforces owner edit permission for %s", async (status) => {
   const item = { reportedBy: "owner", status, title: "Original", save: vi.fn() };

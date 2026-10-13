@@ -7,12 +7,15 @@ import ItemDetailPage from "../../../src/pages/ItemDetailPage";
 
 const authState = vi.hoisted(() => ({ owner: true }));
 
-vi.mock("../../../src/services/authState", () => ({
-  isOwner: vi.fn(() => authState.owner),
+vi.mock("../../../src/services/authState", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+  isOwner: vi.fn((item) => typeof item?.isOwner === "boolean" ? actual.isOwner(item) : authState.owner),
   isAdmin: vi.fn(() => false),
   canEditItem: vi.fn(() => authState.owner),
   getCurrentUserId: vi.fn(() => "owner-1"),
-}));
+  };
+});
 
 vi.mock("../../../src/services/apiClient", () => ({
   getToken: vi.fn(() => "user-token"),
@@ -25,6 +28,7 @@ vi.mock("../../../src/context/ToastContext", () => ({
   useToast: () => ({ showToast: showToastMock }),
 }));
 vi.mock("../../../src/components/Sidebar", () => ({ default: () => <div /> }));
+vi.mock("../../../src/components/NotificationButton", () => ({ default: () => null }));
 vi.mock("../../../src/components/LocationMap", () => ({ default: () => <div /> }));
 vi.mock("../../../src/components/QRcode", () => ({ default: () => null }));
 vi.mock("../../../src/components/StatusBadge", () => ({
@@ -72,6 +76,22 @@ describe("ItemDetailPage - regular user deletion ownership", () => {
     renderPage();
 
     expect(await screen.findByRole("button", { name: "Delete item" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Contact owner" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Chat with/ })).not.toBeInTheDocument();
+  });
+
+  it("hides contact actions when the API identifies an anonymous post as owned despite stale local identity", async () => {
+    authState.owner = false;
+    localStorage.setItem("user", JSON.stringify({ _id: "stale-user" }));
+    apiFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: { ...item, user: "Anonymous" }, isOwner: true }),
+    });
+    renderPage();
+    await screen.findByText("Owner's lost backpack");
+    expect(screen.queryByRole("button", { name: "Contact owner" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Chat with/ })).not.toBeInTheDocument();
+    localStorage.removeItem("user");
   });
 
   it("hides Delete item from a regular user who does not own the post", async () => {
@@ -80,6 +100,8 @@ describe("ItemDetailPage - regular user deletion ownership", () => {
 
     await screen.findByText("Owner's lost backpack");
     expect(screen.queryByRole("button", { name: "Delete item" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Contact owner" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Chat with/ })).toBeInTheDocument();
   });
 
   it("does not delete the owner's post until confirmation", async () => {

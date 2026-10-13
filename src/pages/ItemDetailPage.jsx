@@ -2,7 +2,7 @@ import React from "react";
 import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import NotificationButton from "../components/NotificationButton";
-import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2, ExternalLink, MessageSquare, Search, Loader2, Pencil, Handshake, CheckCircle2 } from "lucide-react";
+import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2, ExternalLink, MessageSquare, Search, Loader2, Pencil, Handshake, CheckCircle2, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isOwner, isAdmin, canEditItem } from "../services/authState";
 import { authHeaders, apiFetch, getToken } from "../services/apiClient";
@@ -46,7 +46,7 @@ export default function ItemDetailPage() {
         const response = await apiFetch(`/api/items/${id}`);
         if (!response.ok) throw new Error("Item not found");
         const data = await response.json();
-        setItem(data.data);
+        setItem({ ...data.data, isOwner: data.isOwner });
       } catch (err) {
         setError(err.message);
       } finally {
@@ -85,6 +85,7 @@ export default function ItemDetailPage() {
   };
 
   const handleContactOwner = async () => {
+    if (!item || isOwner(item)) return;
     setSendingEmail(true);
     try {
       const response = await apiFetch(`/api/items/${item._id}/contact`, {
@@ -114,7 +115,7 @@ export default function ItemDetailPage() {
   };
 
   const handleStartChat = async () => {
-    if (!item) return;
+    if (!item || isOwner(item)) return;
     const ownerId = item.reportedBy?._id || item.reportedBy;
     if (!ownerId) {
       showToast("Cannot start chat: unknown owner.", "error");
@@ -149,7 +150,10 @@ export default function ItemDetailPage() {
         throw new Error(result.error || result.message || "Failed to update item status.");
       }
 
-      setItem(result.data || ((currentItem) => ({ ...currentItem, status })));
+      setItem((currentItem) => ({
+        ...(result.data || { ...currentItem, status }),
+        isOwner: currentItem.isOwner,
+      }));
       showToast(`Status updated to ${status.toLowerCase()}.`, "success");
     } catch (err) {
       showToast(err.message || "Failed to update item status.", "error");
@@ -329,9 +333,62 @@ export default function ItemDetailPage() {
                   <InfoBlock label="Date" icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString() : "N/A"} />
                 </div>
 
+                {userIsAdmin && (
+                  <div aria-label="Admin item actions" className="flex flex-col gap-3 border-t border-[var(--color-border)] pt-5">
+                    {["Approved", "Matched"].includes(item.status) && (
+                    <div aria-label="Status updates" className={`grid w-full gap-2 ${item.status === "Approved" ? "grid-cols-2" : "grid-cols-1"}`}>
+                    {item.status === "Approved" && (
+                      <button
+                        onClick={handleMarkAsMatched}
+                        disabled={Boolean(updatingStatus)}
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[var(--color-brand)] px-3 py-2 text-sm font-semibold text-[var(--color-brand-text)] transition hover:bg-[var(--color-brand-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {updatingStatus === "Matched" ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Handshake size={16} aria-hidden="true" />}
+                        {updatingStatus === "Matched" ? "Updating..." : "Mark as matched"}
+                      </button>
+                    )}
+                    {["Approved", "Matched"].includes(item.status) && (
+                      <button
+                        onClick={handleMarkAsReturned}
+                        disabled={Boolean(updatingStatus)}
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {updatingStatus === "Returned" ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <CheckCircle2 size={16} aria-hidden="true" />}
+                        {updatingStatus === "Returned" ? "Updating..." : "Mark as returned"}
+                      </button>
+                    )}
+                    </div>
+                    )}
+                    {!userIsOwner && (
+                      <div aria-label="Contact actions" className="grid w-full grid-cols-2 gap-2">
+                        <button
+                          onClick={handleContactOwner}
+                          disabled={sendingEmail}
+                          title="Contact owner by email"
+                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {sendingEmail ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Mail size={16} aria-hidden="true" />}
+                          {sendingEmail ? "Sending..." : "Contact owner"}
+                        </button>
+                        <button
+                          onClick={handleStartChat}
+                          disabled={startingChat}
+                          title={`Chat with ${item.user || "owner"}`}
+                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {startingChat ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <MessageSquare size={16} aria-hidden="true" />}
+                          {startingChat ? "Starting..." : "Chat"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Recovery actions */}
-                {(userIsOwner || userIsAdmin) && ["Approved", "Matched"].includes(item.status) && (
-                  <div className="mb-6 flex flex-col gap-3">
+                {!userIsAdmin && userIsOwner && ["Approved", "Matched"].includes(item.status) && (
+                  <div className={userIsAdmin ? "mb-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-raised)] p-4" : "mb-6"}>
+                    {userIsAdmin && <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Update status</h3>}
+                    <div className={userIsAdmin ? "grid grid-cols-1 gap-3 xl:grid-cols-2" : "flex flex-col gap-3"}>
                     {item.status === "Approved" && (
                       <button
                         onClick={handleMarkAsMatched}
@@ -352,24 +409,29 @@ export default function ItemDetailPage() {
                         {updatingStatus === "Returned" ? "Updating..." : "Mark as returned"}
                       </button>
                     )}
+                    </div>
                   </div>
                 )}
 
                 {/* Contact Owner CTA */}
-                {!userIsOwner && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {!userIsAdmin && !userIsOwner && (
+                  <div className={userIsAdmin ? "border-t border-[var(--color-border)] pt-5" : ""}>
+                    {userIsAdmin && <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Contact reporter</h3>}
+                    <div className={userIsAdmin ? "grid grid-cols-1 gap-3 xl:grid-cols-2" : "flex flex-col gap-3"}>
                     <button 
                       onClick={handleContactOwner}
                       disabled={sendingEmail}
                       style={{
-                        width: "100%", padding: "16px", background: "var(--color-brand)",
-                        color: "var(--color-brand-text)", border: "none", borderRadius: 12,
-                        fontSize: 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                        width: "100%", padding: userIsAdmin ? "12px" : "16px", background: userIsAdmin ? "var(--color-bg-surface)" : "var(--color-brand)",
+                        color: userIsAdmin ? "var(--color-text-primary)" : "var(--color-brand-text)", border: userIsAdmin ? "1px solid var(--color-border)" : "none", borderRadius: 12,
+                        fontSize: userIsAdmin ? 14 : 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
                         transition: "background 0.15s", opacity: sendingEmail ? 0.7 : 1,
                       }}
-                      onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand-hover)")}
-                      onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand)")}
+                      onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = userIsAdmin ? "var(--color-bg-hover)" : "var(--color-brand-hover)")}
+                      onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = userIsAdmin ? "var(--color-bg-surface)" : "var(--color-brand)")}
                     >
+                      {userIsAdmin && <Mail size={18} aria-hidden="true" />}
                       {sendingEmail ? "Sending..." : "Contact owner"}
                     </button>
                     <button 
@@ -377,17 +439,18 @@ export default function ItemDetailPage() {
                       disabled={startingChat}
                       style={{
                         display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                        width: "100%", padding: "16px", background: "var(--color-bg-raised)",
+                        width: "100%", padding: userIsAdmin ? "12px" : "16px", background: userIsAdmin ? "var(--color-bg-surface)" : "var(--color-bg-raised)",
                         color: "var(--color-text-primary)", border: "1px solid var(--color-border)", borderRadius: 12,
-                        fontSize: 15, fontWeight: 700, cursor: startingChat ? "not-allowed" : "pointer", 
+                        fontSize: userIsAdmin ? 14 : 15, fontWeight: 700, cursor: startingChat ? "not-allowed" : "pointer", 
                         transition: "background 0.15s", opacity: startingChat ? 0.7 : 1,
                       }}
                       onMouseEnter={e => !startingChat && (e.currentTarget.style.background = "var(--color-bg-hover)")}
-                      onMouseLeave={e => !startingChat && (e.currentTarget.style.background = "var(--color-bg-raised)")}
+                      onMouseLeave={e => !startingChat && (e.currentTarget.style.background = userIsAdmin ? "var(--color-bg-surface)" : "var(--color-bg-raised)")}
                     >
                       <MessageSquare size={18} />
                       {startingChat ? "Starting chat..." : `Chat with ${item.user || "owner"}`}
                     </button>
+                    </div>
                   </div>
                 )}
 

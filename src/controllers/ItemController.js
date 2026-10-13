@@ -296,7 +296,7 @@ export const getItemById = async (req, res) => {
 
     if (!canViewModeratedItem) return res.status(404).json({ error: "Item not found." });
  
-    return res.status(200).json({ data: item });
+    return res.status(200).json({ data: item, isOwner: isItemOwner(item, req.user) });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

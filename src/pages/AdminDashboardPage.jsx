@@ -6,6 +6,7 @@ import { LogOut, Users, FileText, Search, Trophy, ArrowRight, TrendingUp} from "
 import { useTheme } from "../context/ThemeContext";
 import { getAuthUser, clearAuth } from "../services/authState";
 import ModerationItemCard from "../components/ModerationItemCard";
+import AdminReportsSection from "../components/AdminReportsSection";
 import { apiFetch } from "../services/apiClient";
 import { useToast } from "../context/ToastContext";
 
@@ -362,6 +363,9 @@ export default function AdminDashboardPage() {
               )}
             </div>
           </div>
+
+          {/* Fourth Action: Message Reports */}
+          <AdminReportsSection />
         </div>
       </main>
     </div>

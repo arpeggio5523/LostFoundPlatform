@@ -19,6 +19,7 @@ import Message from "./models/Message.js";
 import User from "./models/User.js";
 import { encrypt, decrypt } from "./utils/cryptoUtils.js";
 import userRoutes from "./routes/userRoutes.js";
+import languageRoutes from "./routes/languageRoutes.js";
 import { maskUserForViewer } from "./utils/privacy.js";
 import { sendNewMessageNotificationEmail } from "./utils/emailService.js";
 
@@ -211,6 +212,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/language", languageRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Serve Vite build in production

@@ -37,3 +37,7 @@ services:
         value: refreshToken
       - key: VITE_MAPBOX_TOKEN
         sync: false
+      - key: LARA_ACCESS_KEY_ID
+        sync: false
+      - key: LARA_ACCESS_KEY_SECRET
+        sync: false

@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import React from "react";
 import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
@@ -13,6 +14,7 @@ import QRCodeModal from "../components/QRcode";
 import { startConversation } from "../services/messagesApi";
 
 export default function ItemDetailPage() {
+  const { t, locale } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -98,10 +100,8 @@ export default function ItemDetailPage() {
 
       showToast(
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <span style={{ fontWeight: "bold" }}>Email Sent!</span>
-          <span style={{ fontWeight: "normal", fontSize: "0.9em" }}>
-            The owner has been notified. They will contact you directly via email if they wish to proceed.
-          </span>
+          <span style={{ fontWeight: "bold" }}>{t("Email Sent!")}</span>
+          <span style={{ fontWeight: "normal", fontSize: "0.9em" }}>{t("The owner has been notified. They will contact you directly via email if they wish to proceed.")}</span>
         </div>,
         "success"
       );
@@ -149,7 +149,7 @@ export default function ItemDetailPage() {
       }
 
       setItem(result.data || ((currentItem) => ({ ...currentItem, status })));
-      showToast(`Status updated to ${status.toLowerCase()}.`, "success");
+      showToast(t("Status updated to {{status}}.", { status: t(status) }), "success");
     } catch (err) {
       showToast(err.message || "Failed to update item status.", "error");
     } finally {
@@ -197,8 +197,8 @@ export default function ItemDetailPage() {
     navigate(`/item/${matchId}`);
   };
 
-  if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>Loading...</div>;
-  if (error || !item) return <div style={{ padding: 40, color: "#f87171" }}>Item not found.</div>;
+  if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>{t("Loading...")}</div>;
+  if (error || !item) return <div style={{ padding: 40, color: "#f87171" }}>{t("Item not found.")}</div>;
 
   const userIsOwner = isOwner(item);
   const userIsAdmin = isAdmin();
@@ -230,8 +230,7 @@ export default function ItemDetailPage() {
           onMouseEnter={e => e.currentTarget.style.color = "var(--color-text-primary)"}
           onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-muted)"}
         >
-          <ArrowLeft size={16} />
-          Back to {backLabel}
+          <ArrowLeft size={16} />{t("Back to {{page}}", { page: t(backLabel) })}
         </button>
 
         {/* Two Column Layout */}
@@ -281,9 +280,7 @@ export default function ItemDetailPage() {
 
                 {/* Description */}
                 <div style={{ marginBottom: 32 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)", textTransform: "uppercase", marginBottom: 8 }}>
-                    Description
-                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)", textTransform: "uppercase", marginBottom: 8 }}>{t("Description")}</div>
                   <p style={{ fontSize: 16, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
                     {item.description}
                   </p>
@@ -291,11 +288,11 @@ export default function ItemDetailPage() {
 
                 {/* Info Grid */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, borderTop: "1px solid var(--color-border)", paddingTop: 32, marginBottom: 48 }}>
-                  <InfoBlock label="Category" icon={<Tag size={16} />} value={item.category} />
-                  <InfoBlock label="Colour" icon={<Palette size={16} />} value={item.color} />
-                  <InfoBlock label="Location" icon={<MapPin size={16} />} value={item.location} />
-                  <InfoBlock label="Exact Location" icon={<MapPin size={16} />} value={item.exactLocation || "Not specified"} />
-                  <InfoBlock label="Date" icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString() : "N/A"} />
+                  <InfoBlock label={t("Category")} icon={<Tag size={16} />} value={t(item.category)} />
+                  <InfoBlock label={t("Colour")} icon={<Palette size={16} />} value={item.color} />
+                  <InfoBlock label={t("Location")} icon={<MapPin size={16} />} value={item.location} />
+                  <InfoBlock label={t("Exact Location")} icon={<MapPin size={16} />} value={item.exactLocation || t("Not specified")} />
+                  <InfoBlock label={t("Date")} icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString(locale) : t("N/A")} />
                 </div>
 
                 {/* Contact Owner CTA */}
@@ -313,7 +310,7 @@ export default function ItemDetailPage() {
                       onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand-hover)")}
                       onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand)")}
                     >
-                      {sendingEmail ? "Sending..." : "Contact owner"}
+                      {sendingEmail ? t("Sending...") : t("Contact owner")}
                     </button>
                     <button 
                       onClick={handleStartChat}
@@ -339,9 +336,7 @@ export default function ItemDetailPage() {
                     onClick={() => setShowDeleteModal(true)}
                     className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-none bg-red-600 p-4 text-[15px] font-bold text-white transition hover:bg-red-700"
                   >
-                    <Trash2 size={18} />
-                    Delete item
-                  </button>
+                    <Trash2 size={18} />{t("Delete item")}</button>
                 )}
               </div>
             </div>
@@ -349,9 +344,7 @@ export default function ItemDetailPage() {
             {/* Actions Block for Owner/Admin */}
             {canEdit && (userIsAdmin || ["Approved", "Matched", "Returned"].includes(item.status)) && (
               <div className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 sm:p-6 transition-all duration-300">
-                <div className="mb-4 text-xl font-bold text-[var(--color-text-primary)]">
-                  Actions
-                </div>
+                <div className="mb-4 text-xl font-bold text-[var(--color-text-primary)]">{t("Actions")}</div>
 
                 <div className={`grid grid-cols-1 gap-3 ${userIsAdmin ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
                   {canEdit && (
@@ -364,9 +357,7 @@ export default function ItemDetailPage() {
                         )
                       }
                       className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
-                    >
-                      Edit
-                    </button>
+                    >{t("Edit")}</button>
                   )}
 
 
@@ -376,7 +367,7 @@ export default function ItemDetailPage() {
                       disabled={Boolean(updatingStatus)}
                       className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {updatingStatus === "Matched" ? "Updating..." : "Mark as matched"}
+                      {updatingStatus === "Matched" ? t("Updating...") : t("Mark as matched")}
                     </button>
                   )}
 
@@ -386,7 +377,7 @@ export default function ItemDetailPage() {
                       disabled={Boolean(updatingStatus)}
                       className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {updatingStatus === "Returned" ? "Updating..." : "Mark as returned"}
+                      {updatingStatus === "Returned" ? t("Updating...") : t("Mark as returned")}
                     </button>
                   )}
                 </div>
@@ -398,7 +389,7 @@ export default function ItemDetailPage() {
           <aside style={{ position: "sticky", top: 40, alignSelf: "start", display: "flex", flexDirection: "column", gap: 20 }}>
             <div style={{ marginBottom: 20, background: "var(--color-bg-surface)", border: "1px solid var(--color-border)", borderRadius: 20, overflow: "hidden" }}>
               <div style={{ padding: "20px 20px 14px" }}>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "var(--color-text-primary)" }}>Reported location</h3>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "var(--color-text-primary)" }}>{t("Reported location")}</h3>
                 <p style={{ margin: "5px 0 0", fontSize: 13, color: "var(--color-text-secondary)" }}>
                   {item.reportLocation?.formattedAddress || item.location}
                 </p>
@@ -412,8 +403,7 @@ export default function ItemDetailPage() {
                   }}
                   style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, background: "var(--color-bg-surface)", border: "none", borderTop: "1px solid var(--color-border)", color: "var(--color-brand)", fontWeight: 700, cursor: "pointer" }}
                 >
-                  <ExternalLink size={16} /> View full map
-                </button>
+                  <ExternalLink size={16} />{t(" View full map")}</button>
               )}
             </div>
             <div style={{
@@ -424,9 +414,7 @@ export default function ItemDetailPage() {
               boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)",
               transition: "background 0.2s ease, border-color 0.2s ease",
             }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20, color: "var(--color-text-primary)" }}>
-                Posted By
-              </h3>
+              <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20, color: "var(--color-text-primary)" }}>{t("Posted By")}</h3>
 
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
                 <div style={{
@@ -439,10 +427,9 @@ export default function ItemDetailPage() {
 
                 <div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: "var(--color-text-primary)" }}>
-                    {item.user || "Anonymous User"}
+                    {item.user || t("Anonymous User")}
                   </div>
-                  <div style={{ fontSize: 14, color: "var(--color-text-secondary)" }}>
-                    Posted {item.date ? new Date(item.date).toLocaleDateString() : ""}
+                  <div style={{ fontSize: 14, color: "var(--color-text-secondary)" }}>{t("Posted ")}{item.date ? new Date(item.date).toLocaleDateString(locale) : ""}
                   </div>
                 </div>
               </div>
@@ -460,9 +447,7 @@ export default function ItemDetailPage() {
                 onMouseEnter={e => e.currentTarget.style.background = "var(--color-bg-hover)"}
                 onMouseLeave={e => e.currentTarget.style.background = "var(--color-bg-surface)"}
               >
-                <QrCode size={20} />
-                View QR Code
-              </button>
+                <QrCode size={20} />{t("View QR Code")}</button>
             </div>
 
             {/* View Possible Matches Button */}
@@ -485,7 +470,7 @@ export default function ItemDetailPage() {
               ) : (
                 <Search size={18} />
               )}
-              {matchesLoading ? "Searching..." : "View possible matches"}
+              {matchesLoading ? t("Searching...") : t("View possible matches")}
             </button>
 
             {/* Possible Matches Panel */}
@@ -497,9 +482,7 @@ export default function ItemDetailPage() {
                 padding: 24,
                 boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)",
               }}>
-                <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: "var(--color-text-primary)" }}>
-                  Possible Matches
-                </h3>
+                <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: "var(--color-text-primary)" }}>{t("Possible Matches")}</h3>
 
                 {matches.length === 0 ? (
                   <div style={{
@@ -508,10 +491,8 @@ export default function ItemDetailPage() {
                     color: "var(--color-text-muted)", textAlign: "center",
                   }}>
                     <Search size={28} style={{ opacity: 0.4 }} />
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>No matches found</div>
-                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>
-                      We couldn't find any potential matches for this item yet. Check back later.
-                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>{t("No matches found")}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>{t("We couldn't find any potential matches for this item yet. Check back later.")}</div>
                   </div>
                 ) : (
                   <div style={{ display: "grid", gap: 12 }}>
@@ -552,8 +533,8 @@ export default function ItemDetailPage() {
                           </div>
                           <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
                             {match.similarityScore
-                              ? `${Math.round(match.similarityScore * 100)}% match`
-                              : "Possible match"}
+                              ? `${Math.round(match.similarityScore * 100)}${t("% match")}`
+                              : t("Possible match")}
                           </div>
                         </div>
                       </button>
@@ -569,9 +550,9 @@ export default function ItemDetailPage() {
 
       <ConfirmModal
         isOpen={showDeleteModal}
-        title="Delete Item"
-        message="Are you sure you want to delete this item? This action cannot be undone."
-        confirmText="Delete"
+        title={t("Delete Item")}
+        message={t("Are you sure you want to delete this item? This action cannot be undone.")}
+        confirmText={t("Delete")}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteModal(false)}
       />
@@ -587,6 +568,7 @@ export default function ItemDetailPage() {
 
 // InfoBlock Component
 function InfoBlock({ label, icon, value }) {
+  const { t } = useLanguage();
   return (
     <div>
       <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-primary)", textTransform: "uppercase", marginBottom: 8 }}>
@@ -594,7 +576,7 @@ function InfoBlock({ label, icon, value }) {
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 15, fontWeight: 600, color: "var(--color-text-primary)" }}>
         <span style={{ color: "var(--color-text-muted)" }}>{icon}</span>
-        {value || "N/A"}
+        {value || t("N/A")}
       </div>
     </div>
   );

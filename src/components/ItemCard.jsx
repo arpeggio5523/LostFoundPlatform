@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import React from "react";
 import StatusBadge from "./StatusBadge";
 import QRIcon from "./QRIcon";
@@ -9,6 +10,7 @@ import { useState } from "react";
 import QRCodeModal from "./QRcode";
 
 export default function ItemCard({ item, dateLabel, returnTo }) {
+  const { t, locale } = useLanguage();
   const navigate = useNavigate();
 
   const handleCardClick = () => {
@@ -54,9 +56,7 @@ export default function ItemCard({ item, dateLabel, returnTo }) {
             fontSize: 11, fontWeight: 700,
             textAlign: "center", padding: "5px 8px",
             letterSpacing: "0.03em",
-          }}>
-            ⏳ Pending Approval — only visible to you
-          </div>
+          }}>{t("⏳ Pending Approval — only visible to you")}</div>
         )}
         {isOwnPost && item.status === "Rejected" && (
           <div style={{
@@ -66,9 +66,7 @@ export default function ItemCard({ item, dateLabel, returnTo }) {
             fontSize: 11, fontWeight: 700,
             textAlign: "center", padding: "5px 8px",
             letterSpacing: "0.03em",
-          }}>
-            ❌ Rejected — not visible to others
-          </div>
+          }}>{t("❌ Rejected — not visible to others")}</div>
         )}
         </div>
 
@@ -88,16 +86,15 @@ export default function ItemCard({ item, dateLabel, returnTo }) {
 
             <div className="mb-2 flex items-center gap-2 text-xs text-gray-500 dark:text-[var(--color-text-secondary)]">
                 <Calendar size={16} strokeWidth={2} className='shrink-0'/>
-                <span>{dateLabel} {item.date}</span>
+                <span>{dateLabel} {item.dateValue ? new Date(item.dateValue).toLocaleDateString(locale) : item.date || t("N/A")}</span>
             </div>
 
             <div className="mb-4 border-t border-gray-200 dark:border-[var(--color-border)]"></div>
             <div className="mt-1 flex items-center justify-between">
                 <span className="rounded-lg border border-gray-200 dark:border-[var(--color-border)] px-2 py-1 text-xs font-semibold text-black dark:text-[var(--color-text-primary)]">
-                    {item.category}
+                    {t(item.category)}
                 </span>
-                <span className="text-xs text-gray-400 dark:text-[var(--color-text-muted)]">
-                    By {item.user}
+                <span className="text-xs text-gray-400 dark:text-[var(--color-text-muted)]">{t("By ")}{item.user === "Anonymous" ? t("Anonymous") : item.user}
                 </span>
             </div>
           </div>

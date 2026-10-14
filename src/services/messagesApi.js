@@ -81,7 +81,7 @@ export async function fetchMessages(conversationId) {
   return res.json();
 }
 
-export async function sendMessage(conversationId, text) {
+export async function sendMessage(conversationId, text, image = null) {
   if (USE_MOCKS) {
     await delay(150);
     const newMessage = {
@@ -89,12 +89,13 @@ export async function sendMessage(conversationId, text) {
       conversation: conversationId,
       sender: { _id: ME, fullName: "You" },
       text,
+      image,
       createdAt: new Date().toISOString(),
     };
     mockMessages[conversationId] = [...(mockMessages[conversationId] || []), newMessage];
     mockConversations = mockConversations.map((c) =>
       c._id === conversationId
-        ? { ...c, lastMessage: text, lastMessageAt: newMessage.createdAt }
+        ? { ...c, lastMessage: text || "Photo", lastMessageAt: newMessage.createdAt }
         : c
     );
     return { data: newMessage };
@@ -102,9 +103,11 @@ export async function sendMessage(conversationId, text) {
   const res = await apiFetch(`/api/messages/conversations/${conversationId}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, image }),
   });
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to send message");
+  return data;
 }
 
 export async function startConversation(recipientId, itemId) {

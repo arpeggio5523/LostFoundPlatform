@@ -10,11 +10,13 @@ import { Server } from "socket.io";
 import authRoutes from "./routes/authRoutes.js";
 import itemsRouter from "./routes/ItemRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import reportRoutes from "./routes/reportRoutes.js";
 import connectDB from "./config/db.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import { verifyAccessToken } from "./utils/authSession.js";
 import Conversation from "./models/Conversation.js";
 import Message from "./models/Message.js";
+import User from "./models/User.js";
 import { encrypt, decrypt } from "./utils/cryptoUtils.js";
 import userRoutes from "./routes/userRoutes.js";
 import languageRoutes from "./routes/languageRoutes.js";
@@ -58,7 +60,7 @@ const io = new Server(server, {
 
 app.set("io", io);
 
-io.use((socket, next) => {
+io.use(async (socket, next) => {
   const token =
     socket.handshake.auth?.token ||
     socket.handshake.auth?.accessToken ||
@@ -71,6 +73,11 @@ io.use((socket, next) => {
   try {
     const payload = verifyAccessToken(token);
     socket.user = { id: payload.sub || payload.id, ...payload };
+    // Removed users must not reconnect with a still-valid access token.
+    const account = await User.findById(socket.user.id, "isRemoved").lean();
+    if (!account || account.isRemoved) {
+      return next(new Error("Unauthorized"));
+    }
     return next();
   } catch {
     return next(new Error("Unauthorized"));
@@ -204,6 +211,7 @@ app.use("/api/items", itemsRouter);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/reports", reportRoutes);
 app.use("/api/language", languageRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 

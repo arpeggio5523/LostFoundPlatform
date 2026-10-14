@@ -1,7 +1,9 @@
+import { useLanguage } from "../context/LanguageContext";
 import React from 'react';
 import { Link } from "react-router-dom";
 
 function Navbar(){
+  const { t } = useLanguage();
     return(
         <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-[var(--color-border)] bg-white dark:bg-[var(--color-bg-surface)] transition-colors duration-200">
             <div className="flex w-full items-center justify-between px-8 py-5">
@@ -31,12 +33,8 @@ function Navbar(){
 
             {/* right nav*/}
             <nav className="flex items-center gap-6">
-                <Link to="/login" className="rounded-lg bg-white dark:bg-transparent px-5 py-2 text-sm font-semibold text-[var(--color-brand)] hover:bg-gray-100 dark:hover:bg-[var(--color-bg-raised)]">
-                    Login
-                </Link>
-                <Link to="/signup" className="rounded-lg bg-[var(--color-brand)] px-5 py-2 text-sm font-semibold text-[var(--color-brand-text)] hover:opacity-90 transition-opacity">
-                    Sign Up
-                </Link>
+                <Link to="/login" className="rounded-lg bg-white dark:bg-transparent px-5 py-2 text-sm font-semibold text-[var(--color-brand)] hover:bg-gray-100 dark:hover:bg-[var(--color-bg-raised)]">{t("Login")}</Link>
+                <Link to="/signup" className="rounded-lg bg-[var(--color-brand)] px-5 py-2 text-sm font-semibold text-[var(--color-brand-text)] hover:opacity-90 transition-opacity">{t("Sign Up")}</Link>
             </nav>
             </div>
         </header>

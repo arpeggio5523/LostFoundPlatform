@@ -39,12 +39,14 @@ export default function ItemCard({ item, dateLabel, returnTo }) {
             ? <img src={item.image} alt={item.title} className="w-full h-52 object-cover block" />
             : <NoImagePlaceholder />
             }
+            {item.status !== "Pending" && item.status !== "Rejected" && (
             <QRIcon
               onClick={(e) => {
                 e.stopPropagation();
                 setShowQRModal(true);
               }}
             />
+            )}
             {/* Pending/Rejected banner for item owner */}
         {isOwnPost && item.status === "Pending" && (
           <div style={{

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Send, MessageSquare, ArrowLeft, Paperclip, X } from "lucide-react";
+import { Search, Send, MessageSquare, ArrowLeft, Paperclip, X, Flag } from "lucide-react";
 import Sidebar from "../components/Sidebar";
+import ReportUserPanel from "../components/ReportUserPanel";
 import NavBar2 from "../components/NavBar2";
 import { getAuthUser, getCurrentUserId } from "../services/authState";
 import { fetchConversations, fetchMessages, sendMessage } from "../services/messagesApi";
@@ -50,6 +51,7 @@ export default function MessagesPage() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [attachment, setAttachment] = useState(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const [readingImage, setReadingImage] = useState(false);
   const fileInputRef = useRef(null);
   const imageReaderRef = useRef(null);
@@ -57,6 +59,7 @@ export default function MessagesPage() {
   activeConversationRef.current = selectedId;
 
   useEffect(() => {
+    setReportOpen(false);
     setAttachment(null);
     setReadingImage(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -465,7 +468,7 @@ export default function MessagesPage() {
                     <ArrowLeft size={18} />
                   </button>
                   <Avatar initials={initialsFor(otherParticipant(selectedConvo)?.fullName)} />
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-gray-900 dark:text-[var(--color-text-primary)]">
                       {otherParticipant(selectedConvo)?.fullName || "Unknown user"}
                     </p>
@@ -475,6 +478,16 @@ export default function MessagesPage() {
                       </p>
                     )}
                   </div>
+                  {getAuthUser()?.role !== "Admin" && (
+                    <button
+                      type="button"
+                      onClick={() => setReportOpen(true)}
+                      className="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                    >
+                      <Flag size={14} />
+                      Report
+                    </button>
+                  )}
                 </div>
 
                 {/* Message list */}
@@ -562,6 +575,14 @@ export default function MessagesPage() {
           </section>
         </div>
       </div>
+
+      {reportOpen && selectedConvo && (
+        <ReportUserPanel
+          conversationId={selectedConvo._id}
+          reportedUserName={otherParticipant(selectedConvo)?.fullName}
+          onClose={() => setReportOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -450,29 +450,6 @@ export default function ItemDetailPage() {
                 <QrCode size={20} />{t("View QR Code")}</button>
             </div>
 
-            {/* View Possible Matches Button */}
-            <button
-              onClick={handleViewPossibleMatches}
-              disabled={matchesLoading}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-                gap: 10, padding: 14, background: "var(--color-bg-surface)",
-                border: "1.5px solid var(--color-border)", borderRadius: 12,
-                fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
-                cursor: matchesLoading ? "not-allowed" : "pointer", transition: "background 0.2s",
-                opacity: matchesLoading ? 0.7 : 1,
-              }}
-              onMouseEnter={e => !matchesLoading && (e.currentTarget.style.background = "var(--color-bg-hover)")}
-              onMouseLeave={e => !matchesLoading && (e.currentTarget.style.background = "var(--color-bg-surface)")}
-            >
-              {matchesLoading ? (
-                <Loader2 size={18} className="spin" style={{ animation: "spin 1s linear infinite" }} />
-              ) : (
-                <Search size={18} />
-              )}
-              {matchesLoading ? t("Searching...") : t("View possible matches")}
-            </button>
-
             {/* Possible Matches Panel */}
             {matchesChecked && (
               <div style={{

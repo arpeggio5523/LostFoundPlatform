@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 /**
  * ImageSearchPanel.jsx
  *
@@ -18,6 +19,7 @@ import React, { useState, useRef } from "react";
 import { apiFetch, authHeaders } from "../services/apiClient";
 
 export default function ImageSearchPanel({ type, onResults, onClear }) {
+  const { t } = useLanguage();
   const [preview, setPreview]         = useState(null);
   const [fileName, setFileName]       = useState("");
   const [loading, setLoading]         = useState(false);
@@ -119,12 +121,8 @@ export default function ImageSearchPanel({ type, onResults, onClear }) {
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
             <circle cx="12" cy="13" r="4"/>
           </svg>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--color-text-primary)" }}>
-            Search by Image
-          </span>
-          <span style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
-            — drag a photo to find visually similar {type === "Lost" ? "lost" : "found"} items
-          </span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--color-text-primary)" }}>{t("Search by Image")}</span>
+          <span style={{ fontSize: 12, color: "var(--color-text-muted)" }}>{t("Find visually similar {{type}} items using a photo.", { type: type === "Lost" ? t("lost") : t("found") })}</span>
         </div>
         {(preview || hasSearched) && (
           <button
@@ -137,9 +135,7 @@ export default function ImageSearchPanel({ type, onResults, onClear }) {
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-            Clear search
-          </button>
+            </svg>{t("Clear search")}</button>
         )}
       </div>
 
@@ -148,7 +144,7 @@ export default function ImageSearchPanel({ type, onResults, onClear }) {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <img
             src={preview}
-            alt="Search image"
+            alt={t("Search image")}
             style={{ width: 56, height: 56, borderRadius: 10, objectFit: "cover", border: "1px solid var(--color-border)" }}
           />
           <div>
@@ -157,10 +153,10 @@ export default function ImageSearchPanel({ type, onResults, onClear }) {
             </div>
             <div style={{ fontSize: 12, color: "var(--color-text-muted)", marginTop: 2 }}>
               {loading
-                ? "Searching for similar items…"
+                ? t("Searching for similar items…")
                 : hasSearched
-                ? "Showing image search results"
-                : "Ready"}
+                ? t("Showing image search results")
+                : t("Ready")}
             </div>
           </div>
           {loading && (
@@ -203,9 +199,8 @@ export default function ImageSearchPanel({ type, onResults, onClear }) {
             <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
           </svg>
           <span style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
-            <span style={{ color: "var(--color-brand)", fontWeight: 600 }}>Upload an image</span>
-            {" "}or drag and drop — PNG, JPG, WebP up to 10 MB
-          </span>
+            <span style={{ color: "var(--color-brand)", fontWeight: 600 }}>{t("Upload an image")}</span>
+            {" "}{t("or drag and drop — PNG, JPG, WebP up to 10 MB")}</span>
         </div>
       )}
 
@@ -219,7 +214,7 @@ export default function ImageSearchPanel({ type, onResults, onClear }) {
       />
 
       {error && (
-        <div style={{ marginTop: 8, fontSize: 12, color: "#ef4444" }}>{error}</div>
+        <div style={{ marginTop: 8, fontSize: 12, color: "#ef4444" }}>{t(error)}</div>
       )}
     </div>
   );

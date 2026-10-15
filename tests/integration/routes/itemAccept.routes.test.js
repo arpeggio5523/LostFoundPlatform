@@ -3,7 +3,7 @@ import express from "express";
 import request from "supertest";
 
 const { mockItem, authenticatedUser } = vi.hoisted(() => ({
-  mockItem: { findById: vi.fn() },
+  mockItem: { findById: vi.fn(), updateOne: vi.fn().mockResolvedValue({ acknowledged: true, matchedCount: 1, modifiedCount: 1 }) },
   authenticatedUser: { current: { id: "admin-1", role: "Admin" } },
 }));
 
@@ -48,7 +48,10 @@ describe("PUT /api/items/:itemId/status - admin accept", () => {
 
     expect(response.status).toBe(200);
     expect(mockItem.findById).toHaveBeenCalledWith("item-accept-1");
-    expect(item.save).toHaveBeenCalledOnce();
+    expect(mockItem.updateOne).toHaveBeenCalledOnce();
+    expect(mockItem.updateOne).toHaveBeenCalledWith(
+      { _id: "item-accept-1" }, { $set: { status: "Approved" } }, { runValidators: true }
+    );
     expect(response.body).toMatchObject({
       message: "Item status updated",
       data: { _id: "item-accept-1", status: "Approved" },
@@ -64,6 +67,7 @@ describe("PUT /api/items/:itemId/status - admin accept", () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({ error: "Item not found." });
+    expect(mockItem.updateOne).not.toHaveBeenCalled();
   });
 
   it("prevents a non-admin non-owner from accepting an item", async () => {
@@ -77,5 +81,6 @@ describe("PUT /api/items/:itemId/status - admin accept", () => {
 
     expect(response.status).toBe(403);
     expect(item.save).not.toHaveBeenCalled();
+    expect(mockItem.updateOne).not.toHaveBeenCalled();
   });
 });

@@ -18,10 +18,12 @@ const messageSchema = new mongoose.Schema(
      */
     text: {
       type: String,
-      required: true,
+      required: function () { return !this.image; },
       trim: true,
       maxlength: 2000,
     },
+    // Image data URLs use the same encryption at rest as message text.
+    image: { type: String, default: null },
   },
   { timestamps: true }
 );

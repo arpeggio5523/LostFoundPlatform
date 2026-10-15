@@ -1,3 +1,4 @@
+vi.mock("../../../src/components/NotificationButton", () => ({ default: () => null }));
 import React from "react";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";

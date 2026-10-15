@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -16,6 +17,7 @@ function getCoordinates(location) {
 }
 
 export default function LocationMap({ location, itemType, title, fullScreen = false }) {
+  const { t } = useLanguage();
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const coordinates = getCoordinates(location);
@@ -34,9 +36,11 @@ export default function LocationMap({ location, itemType, title, fullScreen = fa
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
     const markerColor = itemType === "Lost" ? "#dc2626" : "#059669";
-    const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-      `<strong>${itemType || "Item"} location</strong><br>${location.formattedAddress || "Reported location"}`
-    );
+    const popupContent = document.createElement("div");
+    const heading = document.createElement("strong");
+    heading.textContent = t("{{type}} location", { type: t(itemType || "Item") });
+    popupContent.append(heading, document.createElement("br"), location.formattedAddress || t("Reported location"));
+    const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
 
     new mapboxgl.Marker({ color: markerColor })
       .setLngLat(coordinates)
@@ -47,23 +51,19 @@ export default function LocationMap({ location, itemType, title, fullScreen = fa
       map.remove();
       mapRef.current = null;
     };
-  }, [coordinates, fullScreen, itemType, location]);
+  }, [coordinates, fullScreen, itemType, location, t]);
 
   if (!coordinates) {
     return (
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-raised)] p-5 text-sm text-[var(--color-text-muted)]">
-        No map location was provided for this post.
-      </div>
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-raised)] p-5 text-sm text-[var(--color-text-muted)]">{t("No map location was provided for this post.")}</div>
     );
   }
 
   if (!mapboxgl.accessToken) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-        Map unavailable: VITE_MAPBOX_TOKEN is not configured.
-      </div>
+      <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">{t("Map unavailable: VITE_MAPBOX_TOKEN is not configured.")}</div>
     );
   }
 
-  return <div ref={containerRef} className={fullScreen ? "h-[calc(100vh-145px)] min-h-[420px] w-full" : "h-72 w-full"} aria-label={`${itemType || "Item"} location map`} />;
+  return <div ref={containerRef} className={fullScreen ? "h-[calc(100vh-145px)] min-h-[420px] w-full" : "h-72 w-full"} aria-label={t("{{type}} location map", { type: t(itemType || "Item") })} />;
 }

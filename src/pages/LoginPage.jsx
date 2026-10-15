@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import React, { useEffect, useState } from "react";
 import {Eye, EyeOff} from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -21,6 +22,7 @@ const getSafeRedirectPath = (redirectPath) => {
 };
 
 function LoginPage(){
+  const { t } = useLanguage();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { loadUserTheme } = useTheme();
@@ -152,38 +154,32 @@ function LoginPage(){
             {showPopup && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
                 <div className="w-full max-w-md rounded-2xl bg-[var(--color-bg-surface)] p-6 shadow-2xl border border-[var(--color-border)]">
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                        Login Failed
-                    </h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{t("Login Failed")}</h3>
 
                     <p className="mt-3 text-sm text-[var(--color-text-secondary)]">
-                        {popupMessage}
+                        {t(popupMessage)}
                     </p>
 
                     <button
                         onClick={() => setShowPopup(false)}
                         className="mt-6 w-full rounded-lg bg-[var(--color-brand)] px-4 py-3 font-semibold text-[var(--color-brand-text)] transition hover:opacity-90"
-                    >
-                        OK
-                    </button>
+                    >{t("OK")}</button>
                 </div>
             </div>
             )}
             <div className="mx-auto flex min-h-[80vh] max-w-lg items-center justify-center">
                 <div className="grid w-full overflow-hidden rounded-3xl bg-[var(--color-bg-surface)] shadow-xl border border-[var(--color-border)]">
                         <div className="p-8 md:p-10">
-                            <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]"> Welcome Back </h2>
-                            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-                                Enter your credentials to access your account
-                            </p>
+                            <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">{t(" Welcome Back ")}</h2>
+                            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{t("Enter your credentials to access your account")}</p>
                             {feedbackMessage && (
                                 <div className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-raised)] px-4 py-4 text-sm text-[var(--color-text-secondary)]">
-                                    {feedbackMessage}
+                                    {t(feedbackMessage)}
                                 </div>
                             )}
                             <form onSubmit={handleLogin} className="mt-8 space-y-5">
                             <AuthInput
-                                label="Email"
+                                label={t("Email")}
                                 type="email"
                                 placeholder="your.email@university.edu"
                                 value={formData.email}
@@ -192,7 +188,7 @@ function LoginPage(){
                             />
                             <div className="relative">
                                 <AuthInput
-                                label="Password"
+                                label={t("Password")}
                                 type={showPassword ? "text" : "password"}
                                 placeholder={"••••••••"}
                                 value={formData.password}
@@ -203,7 +199,7 @@ function LoginPage(){
                                     type="button"
                                     onClick={() => setShowPassword(prev => !prev)}
                                     className="absolute right-4 top-10 text-gray-500 hover:text-gray-700"
-                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                    aria-label={showPassword ? t("Hide password") : t("Show password")}
                                 >
                                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
@@ -220,35 +216,30 @@ function LoginPage(){
                                                 rememberMe: e.target.checked,
                                             }))
                                         }
-                                    />
-                                    Remember Me
-                                </label>
+                                    />{t("Remember Me")}</label>
                             </div>
-                            <AuthButton type="submit">Sign In</AuthButton>
+                            <AuthButton type="submit">{t("Sign In")}</AuthButton>
                             </form>
                             {feedbackMessage === "Please verify your email before logging in." && (
                                 <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                                    <p>Need another verification email?</p>
+                                    <p>{t("Need another verification email?")}</p>
                                     <button
                                         type="button"
                                         onClick={handleResendVerification}
                                         className="mt-3 font-semibold text-amber-900 hover:text-amber-700 dark:text-amber-200"
                                     >
-                                        {isResending ? "Sending..." : "Resend verification email"}
+                                        {isResending ? t("Sending...") : t("Resend verification email")}
                                     </button>
                                     {resendMessage && (
-                                        <p className="mt-3 text-amber-900 dark:text-amber-300">{resendMessage}</p>
+                                        <p className="mt-3 text-amber-900 dark:text-amber-300">{t(resendMessage)}</p>
                                     )}
                                 </div>
                             )}
-                            <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">
-                                Don't have an account?{" "}
+                            <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">{t("Don't have an account?")}{" "}
                                 <Link
                                     to="/signup"
                                     className="font-semibold text-[var(--color-brand)] hover:opacity-80"
-                                >
-                                    Sign Up
-                                </Link>
+                                >{t("Sign Up")}</Link>
                             </p>
                         </div>
                     </div>

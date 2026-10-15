@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, MapPin } from "lucide-react";
@@ -7,6 +8,7 @@ import LocationMap from "../components/LocationMap";
 import { apiFetch } from "../services/apiClient";
 
 export default function ItemMapPage() {
+  const { t } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const [item, setItem] = useState(null);
@@ -29,11 +31,11 @@ export default function ItemMapPage() {
   }, [id]);
 
   if (error) {
-    return <div style={{ padding: 40, color: "#f87171" }}>{error}</div>;
+    return <div style={{ padding: 40, color: "#f87171" }}>{t(error)}</div>;
   }
 
   if (!item) {
-    return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>Loading map...</div>;
+    return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>{t("Loading map...")}</div>;
   }
 
   return (
@@ -46,14 +48,14 @@ export default function ItemMapPage() {
               onClick={() => navigate(`/item/${item._id}`)}
               style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--color-text-muted)", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
             >
-              <ArrowLeft size={16} /> Back to post
+              <ArrowLeft size={16} />{t(" Back to post")}
             </button>
             <NotificationButton />
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, color: item.type === "Lost" ? "#dc2626" : "#059669" }}>
             <MapPin size={20} />
-            <span style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase" }}>{item.type} location</span>
+            <span style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase" }}>{t("{{type}} location", { type: t(item.type) })}</span>
           </div>
           <h1 style={{ margin: "0 0 20px", color: "var(--color-text-primary)", fontSize: 30, fontWeight: 800 }}>{item.title}</h1>
 

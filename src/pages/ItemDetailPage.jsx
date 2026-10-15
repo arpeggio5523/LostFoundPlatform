@@ -166,36 +166,36 @@ export default function ItemDetailPage() {
 
     let cancelled = false;
     const fetchMatches = async () => {
-    setMatchesLoading(true);
-    try {
-      const oppositeType = item.type === "Lost" ? "Found" : "Lost";
-      const res = await apiFetch(
-        `/api/items/${item._id}/similar?type=${oppositeType}&limit=5`,
-        { headers: authHeaders() }
-      );
+      setMatchesLoading(true);
+      try {
+        const oppositeType = item.type === "Lost" ? "Found" : "Lost";
+        const res = await apiFetch(
+          `/api/items/${item._id}/similar?type=${oppositeType}&limit=5`,
+          { headers: authHeaders() }
+        );
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
         // 400 means no embedding stored — show friendly empty state, not an error toast
-        if (res.status === 400) {
+          if (res.status === 400) {
             if (!cancelled) setMatches([]);
-          return;
+            return;
+          }
+          throw new Error(body.error || "Failed to load matches");
         }
-        throw new Error(body.error || "Failed to load matches");
-      }
 
-      const data = await res.json();
+        const data = await res.json();
         if (!cancelled) setMatches(data.data || []);
-    } catch (err) {
+      } catch (err) {
         if (!cancelled) {
-      showToast(err.message || "Could not load possible matches.", "error");
-      setMatches([]);
+          showToast(err.message || "Could not load possible matches.", "error");
+          setMatches([]);
         }
-    } finally {
+      } finally {
         if (!cancelled) {
-      setMatchesLoading(false);
-      setMatchesChecked(true);
-    }
+          setMatchesLoading(false);
+          setMatchesChecked(true);
+        }
       }
     };
 

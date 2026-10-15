@@ -518,19 +518,23 @@ export default function ItemDetailPage() {
               </div>
 
               {/* QR Button */}
-              <button
-                onClick={() => setShowQRModal(true)}
-                style={{
-                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-                  gap: 10, padding: 14, background: "var(--color-bg-surface)",
-                  border: "1.5px solid var(--color-border)", borderRadius: 12,
-                  fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
-                  cursor: "pointer", transition: "background 0.2s",
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--color-bg-hover)"}
-                onMouseLeave={e => e.currentTarget.style.background = "var(--color-bg-surface)"}
-              >
-                <QrCode size={20} />{t("View QR Code")}</button>
+              {item.status !== "Pending" && item.status !== "Rejected" && (
+                <button
+                  onClick={() => setShowQRModal(true)}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                    gap: 10, padding: 14, background: "var(--color-bg-surface)",
+                    border: "1.5px solid var(--color-border)", borderRadius: 12,
+                    fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
+                    cursor: "pointer", transition: "background 0.2s",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = "var(--color-bg-hover)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "var(--color-bg-surface)"}
+                >
+                  <QrCode size={20} />
+                  {t("View QR Code")}
+                </button>
+              )}
             </div>
 
             {/* Possible Matches Panel */}

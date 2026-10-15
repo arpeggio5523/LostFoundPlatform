@@ -153,7 +153,7 @@ function SignupPage(){
                                     className="absolute right-4 top-10 text-gray-400 hover:text-gray-700"
                                     aria-label={showPassword ? t("Hide password") : t("Show password")}
                                 >
-                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                                 </button>
                             </div>
                             <div className="relative">
@@ -172,7 +172,7 @@ function SignupPage(){
                                     className="absolute right-4 top-10 text-gray-400 hover:text-gray-700"
                                     aria-label={showConfirmPassword ? t("Hide password") : t("Show password")}
                                 >
-                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    {showConfirmPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                                 </button>
                             </div>
                             <AuthButton type = "submit">{t("Create Account")}</AuthButton>

@@ -160,38 +160,50 @@ export default function ItemDetailPage() {
   const handleMarkAsMatched = () => updateItemStatus("Matched");
   const handleMarkAsReturned = () => updateItemStatus("Returned");
 
-  // Fetch visually similar items using the stored imageEmbedding.
-  // We search the opposite type: a Lost item finds similar Found items, and vice versa.
-  const handleViewPossibleMatches = async () => {
-    setMatchesLoading(true);
-    try {
-      const oppositeType = item.type === "Lost" ? "Found" : "Lost";
-      const res = await apiFetch(
-        `/api/items/${item._id}/similar?type=${oppositeType}&limit=5`,
-        { headers: authHeaders() }
-      );
+  // Fetch visually similar items automatically for the current item.
+  useEffect(() => {
+    if (!item) return;
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
+    let cancelled = false;
+    const fetchMatches = async () => {
+      setMatchesLoading(true);
+      try {
+        const oppositeType = item.type === "Lost" ? "Found" : "Lost";
+        const res = await apiFetch(
+          `/api/items/${item._id}/similar?type=${oppositeType}&limit=5`,
+          { headers: authHeaders() }
+        );
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
         // 400 means no embedding stored — show friendly empty state, not an error toast
-        if (res.status === 400) {
-          setMatches([]);
-          setMatchesChecked(true);
-          return;
+          if (res.status === 400) {
+            if (!cancelled) setMatches([]);
+            return;
+          }
+          throw new Error(body.error || "Failed to load matches");
         }
-        throw new Error(body.error || "Failed to load matches");
-      }
 
-      const data = await res.json();
-      setMatches(data.data || []);
-    } catch (err) {
-      showToast(err.message || "Could not load possible matches.", "error");
-      setMatches([]);
-    } finally {
-      setMatchesLoading(false);
-      setMatchesChecked(true);
-    }
-  };
+        const data = await res.json();
+        if (!cancelled) setMatches(data.data || []);
+      } catch (err) {
+        if (!cancelled) {
+          showToast(err.message || "Could not load possible matches.", "error");
+          setMatches([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setMatchesLoading(false);
+          setMatchesChecked(true);
+        }
+      }
+    };
+
+    fetchMatches();
+    return () => {
+      cancelled = true;
+    };
+  }, [item?._id, item?.type]);
 
   const handleMatchClick = (matchId) => {
     navigate(`/item/${matchId}`);
@@ -450,31 +462,8 @@ export default function ItemDetailPage() {
                 <QrCode size={20} />{t("View QR Code")}</button>
             </div>
 
-            {/* View Possible Matches Button */}
-            <button
-              onClick={handleViewPossibleMatches}
-              disabled={matchesLoading}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-                gap: 10, padding: 14, background: "var(--color-bg-surface)",
-                border: "1.5px solid var(--color-border)", borderRadius: 12,
-                fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
-                cursor: matchesLoading ? "not-allowed" : "pointer", transition: "background 0.2s",
-                opacity: matchesLoading ? 0.7 : 1,
-              }}
-              onMouseEnter={e => !matchesLoading && (e.currentTarget.style.background = "var(--color-bg-hover)")}
-              onMouseLeave={e => !matchesLoading && (e.currentTarget.style.background = "var(--color-bg-surface)")}
-            >
-              {matchesLoading ? (
-                <Loader2 size={18} className="spin" style={{ animation: "spin 1s linear infinite" }} />
-              ) : (
-                <Search size={18} />
-              )}
-              {matchesLoading ? t("Searching...") : t("View possible matches")}
-            </button>
-
             {/* Possible Matches Panel */}
-            {matchesChecked && (
+            {(matchesLoading || matchesChecked) && (
               <div style={{
                 background: "var(--color-bg-surface)",
                 border: "1px solid var(--color-border)",
@@ -484,7 +473,12 @@ export default function ItemDetailPage() {
               }}>
                 <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: "var(--color-text-primary)" }}>{t("Possible Matches")}</h3>
 
-                {matches.length === 0 ? (
+                {matchesLoading ? (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "24px 8px", color: "var(--color-text-muted)" }}>
+                    <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} />
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>{t("Searching...")}</span>
+                  </div>
+                ) : matches.length === 0 ? (
                   <div style={{
                     display: "flex", flexDirection: "column", alignItems: "center",
                     justifyContent: "center", gap: 10, padding: "24px 8px",

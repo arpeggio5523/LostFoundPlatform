@@ -451,7 +451,7 @@ export default function ItemDetailPage() {
             </div>
 
             {/* Possible Matches Panel */}
-            {matchesChecked && (
+            {(matchesLoading || matchesChecked) && (
               <div style={{
                 background: "var(--color-bg-surface)",
                 border: "1px solid var(--color-border)",
@@ -461,7 +461,12 @@ export default function ItemDetailPage() {
               }}>
                 <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: "var(--color-text-primary)" }}>{t("Possible Matches")}</h3>
 
-                {matches.length === 0 ? (
+                {matchesLoading ? (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "24px 8px", color: "var(--color-text-muted)" }}>
+                    <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} />
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>{t("Searching...")}</span>
+                  </div>
+                ) : matches.length === 0 ? (
                   <div style={{
                     display: "flex", flexDirection: "column", alignItems: "center",
                     justifyContent: "center", gap: 10, padding: "24px 8px",

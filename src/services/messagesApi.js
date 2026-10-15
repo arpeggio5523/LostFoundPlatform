@@ -81,6 +81,17 @@ export async function fetchMessages(conversationId) {
   return res.json();
 }
 
+export async function translateMessage(conversationId, messageId, targetLanguage) {
+  const res = await apiFetch(`/api/messages/conversations/${conversationId}/messages/${messageId}/translate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ targetLanguage }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to translate message.");
+  return data;
+}
+
 export async function sendMessage(conversationId, text, image = null) {
   if (USE_MOCKS) {
     await delay(150);

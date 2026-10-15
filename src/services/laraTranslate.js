@@ -36,10 +36,14 @@ export async function detectLanguage(text) {
 }
 
 export async function translateToEnglish(text) {
+  return translateText(text, "en");
+}
+
+export async function translateText(text, targetLanguage) {
   const query = typeof text === "string" ? text.trim() : "";
   if (!query) throw new Error("Text is required.");
 
-  const result = await getTranslator().translate(query, undefined, "en", {
+  const result = await getTranslator().translate(query, undefined, targetLanguage, {
     noTrace: true,
   });
 

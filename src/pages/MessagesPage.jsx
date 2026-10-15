@@ -9,6 +9,7 @@ import { fetchConversations, fetchMessages, sendMessage } from "../services/mess
 import { useSocket } from "../context/SocketContext";
 import { useToast } from "../context/ToastContext";
 import { MAX_MESSAGE_IMAGE_BYTES, MESSAGE_IMAGE_TYPES } from "../utils/messageAttachments";
+import MessageTranslation from "../components/MessageTranslation";
 
 function Avatar({ initials }) {
   return (
@@ -518,7 +519,7 @@ export default function MessagesPage() {
                                 }}
                               />
                             )}
-                            {m.text && <p>{m.text}</p>}
+                            {m.text && <MessageTranslation message={m} conversationId={selectedId} isMine={isMine} />}
                             <p
                               className={`mt-1 text-[10px] ${
                                 isMine

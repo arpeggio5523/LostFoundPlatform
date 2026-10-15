@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
@@ -7,6 +8,7 @@ import { useTheme } from "../context/ThemeContext";
 import { getAuthUser, clearAuth } from "../services/authState";
 
 export default function Dashboard() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { resetTheme } = useTheme();
@@ -27,18 +29,18 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-screen bg-[var(--color-bg-base)] transition-colors duration-200 font-sans">
-      <Sidebar 
-        isCollapsed={isCollapsed} 
-        setIsCollapsed={setIsCollapsed} 
+      <Sidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
       />
 
       {/* Main Content */}
-      <main 
+      <main
         className="flex-1 p-6 md:p-12 overflow-y-auto transition-[margin] duration-300 ease-in-out"
         style={{ marginLeft: isCollapsed ? 70 : 220 }}
       >
         <div className="max-w-6xl mx-auto space-y-10">
-          
+
           {/* Header with Title and Logout */}
           <div
             style={{
@@ -57,9 +59,7 @@ export default function Dashboard() {
                   color: "var(--color-brand)",
                   letterSpacing: "-0.02em",
                 }}
-              >
-                Dashboard
-              </h1>
+              >{t("Dashboard")}</h1>
 
               <p
                 style={{
@@ -67,11 +67,9 @@ export default function Dashboard() {
                   fontSize: 14,
                   color: "var(--color-text-secondary)",
                 }}
-              >
-                Manage your reports, help the community, and find what you've lost.
-              </p>
+              >{t("Manage your reports, help the community, and find what you've lost.")}</p>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <NotificationButton />
               <button
@@ -79,16 +77,16 @@ export default function Dashboard() {
                 className="group flex items-center gap-2 bg-[#064e3b] hover:bg-[#022c22] text-white rounded-xl px-6 py-3 font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 <LogOut size={18} className="text-white/80 group-hover:text-white transition-colors" />
-                Logout
+                {t("Logout")}
               </button>
             </div>
           </div>
 
           {/* Primary Actions Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
+
             {/* Card 1: Report Lost */}
-            <div 
+            <div
               onClick={() => navigate("/report-lost")}
               className="group relative overflow-hidden bg-gradient-to-br from-[var(--color-bg-surface)] to-[var(--color-bg-raised)] border border-[var(--color-border)] rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1"
             >
@@ -99,18 +97,15 @@ export default function Dashboard() {
                 <div className="h-14 w-14 rounded-2xl bg-[var(--color-brand-active-bg)] text-[var(--color-brand)] flex items-center justify-center mb-6 shadow-sm">
                   <Search size={28} strokeWidth={2.5} />
                 </div>
-                <h2 className="text-2xl font-bold mb-3 text-[var(--color-text-primary)]">I lost something</h2>
-                <p className="text-[var(--color-text-secondary)] mb-8 max-w-sm">
-                  Create a report with details of your missing item so the community can keep an eye out for it.
-                </p>
-                <div className="flex items-center text-[var(--color-brand)] font-semibold gap-2 group-hover:gap-4 transition-all bg-[var(--color-brand)]/10 w-max px-4 py-2 rounded-lg">
-                  Report Lost Item <ArrowRight size={18} />
+                <h2 className="text-2xl font-bold mb-3 text-[var(--color-text-primary)]">{t("I lost something")}</h2>
+                <p className="text-[var(--color-text-secondary)] mb-8 max-w-sm">{t("Create a report with details of your missing item so the community can keep an eye out for it.")}</p>
+                <div className="flex items-center text-[var(--color-brand)] font-semibold gap-2 group-hover:gap-4 transition-all bg-[var(--color-brand)]/10 w-max px-4 py-2 rounded-lg">{t("Report Lost Item ")}<ArrowRight size={18} />
                 </div>
               </div>
             </div>
 
             {/* Card 2: Report Found */}
-            <div 
+            <div
               onClick={() => navigate("/report-found")}
               className="group relative overflow-hidden bg-gradient-to-br from-[var(--color-bg-surface)] to-[var(--color-bg-raised)] border border-[var(--color-border)] rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1"
             >
@@ -121,19 +116,16 @@ export default function Dashboard() {
                 <div className="h-14 w-14 rounded-2xl bg-[var(--color-brand-active-bg)] text-[var(--color-brand)] flex items-center justify-center mb-6 shadow-sm">
                   <PlusCircle size={28} strokeWidth={2.5} />
                 </div>
-                <h2 className="text-2xl font-bold mb-3 text-[var(--color-text-primary)]">I found something</h2>
-                <p className="text-[var(--color-text-secondary)] mb-8 max-w-sm">
-                  Report an item you discovered on campus to help reunite it with its rightful owner safely.
-                </p>
-                <div className="flex items-center text-[var(--color-brand)] font-semibold gap-2 group-hover:gap-4 transition-all bg-[var(--color-brand)]/10 w-max px-4 py-2 rounded-lg">
-                  Report Found Item <ArrowRight size={18} />
+                <h2 className="text-2xl font-bold mb-3 text-[var(--color-text-primary)]">{t("I found something")}</h2>
+                <p className="text-[var(--color-text-secondary)] mb-8 max-w-sm">{t("Report an item you discovered on campus to help reunite it with its rightful owner safely.")}</p>
+                <div className="flex items-center text-[var(--color-brand)] font-semibold gap-2 group-hover:gap-4 transition-all bg-[var(--color-brand)]/10 w-max px-4 py-2 rounded-lg">{t("Report Found Item ")}<ArrowRight size={18} />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Secondary Action: Browse */}
-          <div 
+          <div
             onClick={() => navigate("/found-items")}
             className="group flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 cursor-pointer transition-all duration-300 hover:border-[var(--color-brand)] hover:shadow-md"
           >
@@ -142,25 +134,21 @@ export default function Dashboard() {
                 <List size={26} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-[var(--color-text-primary)]">Browse all found listings</h3>
-                <p className="text-[var(--color-text-secondary)] mt-1">Search through recent community discoveries to see if your item was found.</p>
+                <h3 className="text-xl font-bold text-[var(--color-text-primary)]">{t("Browse all found listings")}</h3>
+                <p className="text-[var(--color-text-secondary)] mt-1">{t("Search through recent community discoveries to see if your item was found.")}</p>
               </div>
             </div>
-            <button className="w-full sm:w-auto bg-[var(--color-brand)] text-[var(--color-brand-text)] px-8 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity whitespace-nowrap">
-              View Database
-            </button>
+            <button className="w-full sm:w-auto bg-[var(--color-brand)] text-[var(--color-brand-text)] px-8 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity whitespace-nowrap">{t("View Database")}</button>
           </div>
 
           {/* How It Works (Minimal Version) */}
           <div className="pt-10 pb-8">
             <div className="flex items-center gap-4 mb-8">
               <div className="h-px bg-[var(--color-border)] flex-1"></div>
-              <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-muted)] text-center">
-                How the process works
-              </h3>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-muted)] text-center">{t("How the process works")}</h3>
               <div className="h-px bg-[var(--color-border)] flex-1"></div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
               {/* Decorative line behind steps (visible only on md+) */}
               <div className="hidden md:block absolute top-6 left-1/6 right-1/6 h-[2px] bg-[var(--color-border)] -z-10 opacity-50"></div>
@@ -169,34 +157,28 @@ export default function Dashboard() {
                 <div className="h-12 w-12 rounded-full bg-[var(--color-bg-surface)] border-2 border-[var(--color-border)] text-[var(--color-text-primary)] flex items-center justify-center font-bold text-lg mb-5 shadow-sm transition-transform hover:scale-110 duration-200">
                   1
                 </div>
-                <h4 className="font-bold text-lg text-[var(--color-text-primary)] mb-2">Report</h4>
-                <p className="text-sm text-[var(--color-text-secondary)] max-w-[220px]">
-                  Submit a detailed report of the item you lost or found.
-                </p>
+                <h4 className="font-bold text-lg text-[var(--color-text-primary)] mb-2">{t("Report")}</h4>
+                <p className="text-sm text-[var(--color-text-secondary)] max-w-[220px]">{t("Submit a detailed report of the item you lost or found.")}</p>
               </div>
 
               <div className="flex flex-col items-center text-center">
                 <div className="h-12 w-12 rounded-full bg-[var(--color-bg-surface)] border-2 border-[var(--color-brand)] text-[var(--color-brand)] flex items-center justify-center font-bold text-lg mb-5 shadow-md shadow-[var(--color-brand)]/20 transition-transform hover:scale-110 duration-200">
                   2
                 </div>
-                <h4 className="font-bold text-lg text-[var(--color-text-primary)] mb-2">Match</h4>
-                <p className="text-sm text-[var(--color-text-secondary)] max-w-[220px]">
-                  Our community browses the database to find matching items.
-                </p>
+                <h4 className="font-bold text-lg text-[var(--color-text-primary)] mb-2">{t("Match")}</h4>
+                <p className="text-sm text-[var(--color-text-secondary)] max-w-[220px]">{t("Our community browses the database to find matching items.")}</p>
               </div>
 
               <div className="flex flex-col items-center text-center">
                 <div className="h-12 w-12 rounded-full bg-[var(--color-bg-surface)] border-2 border-[var(--color-border)] text-[var(--color-text-primary)] flex items-center justify-center font-bold text-lg mb-5 shadow-sm transition-transform hover:scale-110 duration-200">
                   3
                 </div>
-                <h4 className="font-bold text-lg text-[var(--color-text-primary)] mb-2">Connect</h4>
-                <p className="text-sm text-[var(--color-text-secondary)] max-w-[220px]">
-                  Contact the owner directly via email to arrange a safe return.
-                </p>
+                <h4 className="font-bold text-lg text-[var(--color-text-primary)] mb-2">{t("Connect")}</h4>
+                <p className="text-sm text-[var(--color-text-secondary)] max-w-[220px]">{t("Contact the owner directly via email to arrange a safe return.")}</p>
               </div>
             </div>
           </div>
-          
+
         </div>
       </main>
     </div>

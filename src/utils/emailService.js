@@ -131,7 +131,7 @@ export const buildNewMessageNotificationEmail = ({
       <blockquote style="margin: 12px 0; padding: 12px 16px; background: #f3f4f6; border-left: 4px solid #2563eb; color: #111827;">
         ${escapeHtml(safeMessageText).replace(/\n/g, "<br />")}
       </blockquote>
-
+      <p><a href="${escapeHtml(safeConversationUrl)}">View conversation</a></p>
       <p>Best regards,<br />The LostFound MY Team</p>
     </div>
   `;
@@ -158,7 +158,8 @@ export const sendNewMessageNotificationEmail = async ({
       `${senderName || "Someone"} said:`,
       messageText || "(no message text provided)",
       "",
-
+      `View conversation: ${normalizedConversationUrl}`,
+      "",
       "Best regards,",
       "",
       "The LostFound MY Team",

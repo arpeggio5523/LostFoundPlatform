@@ -1,6 +1,8 @@
+import { useLanguage } from "../context/LanguageContext";
 import React from "react";
 
 export default function StatusBadge({ status }) {
+  const { t } = useLanguage();
   const normalizedStatus = status ? status.toLowerCase() : "";
 
   const styles = {
@@ -17,7 +19,7 @@ export default function StatusBadge({ status }) {
 
   return (
     <span className={`${currentStyle} text-xs font-semibold px-3 py-0.5 rounded-full whitespace-nowrap`}>
-      {status}
+      {t(status)}
     </span>
   );
 }

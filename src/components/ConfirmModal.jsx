@@ -1,7 +1,9 @@
 import React from "react";
+import { useLanguage } from "../context/LanguageContext";
 import { AlertTriangle } from "lucide-react";
 
 export default function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, confirmText = "Confirm", cancelText = "Cancel" }) {
+  const { t } = useLanguage();
   if (!isOpen) return null;
 
   return (
@@ -27,14 +29,14 @@ export default function ConfirmModal({ isOpen, title, message, onConfirm, onCanc
             onClick={onCancel}
             className="flex-1 py-3 text-sm font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] transition-colors"
           >
-            {cancelText}
+            {t(cancelText)}
           </button>
           <div className="w-[1px] bg-[var(--color-border)]"></div>
           <button
             onClick={onConfirm}
             className="flex-1 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
           >
-            {confirmText}
+            {t(confirmText)}
           </button>
         </div>
       </div>

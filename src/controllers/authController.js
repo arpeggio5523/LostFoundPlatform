@@ -167,6 +167,12 @@ export const login = async (req, res) => {
       });
     }
 
+    if (user.isRemoved) {
+      return res.status(403).json({
+        message: "This account has been removed by an administrator.",
+      });
+    }
+
     if (!user.isEmailVerified) {
       return res.status(403).json({
         message: "Please verify your email before logging in.",

@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { authHeaders, buildApiUrl, apiFetch } from "../services/apiClient";
@@ -33,13 +34,14 @@ const LOCATIONS = [
 ];
 
 function Field({ label, required, error, children }) {
+  const { t } = useLanguage();
   return (
     <div className="mb-5">
       <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       {children}
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && <p className="mt-1 text-xs text-red-500">{t(error)}</p>}
     </div>
   );
 }
@@ -50,6 +52,7 @@ const inputErrorClass =
   "w-full px-3.5 py-2.5 rounded-lg border border-red-400 bg-[var(--color-bg-raised)]  text-sm text-[var(--color-text-primary)] outline-none focus:border-red-400 focus:bg-[var(--color-bg-surface)] transition-colors font-sans";
 
 export default function ReportFoundItemPage() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
@@ -164,10 +167,10 @@ export default function ReportFoundItemPage() {
     setSubmitError("");
 
     const newErrors = validate();
-    if (Object.keys(newErrors).length > 0) { 
-      setErrors(newErrors); 
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       setIsSubmitting(false);
-      return; 
+      return;
     }
 
     try {
@@ -288,7 +291,7 @@ export default function ReportFoundItemPage() {
             <line x1="19" y1="12" x2="5" y2="12" />
             <polyline points="12 19 5 12 12 5" />
           </svg>
-          Back
+          {t("Back")}
         </button>
         <NotificationButton />
       </div>
@@ -298,52 +301,48 @@ export default function ReportFoundItemPage() {
         {/* <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">Report Found Item</h1>
         <p className="text-sm text-gray-400 mb-8">Help someone reunite with their belongings.</p> */}
         <h1 className="text-2xl font-extrabold text-[var(--color-text-primary)] tracking-tight mb-1">
-          {editId ? "Edit Found Item" : "Report Found Item"}
+          {editId ? t("Edit Found Item") : t("Report Found Item")}
         </h1>
         <p className="text-sm text-[var(--color-text-muted)] mb-8">
           {editId
-            ? "Update the details below and save."
-            : "Help someone reunite with their belongings."}
+            ? t("Update the details below and save.")
+            : t("Help someone reunite with their belongings.")}
         </p>
 
         {submitError && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {submitError}
+            {t(submitError)}
           </div>
         )}
 
         {/* Item Title */}
-        <Field label="Item Title" required error={errors.title}>
+        <Field label={t("Item Title")} required error={errors.title}>
           <input
             name="title"
             value={form.title}
             onChange={handleChange}
-            placeholder="e.g., iPhone with Blue Case"
+            placeholder={t("e.g., iPhone with Blue Case")}
             className={errors.title ? inputErrorClass : inputClass}
           />
         </Field>
 
         {/* Description */}
-        <Field label="Description" required error={errors.description}>
+        <Field label={t("Description")} required error={errors.description}>
           <textarea
             name="description"
             value={form.description}
             onChange={handleChange}
-            placeholder="Describe the item you found..."
+            placeholder={t("Describe the item you found...")}
             rows={3}
             className={`${errors.description ? inputErrorClass : inputClass} resize-y`}
           />
-          <p className="mt-1.5 text-xs text-gray-400">
-            Note: For security, don't reveal all identifying details. The owner
-            should be able to describe specific features to claim it.
-          </p>
+          <p className="mt-1.5 text-xs text-gray-400">{t("Note: For security, don't reveal all identifying details. The owner should be able to describe specific features to claim it.")}</p>
         </Field>
 
         {/* Category + Color */}
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
-              Category <span className="text-red-500">*</span>
+            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">{t("Category ")}<span className="text-red-500">*</span>
             </label>
             <select
               name="category"
@@ -351,38 +350,36 @@ export default function ReportFoundItemPage() {
               onChange={handleChange}
               className={`${errors.category ? inputErrorClass : inputClass} appearance-none cursor-pointer`}
             >
-              <option value="">Select category</option>
+              <option value="">{t("Select category")}</option>
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
-                  {c}
+                  {t(c)}
                 </option>
               ))}
             </select>
             {errors.category && (
-              <p className="mt-1 text-xs text-red-500">{errors.category}</p>
+              <p className="mt-1 text-xs text-red-500">{t(errors.category)}</p>
             )}
           </div>
           <div>
-            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
-              Color
-            </label>
+            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">{t("Color")}</label>
             <input
               name="color"
               value={form.color}
               onChange={handleChange}
-              placeholder="e.g., Black, Blue"
+              placeholder={t("e.g., Black, Blue")}
               className={inputClass}
             />
           </div>
         </div>
 
         {/* Distinctive Marks */}
-        <Field label="Distinctive Marks or Features">
+        <Field label={t("Distinctive Marks or Features")}>
           <textarea
             name="marks"
             value={form.marks}
             onChange={handleChange}
-            placeholder="Any unique identifiers (optional - for verification purposes)"
+            placeholder={t("Any unique identifiers (optional - for verification purposes)")}
             rows={2}
             className={`${inputClass} resize-y`}
           />
@@ -390,7 +387,7 @@ export default function ReportFoundItemPage() {
 
         {/* Location */}
         <Field
-          label="Location Found (University)"
+          label={t("Location Found (University)")}
           required
           error={errors.location}
         >
@@ -400,7 +397,7 @@ export default function ReportFoundItemPage() {
             onChange={handleChange}
             className={`${errors.location ? inputErrorClass : inputClass} appearance-none cursor-pointer`}
           >
-            <option value="">Select location</option>
+            <option value="">{t("Select location")}</option>
             {LOCATIONS.map((l) => (
               <option key={l} value={l}>
                 {l}
@@ -410,12 +407,12 @@ export default function ReportFoundItemPage() {
         </Field>
 
         {/* Exact Location */}
-        <Field label="Exact Place (e.g., Library 2nd floor, Cafe table)">
+        <Field label={t("Exact Place (e.g., Library 2nd floor, Cafe table)")}>
           <input
             name="exactLocation"
             value={form.exactLocation}
             onChange={handleChange}
-            placeholder="Where exactly?"
+            placeholder={t("Where exactly?")}
             className={inputClass}
           />
         </Field>
@@ -428,7 +425,7 @@ export default function ReportFoundItemPage() {
         />
 
         {/* Date */}
-        <Field label="Date Found" required error={errors.date}>
+        <Field label={t("Date Found")} required error={errors.date}>
           <input
             type="date"
             name="date"
@@ -439,29 +436,26 @@ export default function ReportFoundItemPage() {
         </Field>
 
         {editId && isAdmin() && (
-          <Field label="Status" required>
+          <Field label={t("Status")} required>
             <select
               name="status"
               value={form.status}
               onChange={handleChange}
               className={`${inputClass} appearance-none cursor-pointer`}
             >
-              <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
-              <option value="Matched">Matched</option>
-              <option value="Returned">Returned</option>
+              <option value="Pending">{t("Pending")}</option>
+              <option value="Approved">{t("Approved")}</option>
+              <option value="Rejected">{t("Rejected")}</option>
+              <option value="Matched">{t("Matched")}</option>
+              <option value="Returned">{t("Returned")}</option>
             </select>
           </Field>
         )}
 
         {/* Image Upload */}
         <div className="mb-3">
-          <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
-            Images{" "}
-            <span className="text-[var(--color-text-muted)] font-normal">
-              (Recommended, max 1)
-            </span>
+          <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">{t("Images")}{" "}
+            <span className="text-[var(--color-text-muted)] font-normal">{t("(Recommended, max 1)")}</span>
           </label>
 
           {/* Dropzone */}
@@ -499,14 +493,8 @@ export default function ReportFoundItemPage() {
                   e.stopPropagation();
                   fileInputRef.current.click();
                 }}
-              >
-                Upload files
-              </span>{" "}
-              or drag and drop
-            </p>
-            <p className="text-xs text-[var(--color-text-muted)]">
-              PNG, JPG, GIF up to 10MB
-            </p>
+              >{t("Upload files")}</span>{" "}{t("or drag and drop")}</p>
+            <p className="text-xs text-[var(--color-text-muted)]">{t("PNG, JPG, GIF up to 10MB")}</p>
           </div>
 
           <input
@@ -541,10 +529,7 @@ export default function ReportFoundItemPage() {
             </div>
           )}
         </div>
-        <p className="text-xs text-[var(--color-text-muted)] mb-7">
-          Photos help owners identify their items faster. A QR code will be
-          automatically generated for this item.
-        </p>
+        <p className="text-xs text-[var(--color-text-muted)] mb-7">{t("Photos help owners identify their items faster. A QR code will be automatically generated for this item.")}</p>
 
         {/* Anonymous Toggle */}
         <div className="flex items-center mb-5 mt-2">
@@ -558,9 +543,7 @@ export default function ReportFoundItemPage() {
           <label
             htmlFor="anonToggleFound"
             className="ml-2 text-sm font-semibold text-[var(--color-text-primary)] cursor-pointer select-none"
-          >
-            Post Anonymously (Hide my name)
-          </label>
+          >{t("Post Anonymously (Hide my name)")}</label>
         </div>
 
         {/* Actions */}
@@ -575,14 +558,12 @@ export default function ReportFoundItemPage() {
             onClick={handleSubmit}
             className="flex-1 py-3 bg-[var(--color-brand)] text-[var(--color-brand-text)] border-none rounded-xl text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity"
           >
-            {editId ? "Save Changes" : "Submit Report"}
+            {editId ? t("Save Changes") : t("Submit Report")}
           </button>
           <button
             onClick={() => navigate(-1)}
             className="px-6 py-3 bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-xl text-sm font-semibold cursor-pointer hover:bg-[var(--color-bg-raised)] transition-colors"
-          >
-            Cancel
-          </button>
+          >{t("Cancel")}</button>
         </div>
       </div>
     </div>

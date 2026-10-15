@@ -1,7 +1,9 @@
+import { useLanguage } from "../context/LanguageContext";
 export default function QRIcon({onClick}) {
+  const { t } = useLanguage();
   return (
     <button
-      title="Show QR Code"
+      title={t("Show QR Code")}
       onClick={onClick}
       className="absolute top-2.5 right-2.5 bg-gray-300 border-none rounded-lg w-9 h-9 flex items-center justify-center cursor-pointer shadow-sm hover:bg-gray-200 transition-colors"
     >

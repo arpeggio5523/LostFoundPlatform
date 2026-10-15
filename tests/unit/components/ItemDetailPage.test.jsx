@@ -1,5 +1,6 @@
+vi.mock("../../../src/components/NotificationButton", () => ({ default: () => null }));
 import React from "react";
-import { render, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import ItemDetailPage from "../../../src/pages/ItemDetailPage";
@@ -48,6 +49,10 @@ vi.mock("../../../src/components/Sidebar", () => ({
   default: () => <div data-testid="sidebar">Sidebar</div>,
 }));
 
+vi.mock("../../../src/components/LocationMap", () => ({
+  default: () => <div data-testid="location-map">Map</div>,
+}));
+
 vi.mock("../../../src/components/ConfirmModal", () => ({
   default: () => null,
 }));
@@ -80,5 +85,40 @@ describe("ItemDetailPage QR redirects", () => {
     });
 
     expect(apiFetch).not.toHaveBeenCalled();
+  });
+
+  it("automatically fetches and displays possible matches for the loaded item", async () => {
+    const { getToken, apiFetch } = await import("../../../src/services/apiClient");
+    const item = {
+      _id: "qr-item-123",
+      title: "Lost wallet",
+      description: "Black leather wallet",
+      type: "Lost",
+      category: "Accessories",
+      status: "Approved",
+      location: "Campus",
+      user: "Test User",
+    };
+    const match = {
+      _id: "found-item-456",
+      title: "Found black wallet",
+      similarityScore: 0.92,
+    };
+
+    getToken.mockReturnValue("user-token");
+    apiFetch.mockImplementation(async (url) => ({
+      ok: true,
+      json: async () => url === "/api/items/qr-item-123"
+        ? { data: item }
+        : { data: [match] },
+    }));
+
+    render(<ItemDetailPage />);
+
+    expect(await screen.findByText("Found black wallet")).toBeInTheDocument();
+    expect(apiFetch).toHaveBeenCalledWith(
+      "/api/items/qr-item-123/similar?type=Found&limit=5",
+      expect.objectContaining({ headers: expect.any(Object) }),
+    );
   });
 });

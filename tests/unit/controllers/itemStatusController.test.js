@@ -6,7 +6,7 @@ const mockItem = vi.hoisted(() => {
   const Item = vi.fn();
   Item.findById = vi.fn();
   Item.find = vi.fn();
-  Item.updateOne = vi.fn().mockResolvedValue({ modifiedCount: 1 });
+  Item.updateOne = vi.fn().mockResolvedValue({ acknowledged: true, matchedCount: 1, modifiedCount: 1 });
   return Item;
 });
 vi.mock("../../../src/models/Item.js", () => ({ default: mockItem }));
@@ -99,7 +99,7 @@ describe("item status controller behavior", () => {
     mockItem.findById.mockReturnValue({ populate: vi.fn().mockResolvedValue(item) });
     const res = response();
     await getItemById({ params: { itemId: "item-1" }, user: {} }, res);
-    expect(res.json).toHaveBeenCalledWith({ data: item });
+    expect(res.json).toHaveBeenCalledWith({ data: item, isOwner: false });
   });
 
   // Tests that an authorised user can save an item status update.
@@ -109,9 +109,11 @@ describe("item status controller behavior", () => {
     const res = response();
     await updateItemStatus({ params: { itemId: "item-1" }, body: { status: "Approved" }, user: { id: "admin-1", role: "admin" } }, res);
     expect(item.status).toBe("Approved");
+    expect(mockItem.updateOne).toHaveBeenCalledOnce();
     expect(mockItem.updateOne).toHaveBeenCalledWith(
-      { _id: "item-1" }, { $set: { status: "Approved" } }, { runValidators: true },
+      { _id: "item-1" }, { $set: { status: "Approved" } }, { runValidators: true }
     );
+    expect(res.status).toHaveBeenCalledWith(200);
     expect(notifyModeration).toHaveBeenCalledWith(undefined, item, "Pending");
   });
 
@@ -141,6 +143,7 @@ describe("item status controller behavior", () => {
 
     expect(res.status).toHaveBeenCalledWith(403);
     expect(item.save).not.toHaveBeenCalled();
+    expect(mockItem.updateOne).not.toHaveBeenCalled();
   });
 
   // Ensure Lost and Found cannot be used as moderation updates by an owner.
@@ -156,5 +159,6 @@ describe("item status controller behavior", () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(item.save).not.toHaveBeenCalled();
+    expect(mockItem.updateOne).not.toHaveBeenCalled();
   });
 });

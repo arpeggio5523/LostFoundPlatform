@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Sun, Moon, ArrowLeft, EyeOff, Eye, Languages } from "lucide-react";
 import { LANGUAGES } from "../i18n/translations";
 import Sidebar from "../components/Sidebar";
+import NotificationButton from "../components/NotificationButton";
 import { useTheme } from "../context/ThemeContext";
 import { getAuthUser, setAuthUser } from "../services/authState";
 import { apiFetch } from "../services/apiClient";
@@ -47,13 +48,22 @@ function SettingsPage() {
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
       <main style={{ marginLeft: isCollapsed ? 70 : 220, flex: 1, padding: "36px 40px" }}>
-        <button
-          onClick={() => window.history.back()}
-          className="mb-6 flex items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-brand)] transition"
-        >
-          <ArrowLeft size={18} />{t("Back to Profile")}</button>
-        <h1 className="mb-2 text-2xl font-semibold text-[var(--color-text-primary)]">{t("Settings")}</h1>
-        <p className="mb-8 text-sm text-[var(--color-text-secondary)]">{t("Customize your experience")}</p>
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-brand)] transition"
+          >
+            <ArrowLeft size={18} />
+            {t("Back to Profile")}
+          </button>
+          <NotificationButton />
+        </div>
+        <h1 className="mb-2 text-2xl font-semibold text-[var(--color-text-primary)]">
+          {t("Settings")}
+        </h1>
+        <p className="mb-8 text-sm text-[var(--color-text-secondary)]">
+          {t("Customize your experience")}
+        </p>
 
         <div className="rounded-2xl bg-[var(--color-bg-surface)] p-6 shadow border border-[var(--color-border)]">
           {/* Appearance Section Header */}

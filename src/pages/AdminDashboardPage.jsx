@@ -2,6 +2,7 @@ import { useLanguage } from "../context/LanguageContext";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import NotificationButton from "../components/NotificationButton";
 import { LogOut, Users, FileText, Search, Trophy, ArrowRight, TrendingUp} from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { getAuthUser, clearAuth } from "../services/authState";
@@ -145,18 +146,18 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="flex min-h-screen bg-[var(--color-bg-base)] transition-colors duration-200 font-sans">
-      <Sidebar 
-        isCollapsed={isCollapsed} 
-        setIsCollapsed={setIsCollapsed} 
+      <Sidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
       />
 
       {/* Main Content */}
-      <main 
+      <main
         className="flex-1 overflow-y-auto transition-[margin] duration-300 ease-in-out"
         style={{ marginLeft: isCollapsed ? 70 : 220, padding: "36px 40px" }}
       >
         <div className="space-y-7">
-          
+
           {/* Header with Title and Logout */}
           <div
             style={{
@@ -184,19 +185,24 @@ export default function AdminDashboardPage() {
                 }}
               >{t("Manage and moderate the platform.")}</p>
             </div>
-            
-            <button
-              onClick={handleLogout}
-              className="group flex items-center gap-2 bg-[#064e3b] hover:bg-[#022c22] text-white rounded-xl px-6 py-3 font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md"
-            >
-              <LogOut size={18} className="text-white/80 group-hover:text-white transition-colors" />{t("Logout")}</button>
+
+            <div className="flex items-center gap-3">
+              <NotificationButton />
+              <button
+                onClick={handleLogout}
+                className="group flex items-center gap-2 bg-[#064e3b] hover:bg-[#022c22] text-white rounded-xl px-6 py-3 font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                <LogOut size={18} className="text-white/80 group-hover:text-white transition-colors" />
+                {t("Logout")}
+              </button>
+            </div>
           </div>
 
           {/* Primary Actions Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-            
+
             {/* Card 1: Report Lost */}
-            <div 
+            <div
               className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
             >
               <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
@@ -211,7 +217,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Card 2: Report Found */}
-            <div 
+            <div
               className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
             >
               <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
@@ -226,7 +232,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Card 3: Found items */}
-            <div 
+            <div
               className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
             >
               <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
@@ -241,7 +247,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Card 4: Returned Items */}
-            <div 
+            <div
               className="group relative overflow-hidden bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1 h-[150px]"
             >
               <div className="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-5 group-hover:opacity-[0.06] dark:group-hover:opacity-10 transition-all group-hover:scale-110 duration-500 text-[var(--color-text-primary)]">
@@ -257,7 +263,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Secondary Action: Success Rate */}
-          <div 
+          <div
             className="group bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 transition-all duration-300"
           >
             <div className="flex items-center gap-6 mb-6">
@@ -285,7 +291,7 @@ export default function AdminDashboardPage() {
               {t("{{returned}} out of {{total}} items successfully returned to owners", { returned: returnedItems, total: totalItems })}</p>
           </div>
         {/* Third Action: Content Moderation */}
-          <div 
+          <div
             className="group bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 transition-all duration-300"
           >
             <div className="flex items-center gap-6 mb-6">

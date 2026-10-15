@@ -2,6 +2,7 @@ import { useLanguage } from "../context/LanguageContext";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import NotificationButton from "../components/NotificationButton";
 import { LogOut, Search, PlusCircle, List, ArrowRight } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { getAuthUser, clearAuth } from "../services/authState";
@@ -28,18 +29,18 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-screen bg-[var(--color-bg-base)] transition-colors duration-200 font-sans">
-      <Sidebar 
-        isCollapsed={isCollapsed} 
-        setIsCollapsed={setIsCollapsed} 
+      <Sidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
       />
 
       {/* Main Content */}
-      <main 
+      <main
         className="flex-1 p-6 md:p-12 overflow-y-auto transition-[margin] duration-300 ease-in-out"
         style={{ marginLeft: isCollapsed ? 70 : 220 }}
       >
         <div className="max-w-6xl mx-auto space-y-10">
-          
+
           {/* Header with Title and Logout */}
           <div
             style={{
@@ -68,19 +69,24 @@ export default function Dashboard() {
                 }}
               >{t("Manage your reports, help the community, and find what you've lost.")}</p>
             </div>
-            
-            <button
-              onClick={handleLogout}
-              className="group flex items-center gap-2 bg-[#064e3b] hover:bg-[#022c22] text-white rounded-xl px-6 py-3 font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md"
-            >
-              <LogOut size={18} className="text-white/80 group-hover:text-white transition-colors" />{t("Logout")}</button>
+
+            <div className="flex items-center gap-3">
+              <NotificationButton />
+              <button
+                onClick={handleLogout}
+                className="group flex items-center gap-2 bg-[#064e3b] hover:bg-[#022c22] text-white rounded-xl px-6 py-3 font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                <LogOut size={18} className="text-white/80 group-hover:text-white transition-colors" />
+                {t("Logout")}
+              </button>
+            </div>
           </div>
 
           {/* Primary Actions Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
+
             {/* Card 1: Report Lost */}
-            <div 
+            <div
               onClick={() => navigate("/report-lost")}
               className="group relative overflow-hidden bg-gradient-to-br from-[var(--color-bg-surface)] to-[var(--color-bg-raised)] border border-[var(--color-border)] rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1"
             >
@@ -99,7 +105,7 @@ export default function Dashboard() {
             </div>
 
             {/* Card 2: Report Found */}
-            <div 
+            <div
               onClick={() => navigate("/report-found")}
               className="group relative overflow-hidden bg-gradient-to-br from-[var(--color-bg-surface)] to-[var(--color-bg-raised)] border border-[var(--color-border)] rounded-3xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand)]/5 hover:-translate-y-1"
             >
@@ -119,7 +125,7 @@ export default function Dashboard() {
           </div>
 
           {/* Secondary Action: Browse */}
-          <div 
+          <div
             onClick={() => navigate("/found-items")}
             className="group flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-3xl p-6 sm:p-8 cursor-pointer transition-all duration-300 hover:border-[var(--color-brand)] hover:shadow-md"
           >
@@ -142,7 +148,7 @@ export default function Dashboard() {
               <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-muted)] text-center">{t("How the process works")}</h3>
               <div className="h-px bg-[var(--color-border)] flex-1"></div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
               {/* Decorative line behind steps (visible only on md+) */}
               <div className="hidden md:block absolute top-6 left-1/6 right-1/6 h-[2px] bg-[var(--color-border)] -z-10 opacity-50"></div>
@@ -172,7 +178,7 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          
+
         </div>
       </main>
     </div>

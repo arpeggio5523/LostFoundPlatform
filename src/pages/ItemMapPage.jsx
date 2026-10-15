@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, MapPin } from "lucide-react";
 import Sidebar from "../components/Sidebar";
+import NotificationButton from "../components/NotificationButton";
 import LocationMap from "../components/LocationMap";
 import { apiFetch } from "../services/apiClient";
 
@@ -42,11 +43,15 @@ export default function ItemMapPage() {
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <main style={{ marginLeft: isCollapsed ? 70 : 220, transition: "margin-left 0.3s ease", flex: 1, padding: "32px 40px" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <button
-            onClick={() => navigate(`/item/${item._id}`)}
-            style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, color: "var(--color-text-muted)", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
-          >
-            <ArrowLeft size={16} />{t(" Back to post")}</button>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center", marginBottom: 20 }}>
+            <button
+              onClick={() => navigate(`/item/${item._id}`)}
+              style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--color-text-muted)", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
+            >
+              <ArrowLeft size={16} />{t(" Back to post")}
+            </button>
+            <NotificationButton />
+          </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, color: item.type === "Lost" ? "#dc2626" : "#059669" }}>
             <MapPin size={20} />

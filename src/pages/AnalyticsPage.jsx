@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, CheckCircle2, Clock3, FileText, RefreshCw, Trash2, XCircle } from "lucide-react";
 import Sidebar from "../components/Sidebar";
+import NotificationButton from "../components/NotificationButton";
 import { apiFetch } from "../services/apiClient";
 import { clearAuth, getAuthUser } from "../services/authState";
 import { useTheme } from "../context/ThemeContext";
@@ -102,6 +103,7 @@ export default function AnalyticsPage() {
               <p style={{ margin: 0, color: "var(--color-text-secondary)", fontSize: 14 }}>{t("Monitor reporting activity and moderation status.")}</p>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <NotificationButton />
               {lastUpdated && <span style={{ color: "var(--color-text-muted)", fontSize: 12 }}>{t("Updated ")}{lastUpdated.toLocaleTimeString(locale)}</span>}
               <button onClick={handleRefresh} disabled={loading} title={t("Refresh analytics")} style={{ border: "1px solid var(--color-border)", borderRadius: 10, background: "var(--color-bg-surface)", color: "var(--color-text-primary)", padding: 10, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}><RefreshCw size={17} style={{ animation: loading ? "spin 0.6s linear infinite" : "none" }} /></button>
               <button onClick={handleLogout} style={{ border: "none", borderRadius: 10, background: "#064e3b", color: "white", padding: "11px 18px", fontWeight: 700, cursor: "pointer" }}>{t("Logout")}</button>
@@ -114,14 +116,14 @@ export default function AnalyticsPage() {
             <p style={{ margin: "0 0 24px", fontSize: 13, color: "var(--color-text-secondary)" }}>{t("Total posts and type breakdown")}</p>
             <TypeBarChart data={analytics} loading={loading} />
           </section>
-          
+
           <section style={{ background: "var(--color-bg-surface)", border: "1px solid var(--color-border)", borderRadius: 20, padding: 24, marginTop: 28 }}>
             <h2 style={{ margin: 0, fontSize: 20, color: "var(--color-text-primary)", marginBottom: 4 }}>{t("Moderation status")}</h2>
             <p style={{ margin: "0 0 24px", fontSize: 13, color: "var(--color-text-secondary)" }}>{t("Current status distribution across all posts")}</p>
             <StatusBarChart data={analytics?.statuses} loading={loading} />
           </section>
 
-          
+
         </div>
       </main>
       <style>{`

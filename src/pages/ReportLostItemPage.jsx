@@ -6,6 +6,7 @@ import { authHeaders, buildApiUrl, apiFetch } from "../services/apiClient";
 import { getAuthUser, isAdmin } from "../services/authState";
 import { useToast } from "../context/ToastContext";
 import LocationTagField from "../components/Locationtagfield";
+import NotificationButton from "../components/NotificationButton";
 
 const CATEGORIES = [
   "All Categories",
@@ -73,6 +74,7 @@ export default function ReportLostItemPage() {
   const [dragOver, setDragOver] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Pre-fill form if editing
   useEffect(() => {
@@ -81,6 +83,11 @@ export default function ReportLostItemPage() {
       .then((res) => res.json())
       .then((data) => {
         const item = data.data;
+        if (!isAdmin() && item.status !== "Pending") {
+          showToast("You can only edit posts while they are pending approval.", "error");
+          navigate(`/item/${editId}?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
+          return;
+        }
         setForm({
           title: item.title || "",
           description: item.description || "",
@@ -155,10 +162,15 @@ export default function ReportLostItemPage() {
   }
 
   async function handleSubmit() {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     setSubmitError("");
+
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setIsSubmitting(false);
       return;
     }
 
@@ -254,13 +266,15 @@ export default function ReportLostItemPage() {
       );
     } catch (error) {
       setSubmitError(error.message || "Failed to submit report");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-base)] font-sans py-8 px-4 transition-colors duration-200">
       {/* Back */}
-      <div className="max-w-2xl mx-auto mb-4">
+      <div className="max-w-2xl mx-auto mb-4 flex items-center justify-between gap-4">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-1.5 bg-transparent border-none text-sm text-[var(--color-text-secondary)] cursor-pointer p-0 font-medium hover:text-[var(--color-text-primary)] transition-colors"
@@ -277,7 +291,10 @@ export default function ReportLostItemPage() {
           >
             <line x1="19" y1="12" x2="5" y2="12" />
             <polyline points="12 19 5 12 12 5" />
-          </svg>{t("Back")}</button>
+          </svg>
+          {t("Back")}
+        </button>
+        <NotificationButton />
       </div>
 
       {/* Card */}

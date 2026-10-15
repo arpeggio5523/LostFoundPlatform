@@ -4,14 +4,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { getAuthUser } from "../services/authState";
 import { fetchConversations } from "../services/messagesApi";
 import { useSocket } from "../context/SocketContext";
-import { 
-  Home, 
-  Search, 
-  FileText, 
-  MessageSquare, 
-  User, 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  Home,
+  Search,
+  FileText,
+  MessageSquare,
+  User,
+  ChevronLeft,
+  ChevronRight,
   Plus,
   Shield,
   BarChart3,
@@ -63,11 +63,11 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
     checkUnread();
     const interval = setInterval(checkUnread, 10000);
     const handleStorage = () => checkUnread();
-    
+
     window.addEventListener("updateUnread", handleStorage);
 
-    return () => { 
-      isMounted = false; 
+    return () => {
+      isMounted = false;
       clearInterval(interval);
       window.removeEventListener("updateUnread", handleStorage);
     };
@@ -164,7 +164,7 @@ export default function Sidebar( { isCollapsed, setIsCollapsed } ) {
             >
               <Icon size={isCollapsed ? 22 : 16} strokeWidth={2} style={{ flexShrink: 0 }} />
               {!isCollapsed && t(label)}
-              
+
               {label === "Messages" && unreadCount > 0 && !isCollapsed && (
                 <div style={{
                   marginLeft: "auto",

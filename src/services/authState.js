@@ -47,16 +47,17 @@ export function clearAuth() {
 // }
 
 export function isOwner(item) {
+  if (typeof item?.isOwner === "boolean") return item.isOwner;
   const userId = getCurrentUserId();
   if (!userId || !item) return false;
 
   const ownerId =
+    item.reportedBy?._id ||
+    item.reportedBy ||
     item.owner?._id ||
     item.owner ||
     item.ownerId ||
-    item.userId ||
-    item.reportedBy?._id ||
-    item.reportedBy;
+    item.userId;
 
   if (!ownerId) return false;
 
@@ -72,5 +73,5 @@ export function isAdmin() {
 }
 
 export function canEditItem(item) {
-  return isOwner(item) || isAdmin();
+  return isAdmin() || (isOwner(item) && item.status === "Pending");
 }

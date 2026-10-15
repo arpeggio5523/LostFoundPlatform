@@ -1,5 +1,7 @@
+vi.mock("../../../src/services/notificationService.js", () => ({ notifyMessageRecipients: vi.fn(), notifyModeration: vi.fn(), notifyReportChange: vi.fn(), notifyAdminsOfPendingReport: vi.fn() }));
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import path from "path";
+import { notifyAdminsOfPendingReport } from "../../../src/services/notificationService.js";
 
 const saveMock = vi.fn();
 
@@ -42,7 +44,9 @@ describe("ItemController QR generation", () => {
     process.env.FRONTEND_URL = "https://lostfound.example.com";
   });
 
-  it("generates and stores a QR code path when creating an item", async () => {
+  it.each([false, true])("generates a QR code and submits the report when notification failure is %s", async (notificationFails) => {
+    notifyAdminsOfPendingReport.mockReset();
+    if (notificationFails) notifyAdminsOfPendingReport.mockRejectedValue(new Error("Notification unavailable"));
     const req = {
       user: {
         id: "user-123",
@@ -94,6 +98,8 @@ describe("ItemController QR generation", () => {
     );
 
     expect(saveMock).toHaveBeenCalledTimes(2);
+    expect(notifyAdminsOfPendingReport).toHaveBeenCalledTimes(1);
+    expect(notifyAdminsOfPendingReport).toHaveBeenCalledWith(undefined, savedItem);
     expect(res.status).toHaveBeenCalledWith(201);
   });
 });

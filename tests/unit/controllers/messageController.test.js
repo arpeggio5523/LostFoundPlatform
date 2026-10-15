@@ -1,3 +1,4 @@
+vi.mock("../../../src/services/notificationService.js", () => ({ notifyMessageRecipients: vi.fn(), notifyModeration: vi.fn() }));
 /**
  * unit/controllers/messageController.test.js
  *

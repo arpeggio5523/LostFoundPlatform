@@ -3,13 +3,27 @@ import {
   setAuthUser,
   getAuthUser,
   getCurrentUserId,
-  clearAuth
+  clearAuth,
+  isOwner
 } from '../../../src/services/authState';
 
 describe('authState', () => {
 
   beforeEach(() => {
     localStorage.clear();
+  });
+
+  it('recognizes the reporter as owner even when the display name is anonymous', () => {
+    setAuthUser({ _id: 'owner-1' }, 'test-token');
+    expect(isOwner({ reportedBy: { _id: 'owner-1' }, user: 'Anonymous', owner: 'other-user' })).toBe(true);
+    expect(isOwner({ reportedBy: 'owner-1', user: 'Anonymous' })).toBe(true);
+    expect(isOwner({ reportedBy: 'other-user', user: 'Anonymous' })).toBe(false);
+  });
+
+  it('uses authenticated API ownership when locally stored user data is stale', () => {
+    setAuthUser({ _id: 'stale-user' }, 'test-token');
+    expect(isOwner({ reportedBy: 'owner-1', user: 'Anonymous', isOwner: true })).toBe(true);
+    expect(isOwner({ reportedBy: 'stale-user', isOwner: false })).toBe(false);
   });
 
   describe('setAuthUser and getToken', () => {

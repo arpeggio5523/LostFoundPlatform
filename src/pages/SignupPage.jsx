@@ -9,6 +9,7 @@ import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { getCurrentUserId } from "../services/authState";
 import { useForceLightMode } from "../hooks/useForceLightMode";
 import { useToast } from "../context/ToastContext";
+import {Eye, EyeOff} from "lucide-react";
 
 function SignupPage(){
   const { t } = useLanguage();
@@ -23,6 +24,8 @@ function SignupPage(){
     const [occupation, setOccupation] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     async function handleSignup(event){
         event.preventDefault(); // prevent refresh
@@ -57,7 +60,7 @@ function SignupPage(){
             email,
             phoneNumber,
             occupation,
-            password, 
+            password,
             confirmPassword
         }); //for testing
 
@@ -70,7 +73,7 @@ function SignupPage(){
             occupation,
             password,
         };
-        
+
         try {
             const response = await apiFetch("/api/auth/signup", {
                 method: "POST",
@@ -134,24 +137,44 @@ function SignupPage(){
                                 value = {occupation}
                                 onChange = {(event) => setOccupation(event.target.value)}
                             />
-                            <AuthInput
-                                label = {t("Password *")}
-                                type = "password"
+                            <div className="relative">
+                                <AuthInput
+                                label={t("Password *")}
+                                type = {showPassword ? "text" : "password"}
                                 placeholder={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
                                 value = {password}
                                 onChange = {(event) => setPassword(event.target.value)}
                                 required
                                 minLength = {8}
-                            />
-                            <AuthInput
-                                label = {t("Confirm Password *")}
-                                type = "password"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(prev => !prev)}
+                                    className="absolute right-4 top-10 text-gray-400 hover:text-gray-700"
+                                    aria-label={showPassword ? t("Hide password") : t("Show password")}
+                                >
+                                    {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                                </button>
+                            </div>
+                            <div className="relative">
+                                <AuthInput
+                                label={t("Confirm Password *")}
+                                type = {showConfirmPassword ? "text" : "password"}
                                 placeholder={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
                                 value = {confirmPassword}
                                 onChange = {(event) => setConfirmPassword(event.target.value)}
                                 required
                                 minLength = {8}
-                            />
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(prev => !prev)}
+                                    className="absolute right-4 top-10 text-gray-400 hover:text-gray-700"
+                                    aria-label={showConfirmPassword ? t("Hide password") : t("Show password")}
+                                >
+                                    {showConfirmPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                                </button>
+                            </div>
                             <AuthButton type = "submit">{t("Create Account")}</AuthButton>
                             </form>
                             <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">{t("Already have an account?")}{" "}

@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { clearAuth } from "../services/authState";
+import NotificationButton from "./NotificationButton";
 
 function Navbar2(){
     const navigate = useNavigate();
@@ -41,9 +42,7 @@ function Navbar2(){
 
             {/* right nav*/}
             <nav className="flex items-center gap-6">
-                <button className="flex h-10 w-10 items-center justify-center rounded-2xl text-gray-900 dark:text-[var(--color-text-primary)] hover:bg-gray-100 dark:hover:bg-[var(--color-bg-raised)]">
-                    <Bell size={20} strokeWidth={2} />
-                </button>
+                <NotificationButton className="h-10 w-10 rounded-2xl border-0 shadow-none" />
                 <button
                     onClick={handleLogout}
                     className="flex h-10 w-10 items-center justify-center rounded-2xl text-gray-900 dark:text-[var(--color-text-primary)] hover:bg-gray-100 dark:hover:bg-[var(--color-bg-raised)]"

@@ -20,7 +20,7 @@ vi.mock("@translated/lara", () => ({
   Translator: translatorMock,
 }));
 
-const { detectLanguage, translateToEnglish } = await import(
+const { detectLanguage, translateToEnglish, translateText } = await import(
   "../../../src/services/laraTranslate.js"
 );
 
@@ -55,6 +55,12 @@ describe("laraTranslate service", () => {
       "en",
       { noTrace: true }
     );
+  });
+
+  it("translates messages into the selected target language", async () => {
+    translateMock.mockResolvedValue({ translation: "Helo" });
+    await expect(translateText("Hello", "ms")).resolves.toBe("Helo");
+    expect(translateMock).toHaveBeenCalledWith("Hello", undefined, "ms", { noTrace: true });
   });
 
   it("does not call Lara when credentials are missing", async () => {

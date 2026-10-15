@@ -41,7 +41,7 @@ const existingItem = {
   location: "Universiti Malaya (UM)",
   exactLocation: "Level 2 study area",
   date: "2026-08-01T00:00:00.000Z",
-  status: "Approved",
+  status: "Pending",
   user: "Ruchith",
   images: [],
   reportLocation: {

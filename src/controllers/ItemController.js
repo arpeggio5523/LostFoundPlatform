@@ -1,3 +1,4 @@
+import { notifyModeration, notifyReportChange, notifyAdminsOfPendingReport } from "../services/notificationService.js";
 import Item from "../models/Item.js";
 import User from "../models/User.js";
 import { sendContactOwnerEmail } from "../utils/emailService.js";
@@ -87,7 +88,9 @@ export const updateItemStatus = async (req, res) => {
 
     // Use updateOne to avoid full document validation on legacy or E2E test data
     await Item.updateOne({ _id: itemId }, { $set: { status } }, { runValidators: true });
+    const previousStatus = item.status;
     item.status = status;
+    if (isAdmin) await notifyModeration(req.app?.get("io"), item, previousStatus);
 
     res.status(200).json({
       message: "Item status updated",
@@ -200,6 +203,13 @@ export const createItem = async (req, res) => {
     savedItem.qrCodePath = `/uploads/qrcodes/${qrFileName}`;
     await savedItem.save();
 
+    // The report is already saved; notification failures must not invite a duplicate submission.
+    try {
+      await notifyAdminsOfPendingReport(req.app?.get("io"), savedItem);
+    } catch (err) {
+      console.error("Pending report notification error:", err);
+    }
+
     return res.status(201).json({
       message: `${type} item report submitted successfully.`,
       data: savedItem
@@ -286,7 +296,7 @@ export const getItemById = async (req, res) => {
 
     if (!canViewModeratedItem) return res.status(404).json({ error: "Item not found." });
  
-    return res.status(200).json({ data: item });
+    return res.status(200).json({ data: item, isOwner: isItemOwner(item, req.user) });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -381,6 +391,11 @@ export const updateItem = async (req, res) => {
       return res.status(403).json({ error: "You do not have permission to update this item." });
     }
 
+    if (!isAdmin && item.status !== "Pending") {
+      return res.status(403).json({ error: "You can only edit posts while they are pending approval." });
+    }
+
+    const previousStatus = item.status;
     const {
       title, description, category, type, location, exactLocation, date, color, distMark, images, status, reportLocation, user, embedding
     } = req.body;
@@ -423,6 +438,7 @@ export const updateItem = async (req, res) => {
     }
 
     const updated = await item.save();
+    if (isAdmin) await notifyReportChange(req.app?.get("io"), updated, "edited", previousStatus);
     return res.status(200).json({ message: "Item updated.", data: updated });
   } catch (err) {
     if (err.name === "ValidationError") {
@@ -446,6 +462,7 @@ export const deleteItem = async (req, res) => {
     }
 
     await item.deleteOne();
+    if (isAdmin) await notifyReportChange(req.app?.get("io"), item, "deleted");
     return res.status(200).json({ message: "Item deleted successfully." });
   } catch (err) {
     return res.status(500).json({ error: err.message });

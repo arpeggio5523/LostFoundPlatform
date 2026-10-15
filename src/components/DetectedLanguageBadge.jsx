@@ -62,7 +62,6 @@ export default function DetectedLanguageBadge({ text }) {
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
-        marginTop: 8,
         color: "var(--color-text-secondary)",
         fontSize: 12,
       }}

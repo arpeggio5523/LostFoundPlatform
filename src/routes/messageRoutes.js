@@ -5,11 +5,13 @@ import {
   getConversationMessages,
   sendMessage,
   startConversation,
+  translateMessage,
 } from "../controllers/messageController.js";
 
 const router = express.Router();
 
 router.use(requireAuth);
+router.post("/conversations/:conversationId/messages/:messageId/translate", translateMessage);
 
 router.get("/conversations", getConversations);
 router.get("/conversations/:conversationId/messages", getConversationMessages);

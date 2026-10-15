@@ -242,7 +242,6 @@ export default function LostItemsPage() {
                   style={{ ...inputStyle, width: "100%", padding: "9px 14px 9px 36px", boxSizing: "border-box" }}
                 />
               </div>
-              <DetectedLanguageBadge text={search} />
             </div>
 
             {/* Category */}
@@ -266,12 +265,13 @@ export default function LostItemsPage() {
           </div>
 
           <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--color-text-muted)" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: 10, rowGap: 6, fontSize: 12, color: "var(--color-text-muted)" }}>
               <Funnel size={14} />
               {imageSearchResults
                 ? t(imageSearchResults.length === 1 ? "{{count}} image match found" : "{{count}} image matches found", { count: imageSearchResults.length })
                 : t(filtered.length === 1 ? "{{count}} item found" : "{{count}} items found", { count: filtered.length })
               }
+              <DetectedLanguageBadge text={search} />
             </div>
             <button
               type="button"

@@ -240,7 +240,6 @@ export default function FoundItemsPage() {
                   }}
                 />
               </div>
-              <DetectedLanguageBadge text={search} />
             </div>
 
             {[
@@ -268,7 +267,7 @@ export default function FoundItemsPage() {
 
           {/* Result count */}
           <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--color-text-muted)" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: 10, rowGap: 6, fontSize: 12, color: "var(--color-text-muted)" }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
               </svg>
@@ -276,6 +275,7 @@ export default function FoundItemsPage() {
                 ? t(imageSearchResults.length === 1 ? "{{count}} image match found" : "{{count}} image matches found", { count: imageSearchResults.length })
                 : t(filtered.length === 1 ? "{{count}} item found" : "{{count}} items found", { count: filtered.length })
               }
+              <DetectedLanguageBadge text={search} />
             </div>
             <button
               type="button"

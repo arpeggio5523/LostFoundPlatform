@@ -1,6 +1,9 @@
 // English source text: [Simplified Chinese (Mandarin), Bahasa Melayu, Tamil].
 // Keep interpolation names ({{name}}) identical in every language.
 export const catalog = {
+  "See translation": ["查看翻译", "Lihat terjemahan", "மொழிபெயர்ப்பைக் காண்க"],
+  "See original": ["查看原文", "Lihat asal", "அசலைக் காண்க"],
+  "Translating...": ["正在翻译...", "Sedang menterjemah...", "மொழிபெயர்க்கிறது..."],
   "Edit item": ["编辑物品", "Sunting barang", "பொருளைத் திருத்து"],
   "Show password": ["显示密码", "Tunjukkan kata laluan", "கடவுச்சொல்லைக் காட்டு"],
   "Hide password": ["隐藏密码", "Sembunyikan kata laluan", "கடவுச்சொல்லை மறை"],

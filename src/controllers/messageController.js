@@ -6,6 +6,35 @@ import { encrypt, decrypt } from "../utils/cryptoUtils.js";
 import { maskUserForViewer } from "../utils/privacy.js";
 import { sendNewMessageNotificationEmail } from "../utils/emailService.js";
 import { validateMessageImage } from "../utils/messageAttachments.js";
+import { MESSAGE_LANGUAGES } from "../config/languages.js";
+import { translateText } from "../services/laraTranslate.js";
+
+export const translateMessage = async (req, res) => {
+  const targetLanguage = req.body?.targetLanguage || "en";
+  if (!MESSAGE_LANGUAGES.some(({ code }) => code === targetLanguage)) {
+    return res.status(400).json({ message: "Please choose a supported language." });
+  }
+  try {
+    const conversation = await Conversation.findOne({
+      _id: req.params.conversationId,
+      participants: req.user.id,
+    });
+    if (!conversation) return res.status(404).json({ message: "Conversation not found" });
+    const message = await Message.findOne({ _id: req.params.messageId, conversation: conversation._id });
+    if (!message) return res.status(404).json({ message: "Message not found" });
+    const text = decrypt(message.text);
+    if (!text || text === "[Encrypted Message]") {
+      return res.status(400).json({ message: "This message cannot be translated." });
+    }
+    const translatedText = await translateText(text, targetLanguage);
+    return res.json({ translatedText, targetLanguage });
+  } catch (error) {
+    const status = error.status ?? error.statusCode;
+    return res.status(status === 429 ? 429 : status === 503 ? 503 : 502).json({
+      message: "Translation is temporarily unavailable. Please try again.",
+    });
+  }
+};
 
 const maskConversationForViewer = (conversation, viewerId) => ({
   ...conversation,

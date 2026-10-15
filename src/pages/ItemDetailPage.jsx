@@ -160,9 +160,12 @@ export default function ItemDetailPage() {
   const handleMarkAsMatched = () => updateItemStatus("Matched");
   const handleMarkAsReturned = () => updateItemStatus("Returned");
 
-  // Fetch visually similar items using the stored imageEmbedding.
-  // We search the opposite type: a Lost item finds similar Found items, and vice versa.
-  const handleViewPossibleMatches = async () => {
+  // Fetch visually similar items automatically for the current item.
+  useEffect(() => {
+    if (!item) return;
+
+    let cancelled = false;
+    const fetchMatches = async () => {
     setMatchesLoading(true);
     try {
       const oppositeType = item.type === "Lost" ? "Found" : "Lost";
@@ -175,23 +178,32 @@ export default function ItemDetailPage() {
         const body = await res.json().catch(() => ({}));
         // 400 means no embedding stored — show friendly empty state, not an error toast
         if (res.status === 400) {
-          setMatches([]);
-          setMatchesChecked(true);
+            if (!cancelled) setMatches([]);
           return;
         }
         throw new Error(body.error || "Failed to load matches");
       }
 
       const data = await res.json();
-      setMatches(data.data || []);
+        if (!cancelled) setMatches(data.data || []);
     } catch (err) {
+        if (!cancelled) {
       showToast(err.message || "Could not load possible matches.", "error");
       setMatches([]);
+        }
     } finally {
+        if (!cancelled) {
       setMatchesLoading(false);
       setMatchesChecked(true);
     }
-  };
+      }
+    };
+
+    fetchMatches();
+    return () => {
+      cancelled = true;
+    };
+  }, [item?._id, item?.type]);
 
   const handleMatchClick = (matchId) => {
     navigate(`/item/${matchId}`);

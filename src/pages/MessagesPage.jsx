@@ -40,6 +40,8 @@ export default function MessagesPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentUserId = getCurrentUserId();
+  const conversationStorageKey = `messages:selectedConversation:${currentUserId}`;
+  const restoredConversationRef = useRef(false);
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [conversations, setConversations] = useState([]);
@@ -89,18 +91,36 @@ export default function MessagesPage() {
       .finally(() => setLoadingConvos(false));
   }, []);
 
-  // Auto-select conversation from query param
+  // Explicit links take priority; otherwise restore this user's last open chat.
   useEffect(() => {
+    if (loadingConvos || conversationsError) return;
     const convId = searchParams.get("conversationId");
-    if (convId && !loadingConvos) {
-      const exists = conversations.find((c) => c._id === convId);
+    if (convId || !restoredConversationRef.current) {
+      let rememberedId = null;
+      try {
+        rememberedId = sessionStorage.getItem(conversationStorageKey);
+      } catch { /* Chat still works when browser storage is unavailable. */ }
+      const candidateId = convId || rememberedId;
+      const exists = conversations.find((c) => c._id === candidateId);
       if (exists) {
-        setSelectedId(convId);
-        // Clear the param so refreshing doesn't force re-selection
-        setSearchParams({}, { replace: true });
+        setSelectedId(candidateId);
+      } else if (rememberedId && !convId) {
+        try { sessionStorage.removeItem(conversationStorageKey); } catch { /* Storage is optional. */ }
       }
+      restoredConversationRef.current = true;
+      if (convId) setSearchParams({}, { replace: true });
     }
-  }, [searchParams, conversations, loadingConvos, setSearchParams]);
+  }, [searchParams, conversations, loadingConvos, conversationsError, conversationStorageKey, setSearchParams]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    try { sessionStorage.setItem(conversationStorageKey, selectedId); } catch { /* Storage is optional. */ }
+  }, [selectedId, conversationStorageKey]);
+
+  const closeConversation = () => {
+    setSelectedId(null);
+    try { sessionStorage.removeItem(conversationStorageKey); } catch { /* Storage is optional. */ }
+  };
 
   // Load messages when a conversation is selected
   useEffect(() => {
@@ -472,7 +492,7 @@ export default function MessagesPage() {
                 {/* Chat header */}
                 <div className="flex items-center gap-3 border-b border-gray-200 dark:border-[var(--color-border-subtle)] bg-white dark:bg-[var(--color-bg-surface)] px-5 py-3">
                   <button
-                    onClick={() => setSelectedId(null)}
+                    onClick={closeConversation}
                     className="mr-1 flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-[var(--color-text-secondary)] dark:hover:bg-[var(--color-bg-raised)] md:hidden"
                   >
                     <ArrowLeft size={18} />

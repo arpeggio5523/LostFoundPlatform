@@ -18,6 +18,7 @@ vi.mock("../../../src/components/NavBar2", () => ({ default: () => null }));
 beforeEach(() => {
   vi.stubGlobal("React", React);
   vi.clearAllMocks();
+  sessionStorage.clear();
   fetchConversations.mockResolvedValue({ data: [{ _id: "conv-1", participants: [{ _id: "other", fullName: "Other user" }] }] });
   fetchMessages.mockResolvedValue({ data: [] });
   sendMessage.mockImplementation(async (conversation, text, image) => ({ data: { _id: "sent", conversation, sender: "me", text, image } }));
@@ -36,6 +37,24 @@ async function attachImage() {
   });
   await screen.findByAltText("Selected attachment");
 }
+
+test("restores the open chat after leaving and returning to Messages", async () => {
+  await openConversation();
+  await waitFor(() => expect(sessionStorage.getItem("messages:selectedConversation:me")).toBe("conv-1"));
+  cleanup();
+  fetchMessages.mockClear();
+  render(<MemoryRouter><MessagesPage /></MemoryRouter>);
+  await waitFor(() => expect(fetchMessages).toHaveBeenCalledWith("conv-1"));
+  expect(screen.getByPlaceholderText("Type a message...")).toBeInTheDocument();
+});
+
+test("ignores a remembered conversation that is no longer available", async () => {
+  sessionStorage.setItem("messages:selectedConversation:me", "removed-conversation");
+  render(<MemoryRouter><MessagesPage /></MemoryRouter>);
+  await screen.findByRole("button", { name: /Other user/ });
+  expect(fetchMessages).not.toHaveBeenCalled();
+  expect(sessionStorage.getItem("messages:selectedConversation:me")).toBeNull();
+});
 
 test("paperclip opens the picker and an image-only message sends over HTTP even with a live socket", async () => {
   await openConversation();

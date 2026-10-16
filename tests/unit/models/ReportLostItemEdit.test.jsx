@@ -79,6 +79,12 @@ describe("ReportLostItemPage — edit mode", () => {
   });
 
   // AC3: existing post information is pre-filled
+  it("shows an error when the existing item cannot be loaded", async () => {
+    apiFetch.mockRejectedValue(new Error("Server temporarily unavailable"));
+    renderEditPage();
+    expect(await screen.findByText("Server temporarily unavailable")).toBeInTheDocument();
+  });
+
   it("pre-fills the form with the existing item data", async () => {
     renderEditPage();
 

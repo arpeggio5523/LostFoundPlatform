@@ -44,6 +44,8 @@ export default function MessagesPage() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [loadingConvos, setLoadingConvos] = useState(true);
+  const [conversationsError, setConversationsError] = useState("");
+  const [messagesError, setMessagesError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState("");
 
@@ -83,7 +85,7 @@ export default function MessagesPage() {
   useEffect(() => {
     fetchConversations()
       .then((data) => setConversations(Array.isArray(data.data) ? data.data : []))
-      .catch(() => setConversations([]))
+      .catch((error) => setConversationsError(error.message || "Unable to load conversations."))
       .finally(() => setLoadingConvos(false));
   }, []);
 
@@ -113,17 +115,21 @@ export default function MessagesPage() {
     }
     window.dispatchEvent(new Event("updateUnread"));
 
+    let active = true;
+    setMessages([]);
+    setMessagesError("");
     setLoadingMessages(true);
     fetchMessages(selectedId)
-      .then((data) => setMessages(Array.isArray(data.data) ? data.data : []))
-      .catch(() => setMessages([]))
-      .finally(() => setLoadingMessages(false));
+      .then((data) => { if (active) setMessages(Array.isArray(data.data) ? data.data : []); })
+      .catch((error) => { if (active) setMessagesError(error.message || "Unable to load messages."); })
+      .finally(() => { if (active) setLoadingMessages(false); });
 
     if (socket) {
       socket.emit("join_conversation", selectedId);
     }
     
     return () => {
+      active = false;
       if (socket) {
         socket.emit("leave_conversation", selectedId);
       }
@@ -134,6 +140,7 @@ export default function MessagesPage() {
   useEffect(() => {
     const intervalId = setInterval(() => {
       fetchConversations().then((res) => {
+        setConversationsError("");
         if (res.data && Array.isArray(res.data)) {
           setConversations((prev) => {
             if (prev.length !== res.data.length || (prev[0] && res.data[0] && prev[0].lastMessageAt !== res.data[0].lastMessageAt)) {
@@ -150,10 +157,12 @@ export default function MessagesPage() {
             return prev;
           });
         }
-      });
+      }).catch((error) => setConversationsError(error.message || "Unable to refresh conversations."));
 
       if (selectedId) {
         fetchMessages(selectedId).then((res) => {
+          if (activeConversationRef.current !== selectedId) return;
+          setMessagesError("");
           if (res.data && Array.isArray(res.data)) {
             setMessages((prev) => {
               if (prev.length !== res.data.length) {
@@ -168,7 +177,7 @@ export default function MessagesPage() {
               return prev;
             });
           }
-        });
+        }).catch((error) => { if (activeConversationRef.current === selectedId) setMessagesError(error.message || "Unable to refresh messages."); });
       }
     }, 3000); // Check every 3 seconds
 
@@ -197,7 +206,7 @@ export default function MessagesPage() {
         window.dispatchEvent(new Event("updateUnread"));
         
         if (!exists) {
-          fetchConversations().then((res) => setConversations(Array.isArray(res.data) ? res.data : []));
+          fetchConversations().then((res) => setConversations(Array.isArray(res.data) ? res.data : [])).catch((error) => setConversationsError(error.message));
           return prev;
         }
         const next = prev.map((c) =>
@@ -230,7 +239,7 @@ export default function MessagesPage() {
         const exists = prev.some((c) => String(c._id) === convIdStr);
         window.dispatchEvent(new Event("updateUnread"));
         if (!exists) {
-          fetchConversations().then((res) => setConversations(Array.isArray(res.data) ? res.data : []));
+          fetchConversations().then((res) => setConversations(Array.isArray(res.data) ? res.data : [])).catch((error) => setConversationsError(error.message));
           return prev;
         }
         const next = prev.map((c) =>
@@ -311,10 +320,8 @@ export default function MessagesPage() {
     const text = draft.trim();
     if ((!text && !attachment) || !selectedId || sending || readingImage) return;
 
-    if (socket && socket.connected && !attachment) {
-      setSending(true);
-      socket.emit("send_message", { conversationId: selectedId, text });
-    } else {
+    {
+      // HTTP gives sends a bounded response; sockets still deliver live updates.
       // Send images over HTTP; the server broadcasts them to live participants.
       setSending(true);
       try {
@@ -382,11 +389,12 @@ export default function MessagesPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto">
+              {conversationsError && <p role="alert" className="p-4 text-sm text-red-600">{conversationsError} Reconnecting automatically.</p>}
               {loadingConvos ? (
                 <div className="flex flex-1 items-center justify-center">
                   <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--color-brand)] border-t-transparent"></div>
                 </div>
-              ) : filteredConversations.length === 0 ? (
+              ) : conversationsError && conversations.length === 0 ? null : filteredConversations.length === 0 ? (
                 <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
                   <MessageSquare size={32} className="mb-3 text-gray-300 dark:text-[var(--color-text-muted)]" />
                   <p className="text-sm font-medium text-gray-500 dark:text-[var(--color-text-secondary)]">No conversations found</p>
@@ -460,6 +468,7 @@ export default function MessagesPage() {
               </div>
             ) : (
               <>
+                {messagesError && <p role="alert" className="p-4 text-sm text-red-600">{messagesError} Reconnecting automatically.</p>}
                 {/* Chat header */}
                 <div className="flex items-center gap-3 border-b border-gray-200 dark:border-[var(--color-border-subtle)] bg-white dark:bg-[var(--color-bg-surface)] px-5 py-3">
                   <button

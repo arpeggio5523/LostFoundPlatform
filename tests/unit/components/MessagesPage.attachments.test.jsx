@@ -84,6 +84,48 @@ test("failed sends preserve the attachment for retry", async () => {
   expect(screen.getByRole("button", { name: "Send message" })).toBeEnabled();
 });
 
+test("conversation outages display an error instead of an empty inbox", async () => {
+  fetchConversations.mockRejectedValue(new Error("Server temporarily unavailable"));
+  render(<MemoryRouter><MessagesPage /></MemoryRouter>);
+  expect(await screen.findByRole("alert")).toHaveTextContent("Server temporarily unavailable");
+  expect(screen.queryByText("No conversations found")).not.toBeInTheDocument();
+});
+
+test("message loading outages display an error", async () => {
+  fetchMessages.mockRejectedValue(new Error("Unable to load messages"));
+  await openConversation();
+  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to load messages");
+});
+
+test("failed text sends preserve the draft and release the send button", async () => {
+  await openConversation();
+  sendMessage.mockRejectedValue(new Error("Unable to connect to the server"));
+  fireEvent.change(screen.getByPlaceholderText("Type a message..."), { target: { value: "Unsent draft" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+  await waitFor(() => expect(toast).toHaveBeenCalledWith("Unable to connect to the server", "error"));
+  expect(screen.getByPlaceholderText("Type a message...")).toHaveValue("Unsent draft");
+  expect(screen.getByRole("button", { name: "Send message" })).toBeEnabled();
+});
+
+test("polling outages preserve the conversation and recover without reloading", async () => {
+  const interval = vi.spyOn(globalThis, "setInterval");
+  try {
+    await openConversation();
+    const poll = interval.mock.calls.findLast(([, delay]) => delay === 3000)[0];
+    fetchConversations.mockRejectedValue(new Error("Connection lost"));
+    fetchMessages.mockRejectedValue(new Error("Message service unavailable"));
+    poll();
+    await waitFor(() => expect(screen.getAllByRole("alert")).toHaveLength(2));
+    expect(screen.getByPlaceholderText("Type a message...")).toBeInTheDocument();
+    fetchConversations.mockResolvedValue({ data: [{ _id: "conv-1", participants: [{ _id: "other", fullName: "Other user" }] }] });
+    fetchMessages.mockResolvedValue({ data: [] });
+    poll();
+    await waitFor(() => expect(screen.queryAllByRole("alert")).toHaveLength(0));
+  } finally {
+    interval.mockRestore();
+  }
+});
+
 test("rejects unsupported files", async () => {
   await openConversation();
   fireEvent.change(screen.getByLabelText("Choose image attachment"), { target: { files: [new File(["text"], "notes.txt", { type: "text/plain" })] } });

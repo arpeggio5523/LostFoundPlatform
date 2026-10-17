@@ -154,6 +154,12 @@
 | `ADMIN_PASSWORD` | Admin account password |  
 | `VITE_MAPBOX_TOKEN` | Mapbox API token |
 
+### 7. Versioning Strategy
+LostFoundMY will follow Semantic Versioning (SemVer) for future stable releases, using the format `MAJOR.MINOR.PATCH` (e.g., `1.2.3`)
+- **MAJOR:** Incremented when a release introduces incompatible changes that may affect existing functionality or integrations.
+- **MINOR:** Incremented when new features are introduced in a backward-compatible manner.
+- **PATCH:** Incremented when backward-compatible bug fixes or minor improvements are released.
+
 ### 8. Pull Request Strategy  
 Merge Requests (MRs) are used to review, test, and approve code changes before they are merged into the protected `main` branch. This process helps maintain code quality, prevent conflicts, and ensure that changes meet the project's requirements.
 

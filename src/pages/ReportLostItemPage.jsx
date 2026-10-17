@@ -63,6 +63,7 @@ export default function ReportLostItemPage() {
     ? requestedReturnTo
     : "/lost-items";
   const fileInputRef = useRef(null);
+  const formContainerRef = useRef(null);
 
   const [form, setForm] = useState({
     title: "", description: "", category: "",
@@ -168,9 +169,46 @@ export default function ReportLostItemPage() {
     setSubmitError("");
 
     const newErrors = validate();
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setIsSubmitting(false);
+
+      const fieldOrder = [
+        "title",
+        "description",
+        "category",
+        "location",
+        "reportLocation",
+        "date",
+      ];
+
+      const firstError = fieldOrder.find(
+        (field) => newErrors[field]
+      );
+
+      if (firstError) {
+        const selector =
+          firstError === "reportLocation"
+            ? '[data-location-tag-field]'
+            : `[name="${firstError}"]`;
+
+        const field = formContainerRef.current?.querySelector(selector);
+
+        if (field) {
+          requestAnimationFrame(() => {
+            field.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+
+            if (firstError !== "reportLocation") {
+              field.focus({ preventScroll: true });
+            }
+          });
+        }
+      }
+
       return;
     }
 
@@ -298,7 +336,10 @@ export default function ReportLostItemPage() {
       </div>
 
       {/* Card */}
-      <div className="max-w-2xl mx-auto bg-[var(--color-bg-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-10 transition-colors duration-200">
+      <div
+        ref={formContainerRef}
+        className="max-w-2xl mx-auto bg-[var(--color-bg-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-10 transition-colors duration-200"
+      >
         <h1 className="text-2xl font-extrabold text-[var(--color-text-primary)] tracking-tight mb-1">
           {editId ? t("Edit Lost Item") : t("Report Lost Item")}
         </h1>
@@ -417,11 +458,13 @@ export default function ReportLostItemPage() {
         </Field>
 
         {/* Location Tag (map pin) */}
-        <LocationTagField
-          value={reportLocation}
-          onChange={handleLocationTagChange}
-          error={errors.reportLocation}
-        />
+        <div data-location-tag-field>
+          <LocationTagField
+            value={reportLocation}
+            onChange={handleLocationTagChange}
+            error={errors.reportLocation}
+          />
+        </div>
 
         {/* Date */}
         <Field label={t("Date Lost")} required error={errors.date}>

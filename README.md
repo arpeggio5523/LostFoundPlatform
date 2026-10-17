@@ -78,21 +78,21 @@
 * **Organization:** Monash University Malaysia
 
 ## Table of Contents
-1. Project Overview
-2. Software Requirements  
-2.1 Development Environment  
-2.2 Frontend Stack  
-2.3 Backend Stack  
-2.4 Database  
-3. Environment Variables   
-4. Hardware Requirements
+[1. Project Overview](#1-project-overview)  
+[2. Software Requirements](#2-software-requirements)  
+&emsp;[2.1 Development Environment](#21-development-environment)  
+&emsp;[2.2 Frontend Stack](#22-frontend-stack)  
+&emsp;[2.3 Backend Stack](#23-backend-stack)  
+&emsp;[2.4 Database](#24-database)  
+[3. Environment Variables](#3-environment-variables)   
+[4. Hardware Requirements](#4-hardware-requirements)  
 5. Project Setup & Execution  
 5.1 Initial Setup  
 5.2 Running Development Servers  
 5.3 Admin & User Account Setup  
 6. Deployment  
-7. Versioning Strategy
-8. Pull Request Strategy
+[7. Versioning Strategy](#7-versioning-strategy)
+[8. Pull Request Strategy](#8-pull-request-strategy)
 
 ## 1. Project Overview
 **LostFound MY** is a centralized platform designed to streamline the reporting and recovery of lost items within specific communities such as universities, shopping malls, and residential areas. 
@@ -153,6 +153,15 @@
 | `ADMIN_FULL_NAME` | Admin account full name | 
 | `ADMIN_PASSWORD` | Admin account password |  
 | `VITE_MAPBOX_TOKEN` | Mapbox API token |
+
+## 4. Hardware Requirements
+The hardware requirements provide sufficient processing power and resources to develop, run, and test the LostFound MY platform efficiently. They support the simultaneous operation of the web application, backend server, database, browser, and development tools while maintaining stable performance. Additional devices may also improve access to features such as photo uploads, QR-code scanning, and label printing.
+| Resource | Minimum Requirement | Recommended Requirement | Operational Purpose |
+| :--- | :--- | :--- | :---|
+| **Proccesor** | 64-bit Dual-Core 2.0GHz | Quad-Core 3.0GHz | Runs compilers, API servers, and test suits |  
+| **RAM** | 4GB RAM | 8GB - 16GB RAM | Supports Node runtime, browser dev tools, and Docker |  
+| **Storage** | 2GB available space | 5GB+ available space | Stores `node_modules`, test assets and log buffers |  
+| **Peripherals** | 1280 x 720 resolution | 1920 x 1080 resolution or higher | Supports application development, debugging, and UI testing
 
 ### 7. Versioning Strategy
 LostFoundMY will follow Semantic Versioning (SemVer) for future stable releases, using the format `MAJOR.MINOR.PATCH` (e.g., `1.2.3`)

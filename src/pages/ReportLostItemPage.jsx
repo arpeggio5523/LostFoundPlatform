@@ -9,7 +9,6 @@ import LocationTagField from "../components/Locationtagfield";
 import NotificationButton from "../components/NotificationButton";
 
 const CATEGORIES = [
-  "All Categories",
   "Electronics",
   "Accessories",
   "Bag & Backpacks",
@@ -156,7 +155,20 @@ export default function ReportLostItemPage() {
     if (!form.description.trim()) e.description = "Description is required.";
     if (!form.category) e.category = "Please select a category.";
     if (!form.location) e.location = "Please select a location.";
-    if (!form.date) e.date = "Please select a date.";
+    if (!form.date) {
+      e.date = "Please select a date.";
+    } else {
+      const today = new Date();
+      const localToday = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0"),
+      ].join("-");
+
+      if (form.date > localToday) {
+        e.date = "Date cannot be in the future";
+      }
+    }
     if (!reportLocation?.coordinates)
       e.reportLocation = "Please tag a location on the map.";
     return e;

@@ -420,4 +420,46 @@ describe('Signup Component', () => {
     ).toBeInTheDocument();
   });
 
+  it('toggles password visibility when eye icon is clicked', () => {
+    renderSignup();
+
+    const passwordInputs =
+      screen.getAllByPlaceholderText('••••••••');
+
+    const passwordInput = passwordInputs[0];
+
+    expect(passwordInput).toHaveAttribute('type', 'password');
+
+    const toggleButton = screen.getAllByRole('button', {
+      name: /show password/i,
+    })[0];
+
+    fireEvent.click(toggleButton);
+    expect(passwordInput).toHaveAttribute('type', 'text');
+
+    fireEvent.click(toggleButton);
+    expect(passwordInput).toHaveAttribute('type', 'password');
+  });
+
+
+  it('toggles confirm password visibility when eye icon is clicked', () => {
+    renderSignup();
+
+    const passwordInputs =
+      screen.getAllByPlaceholderText('••••••••');
+
+    const confirmPasswordInput = passwordInputs[1];
+
+    expect(confirmPasswordInput).toHaveAttribute('type', 'password');
+
+    const toggleButton = screen.getAllByRole('button', {
+      name: /show password/i,
+    })[1];
+
+    fireEvent.click(toggleButton);
+    expect(confirmPasswordInput).toHaveAttribute('type', 'text');
+
+    fireEvent.click(toggleButton);
+    expect(confirmPasswordInput).toHaveAttribute('type', 'password');
+  });
 });

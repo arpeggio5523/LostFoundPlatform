@@ -277,4 +277,58 @@ describe("ItemCard", () => {
       screen.queryByTestId("qr-code-modal")
     ).not.toBeInTheDocument();
   });
+  it("hides QR icon for Pending items", () => {
+    renderItemCard({
+      ...sampleItem,
+      status: "Pending",
+    });
+
+    expect(
+      screen.queryByTestId("qr-icon-btn")
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides QR icon for Rejected items", () => {
+    renderItemCard({
+      ...sampleItem,
+      status: "Rejected",
+    });
+
+    expect(
+      screen.queryByTestId("qr-icon-btn")
+    ).not.toBeInTheDocument();
+  });
+
+  it("displays QR icon for Approved items", () => {
+    renderItemCard({
+      ...sampleItem,
+      status: "Approved",
+    });
+
+    expect(
+      screen.getByTestId("qr-icon-btn")
+    ).toBeInTheDocument();
+  });
+
+  it("displays QR icon for Matched items", () => {
+    renderItemCard({
+      ...sampleItem,
+      status: "Matched",
+    });
+
+    expect(
+      screen.getByTestId("qr-icon-btn")
+    ).toBeInTheDocument();
+  });
+
+  it("displays QR icon for Returned items", () => {
+    renderItemCard({
+      ...sampleItem,
+      status: "Returned",
+    });
+
+    expect(
+      screen.getByTestId("qr-icon-btn")
+    ).toBeInTheDocument();
+  });
 });

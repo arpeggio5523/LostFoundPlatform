@@ -121,4 +121,92 @@ describe("ItemDetailPage QR redirects", () => {
       expect.objectContaining({ headers: expect.any(Object) }),
     );
   });
+
+  it("hides QR button for Pending items", async () => {
+    const { getToken, apiFetch } = await import("../../../src/services/apiClient");
+
+    getToken.mockReturnValue("user-token");
+
+    apiFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: {
+          _id: "qr-item-123",
+          title: "Lost Wallet",
+          description: "Black wallet",
+          type: "Lost",
+          category: "Accessories",
+          status: "Pending",
+          location: "Campus",
+          user: "Test User",
+        },
+      }),
+    });
+
+    render(<ItemDetailPage />);
+
+    await screen.findByText("Lost Wallet");
+
+    expect(
+      screen.queryByRole("button", { name: /view qr code/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides QR button for Rejected items", async () => {
+    const { getToken, apiFetch } = await import("../../../src/services/apiClient");
+
+    getToken.mockReturnValue("user-token");
+
+    apiFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: {
+          _id: "qr-item-123",
+          title: "Lost Wallet",
+          description: "Black wallet",
+          type: "Lost",
+          category: "Accessories",
+          status: "Rejected",
+          location: "Campus",
+          user: "Test User",
+        },
+      }),
+    });
+
+    render(<ItemDetailPage />);
+
+    await screen.findByText("Lost Wallet");
+
+    expect(
+      screen.queryByRole("button", { name: /view qr code/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("displays QR button for Approved items", async () => {
+    const { getToken, apiFetch } = await import("../../../src/services/apiClient");
+
+    getToken.mockReturnValue("user-token");
+
+    apiFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: {
+          _id: "qr-item-123",
+          title: "Lost Wallet",
+          description: "Black wallet",
+          type: "Lost",
+          category: "Accessories",
+          status: "Approved",
+          location: "Campus",
+          user: "Test User",
+        },
+      }),
+    });
+
+    render(<ItemDetailPage />);
+
+    expect(
+      await screen.findByRole("button", { name: /view qr code/i })
+    ).toBeInTheDocument();
+  });
 });

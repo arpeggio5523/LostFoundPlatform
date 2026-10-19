@@ -53,7 +53,43 @@ export default function MessagesPage() {
 
   const [messages, setMessages] = useState([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
-  const [draft, setDraft] = useState("");
+  const draftsStorageKey = `messages:drafts:${currentUserId}`;
+  const [drafts, setDrafts] = useState(() => {
+    try {
+      // Retain existing session drafts when upgrading to persistent storage.
+      const saved = JSON.parse(localStorage.getItem(draftsStorageKey) ?? sessionStorage.getItem(draftsStorageKey) ?? "{}");
+      if (!saved || Array.isArray(saved) || typeof saved !== "object") return {};
+      return Object.fromEntries(Object.entries(saved).filter(([, value]) => typeof value === "string"));
+    } catch { return {}; }
+  });
+  const draft = drafts[selectedId] || "";
+
+  useEffect(() => {
+    try {
+      if (Object.keys(drafts).length) localStorage.setItem(draftsStorageKey, JSON.stringify(drafts));
+      else localStorage.removeItem(draftsStorageKey);
+      sessionStorage.removeItem(draftsStorageKey);
+    } catch { /* Drafts still work in memory when browser storage is unavailable. */ }
+  }, [drafts, draftsStorageKey]);
+
+  const updateDraft = (conversationId, value) => {
+    setDrafts((previous) => {
+      const next = { ...previous };
+      if (value) next[conversationId] = value;
+      else delete next[conversationId];
+      return next;
+    });
+  };
+
+  const clearSentDraft = (conversationId, sentDraft) => {
+    setDrafts((previous) => {
+      // A delayed response must not erase text typed while the send was pending.
+      if ((previous[conversationId] || "") !== sentDraft) return previous;
+      const next = { ...previous };
+      delete next[conversationId];
+      return next;
+    });
+  };
   const [sending, setSending] = useState(false);
   const [attachment, setAttachment] = useState(null);
   const [reportOpen, setReportOpen] = useState(false);
@@ -240,7 +276,6 @@ export default function MessagesPage() {
 
     const handleMessageSent = ({ data }) => {
       setSending(false);
-      setDraft("");
       
       const convIdStr = String(data.conversation?._id || data.conversation);
 
@@ -347,13 +382,13 @@ export default function MessagesPage() {
       try {
         const data = await sendMessage(selectedId, text, attachment?.data);
         if (data.data) {
+          clearSentDraft(selectedId, draft);
           const sentDate = data.data.createdAt || new Date().toISOString();
           localStorage.setItem(`lastRead_${selectedId}`, sentDate);
           window.dispatchEvent(new Event("updateUnread"));
 
           if (activeConversationRef.current === selectedId) {
             setMessages((prev) => prev.some((m) => String(m._id) === String(data.data._id)) ? prev : [...prev, data.data]);
-            setDraft("");
             setAttachment(null);
           }
           setConversations((prev) => {
@@ -459,7 +494,12 @@ export default function MessagesPage() {
                         )}
                         <div className="flex items-center justify-between">
                           <p className={`truncate text-xs ${isUnread ? "font-semibold text-gray-900 dark:text-[var(--color-text-primary)]" : "text-gray-500 dark:text-[var(--color-text-secondary)]"}`}>
-                            {c.lastMessage || "No messages yet"}
+                            {drafts[c._id]?.trim() ? (
+                              <>
+                                <span className="font-semibold text-green-700 dark:text-green-400">Draft: </span>
+                                {drafts[c._id]}
+                              </>
+                            ) : (c.lastMessage || "No messages yet")}
                           </p>
                           {isUnread && (
                             <div className="ml-2 flex h-2 w-2 shrink-0 rounded-full bg-[var(--color-brand)]" />
@@ -585,7 +625,7 @@ export default function MessagesPage() {
                     <input
                       value={draft}
                       disabled={sending}
-                      onChange={(e) => setDraft(e.target.value)}
+                      onChange={(e) => updateDraft(selectedId, e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSend()}
                       placeholder="Type a message..."
                       className="flex-1 rounded-full border border-gray-200 dark:border-[var(--color-border)] bg-gray-50 dark:bg-[var(--color-bg-raised)] px-4 py-2 text-sm text-gray-900 dark:text-[var(--color-text-primary)] placeholder:text-gray-400 dark:placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]/40"

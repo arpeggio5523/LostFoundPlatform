@@ -19,6 +19,7 @@ beforeEach(() => {
   vi.stubGlobal("React", React);
   vi.clearAllMocks();
   sessionStorage.clear();
+  localStorage.clear();
   fetchConversations.mockResolvedValue({ data: [{ _id: "conv-1", participants: [{ _id: "other", fullName: "Other user" }] }] });
   fetchMessages.mockResolvedValue({ data: [] });
   sendMessage.mockImplementation(async (conversation, text, image) => ({ data: { _id: "sent", conversation, sender: "me", text, image } }));
@@ -54,6 +55,46 @@ test("ignores a remembered conversation that is no longer available", async () =
   await screen.findByRole("button", { name: /Other user/ });
   expect(fetchMessages).not.toHaveBeenCalled();
   expect(sessionStorage.getItem("messages:selectedConversation:me")).toBeNull();
+});
+
+test("keeps separate drafts for each chat after a browser session restarts", async () => {
+  fetchConversations.mockResolvedValue({ data: [
+    { _id: "conv-1", participants: [{ _id: "other", fullName: "Other user" }] },
+    { _id: "conv-2", participants: [{ _id: "second", fullName: "Second user" }] },
+  ] });
+  await openConversation();
+  fireEvent.change(screen.getByPlaceholderText("Type a message..."), { target: { value: "First draft" } });
+  fireEvent.click(screen.getByRole("button", { name: /Second user/ }));
+  expect(screen.getByPlaceholderText("Type a message...")).toHaveValue("");
+  fireEvent.change(screen.getByPlaceholderText("Type a message..."), { target: { value: "Second draft" } });
+  fireEvent.click(screen.getByRole("button", { name: /Other user/ }));
+  expect(screen.getByPlaceholderText("Type a message...")).toHaveValue("First draft");
+  cleanup();
+  sessionStorage.clear();
+  render(<MemoryRouter><MessagesPage /></MemoryRouter>);
+  fireEvent.click(await screen.findByRole("button", { name: /Other user/ }));
+  expect(await screen.findByPlaceholderText("Type a message...")).toHaveValue("First draft");
+  fireEvent.click(screen.getByRole("button", { name: /Second user/ }));
+  expect(screen.getByPlaceholderText("Type a message...")).toHaveValue("Second draft");
+});
+
+test("sending clears only the sent chat's draft even after switching chats", async () => {
+  fetchConversations.mockResolvedValue({ data: [
+    { _id: "conv-1", participants: [{ _id: "other", fullName: "Other user" }] },
+    { _id: "conv-2", participants: [{ _id: "second", fullName: "Second user" }] },
+  ] });
+  let finishSend;
+  sendMessage.mockImplementation(() => new Promise((resolve) => { finishSend = resolve; }));
+  await openConversation();
+  fireEvent.change(screen.getByPlaceholderText("Type a message..."), { target: { value: "Send this" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+  fireEvent.click(screen.getByRole("button", { name: /Second user/ }));
+  fireEvent.change(screen.getByPlaceholderText("Type a message..."), { target: { value: "Keep this" } });
+  finishSend({ data: { _id: "sent", conversation: "conv-1", text: "Send this" } });
+  await waitFor(() => expect(screen.getByRole("button", { name: "Send message" })).toBeEnabled());
+  expect(screen.getByPlaceholderText("Type a message...")).toHaveValue("Keep this");
+  fireEvent.click(screen.getByRole("button", { name: /Other user/ }));
+  expect(screen.getByPlaceholderText("Type a message...")).toHaveValue("");
 });
 
 test("paperclip opens the picker and an image-only message sends over HTTP even with a live socket", async () => {

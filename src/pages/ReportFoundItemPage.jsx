@@ -8,7 +8,6 @@ import LocationTagField from "../components/Locationtagfield";
 import NotificationButton from "../components/NotificationButton";
 
 const CATEGORIES = [
-  "All Categories",
   "Electronics",
   "Accessories",
   "Bag & Backpacks",
@@ -62,6 +61,7 @@ export default function ReportFoundItemPage() {
     ? requestedReturnTo
     : "/found-items";
   const fileInputRef = useRef(null);
+  const formContainerRef = useRef(null);
 
   const [form, setForm] = useState({
     title: "", description: "", category: "",
@@ -154,7 +154,20 @@ export default function ReportFoundItemPage() {
     if (!form.description.trim()) e.description = "Description is required.";
     if (!form.category) e.category = "Please select a category.";
     if (!form.location) e.location = "Please select a location.";
-    if (!form.date) e.date = "Please select a date.";
+    if (!form.date) {
+      e.date = "Please select a date.";
+    } else {
+      const today = new Date();
+      const localToday = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0"),
+      ].join("-");
+
+      if (form.date > localToday) {
+        e.date = "Date cannot be in the future";
+      }
+    }
     if (!reportLocation?.coordinates)
       e.reportLocation = "Please tag a location on the map.";
     return e;
@@ -170,6 +183,42 @@ export default function ReportFoundItemPage() {
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setIsSubmitting(false);
+
+      const fieldOrder = [
+        "title",
+        "description",
+        "category",
+        "location",
+        "reportLocation",
+        "date",
+      ];
+
+      const firstError = fieldOrder.find(
+        (field) => newErrors[field]
+      );
+
+      if (firstError) {
+        const selector =
+          firstError === "reportLocation"
+            ? '[data-location-tag-field]'
+            : `[name="${firstError}"]`;
+
+        const field = formContainerRef.current?.querySelector(selector);
+
+        if (field) {
+          requestAnimationFrame(() => {
+            field.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+
+            if (firstError !== "reportLocation") {
+              field.focus({ preventScroll: true });
+            }
+          });
+        }
+      }
+
       return;
     }
 
@@ -297,7 +346,10 @@ export default function ReportFoundItemPage() {
       </div>
 
       {/* Card */}
-      <div className="max-w-2xl mx-auto bg-[var(--color-bg-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-10 transition-colors duration-200">
+      <div
+        ref={formContainerRef}
+        className="max-w-2xl mx-auto bg-[var(--color-bg-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-10 transition-colors duration-200"
+      >
         {/* <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">Report Found Item</h1>
         <p className="text-sm text-gray-400 mb-8">Help someone reunite with their belongings.</p> */}
         <h1 className="text-2xl font-extrabold text-[var(--color-text-primary)] tracking-tight mb-1">
@@ -418,16 +470,18 @@ export default function ReportFoundItemPage() {
         </Field>
 
         {/* Location Tag (map pin) */}
-        <LocationTagField
-          value={reportLocation}
-          onChange={handleLocationTagChange}
-          error={errors.reportLocation}
-        />
+        <div data-location-tag-field>
+          <LocationTagField
+            value={reportLocation}
+            onChange={handleLocationTagChange}
+            error={errors.reportLocation}
+          />
+        </div>
 
         {/* Date */}
         <Field label={t("Date Found")} required error={errors.date}>
           <input
-            type="date"
+            type="date" 
             name="date"
             value={form.date}
             onChange={handleChange}

@@ -69,7 +69,9 @@ export async function fetchConversations() {
     return { data: mockConversations };
   }
   const res = await apiFetch("/api/messages/conversations");
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Unable to load messaging. Please try again.");
+  return data;
 }
 
 export async function fetchMessages(conversationId) {
@@ -78,7 +80,9 @@ export async function fetchMessages(conversationId) {
     return { data: mockMessages[conversationId] || [] };
   }
   const res = await apiFetch(`/api/messages/conversations/${conversationId}/messages`);
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Unable to load messaging. Please try again.");
+  return data;
 }
 
 export async function translateMessage(conversationId, messageId, targetLanguage) {
@@ -147,5 +151,7 @@ export async function startConversation(recipientId, itemId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ recipientId, itemId }),
   });
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Unable to load messaging. Please try again.");
+  return data;
 }

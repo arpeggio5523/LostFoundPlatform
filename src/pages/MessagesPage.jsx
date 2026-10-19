@@ -40,16 +40,56 @@ export default function MessagesPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentUserId = getCurrentUserId();
+  const conversationStorageKey = `messages:selectedConversation:${currentUserId}`;
+  const restoredConversationRef = useRef(false);
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [loadingConvos, setLoadingConvos] = useState(true);
+  const [conversationsError, setConversationsError] = useState("");
+  const [messagesError, setMessagesError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState("");
 
   const [messages, setMessages] = useState([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
-  const [draft, setDraft] = useState("");
+  const draftsStorageKey = `messages:drafts:${currentUserId}`;
+  const [drafts, setDrafts] = useState(() => {
+    try {
+      // Retain existing session drafts when upgrading to persistent storage.
+      const saved = JSON.parse(localStorage.getItem(draftsStorageKey) ?? sessionStorage.getItem(draftsStorageKey) ?? "{}");
+      if (!saved || Array.isArray(saved) || typeof saved !== "object") return {};
+      return Object.fromEntries(Object.entries(saved).filter(([, value]) => typeof value === "string"));
+    } catch { return {}; }
+  });
+  const draft = drafts[selectedId] || "";
+
+  useEffect(() => {
+    try {
+      if (Object.keys(drafts).length) localStorage.setItem(draftsStorageKey, JSON.stringify(drafts));
+      else localStorage.removeItem(draftsStorageKey);
+      sessionStorage.removeItem(draftsStorageKey);
+    } catch { /* Drafts still work in memory when browser storage is unavailable. */ }
+  }, [drafts, draftsStorageKey]);
+
+  const updateDraft = (conversationId, value) => {
+    setDrafts((previous) => {
+      const next = { ...previous };
+      if (value) next[conversationId] = value;
+      else delete next[conversationId];
+      return next;
+    });
+  };
+
+  const clearSentDraft = (conversationId, sentDraft) => {
+    setDrafts((previous) => {
+      // A delayed response must not erase text typed while the send was pending.
+      if ((previous[conversationId] || "") !== sentDraft) return previous;
+      const next = { ...previous };
+      delete next[conversationId];
+      return next;
+    });
+  };
   const [sending, setSending] = useState(false);
   const [attachment, setAttachment] = useState(null);
   const [reportOpen, setReportOpen] = useState(false);
@@ -83,22 +123,40 @@ export default function MessagesPage() {
   useEffect(() => {
     fetchConversations()
       .then((data) => setConversations(Array.isArray(data.data) ? data.data : []))
-      .catch(() => setConversations([]))
+      .catch((error) => setConversationsError(error.message || "Unable to load conversations."))
       .finally(() => setLoadingConvos(false));
   }, []);
 
-  // Auto-select conversation from query param
+  // Explicit links take priority; otherwise restore this user's last open chat.
   useEffect(() => {
+    if (loadingConvos || conversationsError) return;
     const convId = searchParams.get("conversationId");
-    if (convId && !loadingConvos) {
-      const exists = conversations.find((c) => c._id === convId);
+    if (convId || !restoredConversationRef.current) {
+      let rememberedId = null;
+      try {
+        rememberedId = sessionStorage.getItem(conversationStorageKey);
+      } catch { /* Chat still works when browser storage is unavailable. */ }
+      const candidateId = convId || rememberedId;
+      const exists = conversations.find((c) => c._id === candidateId);
       if (exists) {
-        setSelectedId(convId);
-        // Clear the param so refreshing doesn't force re-selection
-        setSearchParams({}, { replace: true });
+        setSelectedId(candidateId);
+      } else if (rememberedId && !convId) {
+        try { sessionStorage.removeItem(conversationStorageKey); } catch { /* Storage is optional. */ }
       }
+      restoredConversationRef.current = true;
+      if (convId) setSearchParams({}, { replace: true });
     }
-  }, [searchParams, conversations, loadingConvos, setSearchParams]);
+  }, [searchParams, conversations, loadingConvos, conversationsError, conversationStorageKey, setSearchParams]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    try { sessionStorage.setItem(conversationStorageKey, selectedId); } catch { /* Storage is optional. */ }
+  }, [selectedId, conversationStorageKey]);
+
+  const closeConversation = () => {
+    setSelectedId(null);
+    try { sessionStorage.removeItem(conversationStorageKey); } catch { /* Storage is optional. */ }
+  };
 
   // Load messages when a conversation is selected
   useEffect(() => {
@@ -113,17 +171,21 @@ export default function MessagesPage() {
     }
     window.dispatchEvent(new Event("updateUnread"));
 
+    let active = true;
+    setMessages([]);
+    setMessagesError("");
     setLoadingMessages(true);
     fetchMessages(selectedId)
-      .then((data) => setMessages(Array.isArray(data.data) ? data.data : []))
-      .catch(() => setMessages([]))
-      .finally(() => setLoadingMessages(false));
+      .then((data) => { if (active) setMessages(Array.isArray(data.data) ? data.data : []); })
+      .catch((error) => { if (active) setMessagesError(error.message || "Unable to load messages."); })
+      .finally(() => { if (active) setLoadingMessages(false); });
 
     if (socket) {
       socket.emit("join_conversation", selectedId);
     }
     
     return () => {
+      active = false;
       if (socket) {
         socket.emit("leave_conversation", selectedId);
       }
@@ -134,6 +196,7 @@ export default function MessagesPage() {
   useEffect(() => {
     const intervalId = setInterval(() => {
       fetchConversations().then((res) => {
+        setConversationsError("");
         if (res.data && Array.isArray(res.data)) {
           setConversations((prev) => {
             if (prev.length !== res.data.length || (prev[0] && res.data[0] && prev[0].lastMessageAt !== res.data[0].lastMessageAt)) {
@@ -150,10 +213,12 @@ export default function MessagesPage() {
             return prev;
           });
         }
-      });
+      }).catch((error) => setConversationsError(error.message || "Unable to refresh conversations."));
 
       if (selectedId) {
         fetchMessages(selectedId).then((res) => {
+          if (activeConversationRef.current !== selectedId) return;
+          setMessagesError("");
           if (res.data && Array.isArray(res.data)) {
             setMessages((prev) => {
               if (prev.length !== res.data.length) {
@@ -168,7 +233,7 @@ export default function MessagesPage() {
               return prev;
             });
           }
-        });
+        }).catch((error) => { if (activeConversationRef.current === selectedId) setMessagesError(error.message || "Unable to refresh messages."); });
       }
     }, 3000); // Check every 3 seconds
 
@@ -197,7 +262,7 @@ export default function MessagesPage() {
         window.dispatchEvent(new Event("updateUnread"));
         
         if (!exists) {
-          fetchConversations().then((res) => setConversations(Array.isArray(res.data) ? res.data : []));
+          fetchConversations().then((res) => setConversations(Array.isArray(res.data) ? res.data : [])).catch((error) => setConversationsError(error.message));
           return prev;
         }
         const next = prev.map((c) =>
@@ -211,7 +276,6 @@ export default function MessagesPage() {
 
     const handleMessageSent = ({ data }) => {
       setSending(false);
-      setDraft("");
       
       const convIdStr = String(data.conversation?._id || data.conversation);
 
@@ -230,7 +294,7 @@ export default function MessagesPage() {
         const exists = prev.some((c) => String(c._id) === convIdStr);
         window.dispatchEvent(new Event("updateUnread"));
         if (!exists) {
-          fetchConversations().then((res) => setConversations(Array.isArray(res.data) ? res.data : []));
+          fetchConversations().then((res) => setConversations(Array.isArray(res.data) ? res.data : [])).catch((error) => setConversationsError(error.message));
           return prev;
         }
         const next = prev.map((c) =>
@@ -311,22 +375,20 @@ export default function MessagesPage() {
     const text = draft.trim();
     if ((!text && !attachment) || !selectedId || sending || readingImage) return;
 
-    if (socket && socket.connected && !attachment) {
-      setSending(true);
-      socket.emit("send_message", { conversationId: selectedId, text });
-    } else {
+    {
+      // HTTP gives sends a bounded response; sockets still deliver live updates.
       // Send images over HTTP; the server broadcasts them to live participants.
       setSending(true);
       try {
         const data = await sendMessage(selectedId, text, attachment?.data);
         if (data.data) {
+          clearSentDraft(selectedId, draft);
           const sentDate = data.data.createdAt || new Date().toISOString();
           localStorage.setItem(`lastRead_${selectedId}`, sentDate);
           window.dispatchEvent(new Event("updateUnread"));
 
           if (activeConversationRef.current === selectedId) {
             setMessages((prev) => prev.some((m) => String(m._id) === String(data.data._id)) ? prev : [...prev, data.data]);
-            setDraft("");
             setAttachment(null);
           }
           setConversations((prev) => {
@@ -382,11 +444,12 @@ export default function MessagesPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto">
+              {conversationsError && <p role="alert" className="p-4 text-sm text-red-600">{conversationsError} Reconnecting automatically.</p>}
               {loadingConvos ? (
                 <div className="flex flex-1 items-center justify-center">
                   <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--color-brand)] border-t-transparent"></div>
                 </div>
-              ) : filteredConversations.length === 0 ? (
+              ) : conversationsError && conversations.length === 0 ? null : filteredConversations.length === 0 ? (
                 <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
                   <MessageSquare size={32} className="mb-3 text-gray-300 dark:text-[var(--color-text-muted)]" />
                   <p className="text-sm font-medium text-gray-500 dark:text-[var(--color-text-secondary)]">No conversations found</p>
@@ -431,7 +494,12 @@ export default function MessagesPage() {
                         )}
                         <div className="flex items-center justify-between">
                           <p className={`truncate text-xs ${isUnread ? "font-semibold text-gray-900 dark:text-[var(--color-text-primary)]" : "text-gray-500 dark:text-[var(--color-text-secondary)]"}`}>
-                            {c.lastMessage || "No messages yet"}
+                            {drafts[c._id]?.trim() ? (
+                              <>
+                                <span className="font-semibold text-green-700 dark:text-green-400">Draft: </span>
+                                {drafts[c._id]}
+                              </>
+                            ) : (c.lastMessage || "No messages yet")}
                           </p>
                           {isUnread && (
                             <div className="ml-2 flex h-2 w-2 shrink-0 rounded-full bg-[var(--color-brand)]" />
@@ -460,10 +528,11 @@ export default function MessagesPage() {
               </div>
             ) : (
               <>
+                {messagesError && <p role="alert" className="p-4 text-sm text-red-600">{messagesError} Reconnecting automatically.</p>}
                 {/* Chat header */}
                 <div className="flex items-center gap-3 border-b border-gray-200 dark:border-[var(--color-border-subtle)] bg-white dark:bg-[var(--color-bg-surface)] px-5 py-3">
                   <button
-                    onClick={() => setSelectedId(null)}
+                    onClick={closeConversation}
                     className="mr-1 flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-[var(--color-text-secondary)] dark:hover:bg-[var(--color-bg-raised)] md:hidden"
                   >
                     <ArrowLeft size={18} />
@@ -556,7 +625,7 @@ export default function MessagesPage() {
                     <input
                       value={draft}
                       disabled={sending}
-                      onChange={(e) => setDraft(e.target.value)}
+                      onChange={(e) => updateDraft(selectedId, e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSend()}
                       placeholder="Type a message..."
                       className="flex-1 rounded-full border border-gray-200 dark:border-[var(--color-border)] bg-gray-50 dark:bg-[var(--color-bg-raised)] px-4 py-2 text-sm text-gray-900 dark:text-[var(--color-text-primary)] placeholder:text-gray-400 dark:placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]/40"

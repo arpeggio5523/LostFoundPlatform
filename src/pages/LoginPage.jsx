@@ -5,7 +5,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AuthInput from "../components/AuthInput";
 import AuthButton from "../components/AuthButton";
 import NavBar from "../components/NavBar";
-import { buildApiUrl } from "../services/apiClient";
+import { buildApiUrl, fetchWithTimeout } from "../services/apiClient";
 import { useForceLightMode } from "../hooks/useForceLightMode";
 import { useTheme } from "../context/ThemeContext";
 
@@ -79,7 +79,7 @@ function LoginPage(){
     const handleLogin = async (e) => {
             e.preventDefault();
             try {
-                const response = await fetch(buildApiUrl("/api/auth/login"), {
+                const response = await fetchWithTimeout(buildApiUrl("/api/auth/login"), {
                     method: "POST",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },
@@ -127,7 +127,7 @@ function LoginPage(){
             setIsResending(true);
 
             try {
-                const response = await fetch(buildApiUrl("/api/auth/resend-verification"), {
+                const response = await fetchWithTimeout(buildApiUrl("/api/auth/resend-verification"), {
                     method: "POST",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },

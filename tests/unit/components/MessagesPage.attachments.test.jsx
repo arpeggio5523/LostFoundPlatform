@@ -18,6 +18,8 @@ vi.mock("../../../src/components/NavBar2", () => ({ default: () => null }));
 beforeEach(() => {
   vi.stubGlobal("React", React);
   vi.clearAllMocks();
+  sessionStorage.clear();
+  localStorage.clear();
   fetchConversations.mockResolvedValue({ data: [{ _id: "conv-1", participants: [{ _id: "other", fullName: "Other user" }] }] });
   fetchMessages.mockResolvedValue({ data: [] });
   sendMessage.mockImplementation(async (conversation, text, image) => ({ data: { _id: "sent", conversation, sender: "me", text, image } }));
@@ -36,6 +38,64 @@ async function attachImage() {
   });
   await screen.findByAltText("Selected attachment");
 }
+
+test("restores the open chat after leaving and returning to Messages", async () => {
+  await openConversation();
+  await waitFor(() => expect(sessionStorage.getItem("messages:selectedConversation:me")).toBe("conv-1"));
+  cleanup();
+  fetchMessages.mockClear();
+  render(<MemoryRouter><MessagesPage /></MemoryRouter>);
+  await waitFor(() => expect(fetchMessages).toHaveBeenCalledWith("conv-1"));
+  expect(screen.getByPlaceholderText("Type a message...")).toBeInTheDocument();
+});
+
+test("ignores a remembered conversation that is no longer available", async () => {
+  sessionStorage.setItem("messages:selectedConversation:me", "removed-conversation");
+  render(<MemoryRouter><MessagesPage /></MemoryRouter>);
+  await screen.findByRole("button", { name: /Other user/ });
+  expect(fetchMessages).not.toHaveBeenCalled();
+  expect(sessionStorage.getItem("messages:selectedConversation:me")).toBeNull();
+});
+
+test("keeps separate drafts for each chat after a browser session restarts", async () => {
+  fetchConversations.mockResolvedValue({ data: [
+    { _id: "conv-1", participants: [{ _id: "other", fullName: "Other user" }] },
+    { _id: "conv-2", participants: [{ _id: "second", fullName: "Second user" }] },
+  ] });
+  await openConversation();
+  fireEvent.change(screen.getByPlaceholderText("Type a message..."), { target: { value: "First draft" } });
+  fireEvent.click(screen.getByRole("button", { name: /Second user/ }));
+  expect(screen.getByPlaceholderText("Type a message...")).toHaveValue("");
+  fireEvent.change(screen.getByPlaceholderText("Type a message..."), { target: { value: "Second draft" } });
+  fireEvent.click(screen.getByRole("button", { name: /Other user/ }));
+  expect(screen.getByPlaceholderText("Type a message...")).toHaveValue("First draft");
+  cleanup();
+  sessionStorage.clear();
+  render(<MemoryRouter><MessagesPage /></MemoryRouter>);
+  fireEvent.click(await screen.findByRole("button", { name: /Other user/ }));
+  expect(await screen.findByPlaceholderText("Type a message...")).toHaveValue("First draft");
+  fireEvent.click(screen.getByRole("button", { name: /Second user/ }));
+  expect(screen.getByPlaceholderText("Type a message...")).toHaveValue("Second draft");
+});
+
+test("sending clears only the sent chat's draft even after switching chats", async () => {
+  fetchConversations.mockResolvedValue({ data: [
+    { _id: "conv-1", participants: [{ _id: "other", fullName: "Other user" }] },
+    { _id: "conv-2", participants: [{ _id: "second", fullName: "Second user" }] },
+  ] });
+  let finishSend;
+  sendMessage.mockImplementation(() => new Promise((resolve) => { finishSend = resolve; }));
+  await openConversation();
+  fireEvent.change(screen.getByPlaceholderText("Type a message..."), { target: { value: "Send this" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+  fireEvent.click(screen.getByRole("button", { name: /Second user/ }));
+  fireEvent.change(screen.getByPlaceholderText("Type a message..."), { target: { value: "Keep this" } });
+  finishSend({ data: { _id: "sent", conversation: "conv-1", text: "Send this" } });
+  await waitFor(() => expect(screen.getByRole("button", { name: "Send message" })).toBeEnabled());
+  expect(screen.getByPlaceholderText("Type a message...")).toHaveValue("Keep this");
+  fireEvent.click(screen.getByRole("button", { name: /Other user/ }));
+  expect(screen.getByPlaceholderText("Type a message...")).toHaveValue("");
+});
 
 test("paperclip opens the picker and an image-only message sends over HTTP even with a live socket", async () => {
   await openConversation();
@@ -82,6 +142,48 @@ test("failed sends preserve the attachment for retry", async () => {
   await waitFor(() => expect(toast).toHaveBeenCalledWith("Upload failed", "error"));
   expect(screen.getByAltText("Selected attachment")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Send message" })).toBeEnabled();
+});
+
+test("conversation outages display an error instead of an empty inbox", async () => {
+  fetchConversations.mockRejectedValue(new Error("Server temporarily unavailable"));
+  render(<MemoryRouter><MessagesPage /></MemoryRouter>);
+  expect(await screen.findByRole("alert")).toHaveTextContent("Server temporarily unavailable");
+  expect(screen.queryByText("No conversations found")).not.toBeInTheDocument();
+});
+
+test("message loading outages display an error", async () => {
+  fetchMessages.mockRejectedValue(new Error("Unable to load messages"));
+  await openConversation();
+  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to load messages");
+});
+
+test("failed text sends preserve the draft and release the send button", async () => {
+  await openConversation();
+  sendMessage.mockRejectedValue(new Error("Unable to connect to the server"));
+  fireEvent.change(screen.getByPlaceholderText("Type a message..."), { target: { value: "Unsent draft" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+  await waitFor(() => expect(toast).toHaveBeenCalledWith("Unable to connect to the server", "error"));
+  expect(screen.getByPlaceholderText("Type a message...")).toHaveValue("Unsent draft");
+  expect(screen.getByRole("button", { name: "Send message" })).toBeEnabled();
+});
+
+test("polling outages preserve the conversation and recover without reloading", async () => {
+  const interval = vi.spyOn(globalThis, "setInterval");
+  try {
+    await openConversation();
+    const poll = interval.mock.calls.findLast(([, delay]) => delay === 3000)[0];
+    fetchConversations.mockRejectedValue(new Error("Connection lost"));
+    fetchMessages.mockRejectedValue(new Error("Message service unavailable"));
+    poll();
+    await waitFor(() => expect(screen.getAllByRole("alert")).toHaveLength(2));
+    expect(screen.getByPlaceholderText("Type a message...")).toBeInTheDocument();
+    fetchConversations.mockResolvedValue({ data: [{ _id: "conv-1", participants: [{ _id: "other", fullName: "Other user" }] }] });
+    fetchMessages.mockResolvedValue({ data: [] });
+    poll();
+    await waitFor(() => expect(screen.queryAllByRole("alert")).toHaveLength(0));
+  } finally {
+    interval.mockRestore();
+  }
 });
 
 test("rejects unsupported files", async () => {

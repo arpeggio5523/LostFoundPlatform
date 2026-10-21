@@ -24,6 +24,7 @@ function ProfilePage() {
   console.log("currentUser:", currentUser);
   const [userPosts, setUserPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   
   useEffect(() => {
     const user = getAuthUser();
@@ -35,9 +36,9 @@ function ProfilePage() {
 
   useEffect(() => {
     apiFetch("/api/items/my")
-      .then((res) => res.json())
+      .then((res) => { if (!res.ok) throw new Error("Unable to load your posts. Please try again."); return res.json(); })
       .then((data) => setUserPosts(Array.isArray(data.data) ? data.data : []))
-      .catch(() => setUserPosts([]))
+      .catch((error) => setLoadError(error.message || "Unable to load your posts. Please try again."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -221,7 +222,8 @@ function ProfilePage() {
             )}
 
             {/* Empty */}
-            {!loading && userPosts.length === 0 && (
+             {loadError && <p role="alert" className="text-sm text-red-600">{t(loadError)}</p>}
+             {!loading && !loadError && userPosts.length === 0 && (
               <p className="text-sm text-[var(--color-text-muted)]">{t("No posts yet. Report a lost or found item to get started.")}</p>
             )}
 

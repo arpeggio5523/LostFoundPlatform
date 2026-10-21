@@ -79,7 +79,7 @@ export default function ReportFoundItemPage() {
   useEffect(() => {
     if (!editId) return;
     apiFetch(`/api/items/${editId}`)
-      .then((res) => res.json())
+      .then((res) => { if (!res.ok) throw new Error("Unable to load this item. Please try again."); return res.json(); })
       .then((data) => {
         const item = data.data;
         if (!isAdmin() && item.status !== "Pending") {
@@ -115,7 +115,7 @@ export default function ReportFoundItemPage() {
           );
         }
       })
-      .catch((err) => console.error("Failed to load item:", err));
+      .catch((err) => setSubmitError(err.message || "Unable to load this item. Please try again."));
   }, [editId]);
 
   function handleChange(e) {

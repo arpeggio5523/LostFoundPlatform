@@ -1,7 +1,7 @@
 import { useLanguage } from "../context/LanguageContext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Activity, CheckCircle2, Clock3, FileText, RefreshCw, Trash2, XCircle } from "lucide-react";
+import { Activity, CheckCircle2, Clock3, FileText, RefreshCw, Trash2, Users, XCircle } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import NotificationButton from "../components/NotificationButton";
 import { apiFetch } from "../services/apiClient";
@@ -118,6 +118,14 @@ export default function AnalyticsPage() {
           </section>
 
           <section style={{ background: "var(--color-bg-surface)", border: "1px solid var(--color-border)", borderRadius: 20, padding: 24, marginTop: 28 }}>
+            <h2 style={{ display: "flex", alignItems: "center", gap: 9, margin: "0 0 4px", fontSize: 20, color: "var(--color-text-primary)" }}>
+              <Users size={20} />{t("User registrations")}
+            </h2>
+            <p style={{ margin: "0 0 24px", fontSize: 13, color: "var(--color-text-secondary)" }}>{t("Registered accounts and new sign-ups over the last 12 months. Admin accounts are excluded.")}</p>
+            <UserRegistrationsChart data={analytics?.users} loading={loading} locale={locale} />
+          </section>
+
+          <section style={{ background: "var(--color-bg-surface)", border: "1px solid var(--color-border)", borderRadius: 20, padding: 24, marginTop: 28 }}>
             <h2 style={{ margin: 0, fontSize: 20, color: "var(--color-text-primary)", marginBottom: 4 }}>{t("Moderation status")}</h2>
             <p style={{ margin: "0 0 24px", fontSize: 13, color: "var(--color-text-secondary)" }}>{t("Current status distribution across all posts")}</p>
             <StatusBarChart data={analytics?.statuses} loading={loading} />
@@ -132,6 +140,60 @@ export default function AnalyticsPage() {
           to { transform: rotate(360deg); }
         }
       `}</style>
+    </div>
+  );
+}
+
+function UserRegistrationsChart({ data, loading, locale }) {
+  const { t } = useLanguage();
+  if (loading) {
+    return <div style={{ height: 240, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-muted)" }}>{t("Loading chart...")}</div>;
+  }
+
+  if (!data) {
+    return <div style={{ height: 240, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-muted)" }}>{t("No data available")}</div>;
+  }
+
+  const registrations = data.monthlyRegistrations || [];
+  const maxValue = Math.max(...registrations.map(({ count }) => count), 1);
+
+  return (
+    <div>
+      <div style={{ display: "inline-flex", flexDirection: "column", gap: 6, padding: "14px 18px", marginBottom: 24, borderRadius: 14, background: "var(--color-bg-raised)", border: "1px solid var(--color-border)" }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text-secondary)" }}>{t("Total registered users")}</span>
+        <span style={{ fontSize: 30, lineHeight: 1, fontWeight: 800, color: "var(--color-text-primary)" }}>{data.total ?? 0}</span>
+      </div>
+      <div style={{ overflowX: "auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${registrations.length}, minmax(48px, 1fr))`, gap: 12, minWidth: 720, padding: "0 8px" }}>
+          {registrations.map(({ month, count }) => {
+            const monthLabel = new Date(`${month}-01T00:00:00.000Z`).toLocaleDateString(locale, {
+              month: "short",
+              year: "2-digit",
+              timeZone: "UTC",
+            });
+            return (
+              <div key={month} title={`${monthLabel}: ${count}`} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)" }}>{count}</span>
+                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", height: 150, width: "100%" }}>
+                  <div
+                    role="img"
+                    aria-label={`${monthLabel}: ${count}`}
+                    style={{
+                      width: "72%",
+                      height: count ? `${(count / maxValue) * 100}%` : 0,
+                      minHeight: count ? 4 : 0,
+                      borderRadius: "6px 6px 0 0",
+                      background: "#3b82f6",
+                      transition: "height 0.2s ease",
+                    }}
+                  />
+                </div>
+                <span style={{ whiteSpace: "nowrap", fontSize: 11, color: "var(--color-text-secondary)" }}>{monthLabel}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

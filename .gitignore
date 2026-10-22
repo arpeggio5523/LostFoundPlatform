@@ -4,6 +4,7 @@ dist/
 .DS_Store
 
 # Test reports and coverage
+coverage/
 reports/
 html/
 test-results/

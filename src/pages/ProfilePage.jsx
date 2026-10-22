@@ -1,6 +1,8 @@
+import { useLanguage } from "../context/LanguageContext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import NotificationButton from "../components/NotificationButton";
 import { getAuthUser, clearAuth } from "../services/authState";
 import { buildApiUrl, authHeaders, apiFetch } from "../services/apiClient";
 import { LogOut } from "lucide-react";
@@ -9,6 +11,7 @@ import StatusBadge from "../components/StatusBadge";
 
 
 function ProfilePage() {
+  const { t, locale } = useLanguage();
   const navigate = useNavigate();
   const { resetTheme } = useTheme();
 
@@ -21,6 +24,7 @@ function ProfilePage() {
   console.log("currentUser:", currentUser);
   const [userPosts, setUserPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   
   useEffect(() => {
     const user = getAuthUser();
@@ -32,9 +36,9 @@ function ProfilePage() {
 
   useEffect(() => {
     apiFetch("/api/items/my")
-      .then((res) => res.json())
+      .then((res) => { if (!res.ok) throw new Error("Unable to load your posts. Please try again."); return res.json(); })
       .then((data) => setUserPosts(Array.isArray(data.data) ? data.data : []))
-      .catch(() => setUserPosts([]))
+      .catch((error) => setLoadError(error.message || "Unable to load your posts. Please try again."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -42,7 +46,7 @@ function ProfilePage() {
   const foundPosts = userPosts.filter((i) => i.type === "Found");
   const returnedPosts = userPosts.filter((i) => i.status === "Returned");
 
-  const userName = currentUser?.fullName || "Unknown User";
+  const userName = currentUser?.fullName || t("Unknown User");
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
@@ -69,9 +73,7 @@ function ProfilePage() {
                 color: "var(--color-brand)",
                 letterSpacing: "-0.02em",
               }}
-            >
-              My Profile
-            </h1>
+            >{t("My Profile")}</h1>
 
             <p
               style={{
@@ -79,10 +81,9 @@ function ProfilePage() {
                 fontSize: 14,
                 color: "var(--color-text-secondary)",
               }}
-            >
-              View and manage your account information and activity
-            </p>
+            >{t("View and manage your account information and activity")}</p>
           </div>
+          <NotificationButton />
         </div>
 
         <div
@@ -127,18 +128,18 @@ function ProfilePage() {
                   {
                     id: "role",
                     icon: "👤",
-                    label: currentUser?.role || "Student",
+                    label: t(currentUser?.role || "Student"),
                   },
                   {
                     id: "joined",
                     icon: "📅",
                     label: currentUser?.createdAt
-                      ? `Joined ${new Date(
+                      ? t("Joined {{date}}", { date: new Date(
                           currentUser.createdAt
-                        ).toLocaleDateString("en-MY", {
+                        ).toLocaleDateString(locale, {
                           month: "short",
                           year: "numeric",
-                        })}`
+                        }) })
                       : "—",
                   },
                 ].map(({ id, icon, label }) => (
@@ -158,21 +159,17 @@ function ProfilePage() {
             <button
               onClick={() => navigate("/profile/settings")}
               className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition"
-            >
-              ⚙ Settings
-            </button>
+            >{t("⚙ Settings")}</button>
 
             {/* Statistics */}
             <div className="rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] p-6 shadow-sm">
-              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">
-                Statistics
-              </h3>
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">{t("Statistics")}</h3>
 
               {[
-                { label: "Total Posts", value: userPosts.length },
-                { label: "Lost Items", value: lostPosts.length },
-                { label: "Found Items", value: foundPosts.length },
-                { label: "Returned", value: returnedPosts.length, highlight: true },
+                { label: t("Total Posts"), value: userPosts.length },
+                { label: t("Lost Items"), value: lostPosts.length },
+                { label: t("Found Items"), value: foundPosts.length },
+                { label: t("Returned"), value: returnedPosts.length, highlight: true },
               ].map(({ label, value, highlight }) => (
                 <div
                   key={label}
@@ -198,47 +195,36 @@ function ProfilePage() {
           {/* ── RIGHT COLUMN ── */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-[var(--color-text-primary)]">
-                My Posts
-              </h3>
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)]">{t("My Posts")}</h3>
 
               <div className="flex gap-2">
                 <button
                   onClick={() => navigate("/report-lost")}
                   className="text-xs font-medium px-3 py-1.5 rounded-lg bg-[var(--color-brand)] text-[var(--color-brand-text)] hover:opacity-90 transition"
-                >
-                  + Lost Item
-                </button>
+                >{t("+ Lost Item")}</button>
 
                 <button
                   onClick={() => navigate("/report-found")}
                   className="text-xs font-medium px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition"
-                >
-                  + Found Item
-                </button>
+                >{t("+ Found Item")}</button>
 
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg bg-[#064e3b] text-white hover:bg-[#022c22] transition"
                 >
-                  <LogOut size={14} />
-                  Logout
-                </button>
+                  <LogOut size={14} />{t("Logout")}</button>
               </div>
             </div>
 
             {/* Loading */}
             {loading && (
-              <p className="text-sm text-[var(--color-text-muted)]">
-                Loading your posts…
-              </p>
+              <p className="text-sm text-[var(--color-text-muted)]">{t("Loading your posts…")}</p>
             )}
 
             {/* Empty */}
-            {!loading && userPosts.length === 0 && (
-              <p className="text-sm text-[var(--color-text-muted)]">
-                No posts yet. Report a lost or found item to get started.
-              </p>
+             {loadError && <p role="alert" className="text-sm text-red-600">{t(loadError)}</p>}
+             {!loading && !loadError && userPosts.length === 0 && (
+              <p className="text-sm text-[var(--color-text-muted)]">{t("No posts yet. Report a lost or found item to get started.")}</p>
             )}
 
             {/* Posts */}
@@ -283,7 +269,7 @@ function ProfilePage() {
                             : "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
                         }`}
                       >
-                        {item.type}
+                        {t(item.type)}
                       </span>
 
                       <span className="text-xs text-[var(--color-text-muted)] truncate">
@@ -291,7 +277,7 @@ function ProfilePage() {
                       </span>
 
                       <span className="text-xs text-[var(--color-text-muted)]">
-                        {new Date(item.date).toLocaleDateString("en-MY", {
+                        {new Date(item.date).toLocaleDateString(locale, {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
@@ -310,4 +296,3 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
-

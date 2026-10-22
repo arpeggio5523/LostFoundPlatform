@@ -1,7 +1,9 @@
+import { useLanguage } from "../context/LanguageContext";
 import React from "react";
 import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2, ExternalLink, MessageSquare, Search, Loader2 } from "lucide-react";
+import NotificationButton from "../components/NotificationButton";
+import { MapPin, Calendar, Tag, Palette, ArrowLeft, QrCode, Trash2, ExternalLink, MessageSquare, Search, Loader2, Pencil, Handshake, CheckCircle2, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isOwner, isAdmin, canEditItem } from "../services/authState";
 import { authHeaders, apiFetch, getToken } from "../services/apiClient";
@@ -13,6 +15,7 @@ import QRCodeModal from "../components/QRcode";
 import { startConversation } from "../services/messagesApi";
 
 export default function ItemDetailPage() {
+  const { t, locale } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,7 +48,7 @@ export default function ItemDetailPage() {
         const response = await apiFetch(`/api/items/${id}`);
         if (!response.ok) throw new Error("Item not found");
         const data = await response.json();
-        setItem(data.data);
+        setItem({ ...data.data, isOwner: data.isOwner });
       } catch (err) {
         setError(err.message);
       } finally {
@@ -84,6 +87,7 @@ export default function ItemDetailPage() {
   };
 
   const handleContactOwner = async () => {
+    if (!item || isOwner(item)) return;
     setSendingEmail(true);
     try {
       const response = await apiFetch(`/api/items/${item._id}/contact`, {
@@ -98,10 +102,8 @@ export default function ItemDetailPage() {
 
       showToast(
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <span style={{ fontWeight: "bold" }}>Email Sent!</span>
-          <span style={{ fontWeight: "normal", fontSize: "0.9em" }}>
-            The owner has been notified. They will contact you directly via email if they wish to proceed.
-          </span>
+          <span style={{ fontWeight: "bold" }}>{t("Email Sent!")}</span>
+          <span style={{ fontWeight: "normal", fontSize: "0.9em" }}>{t("The owner has been notified. They will contact you directly via email if they wish to proceed.")}</span>
         </div>,
         "success"
       );
@@ -113,13 +115,13 @@ export default function ItemDetailPage() {
   };
 
   const handleStartChat = async () => {
-    if (!item) return;
+    if (!item || isOwner(item)) return;
     const ownerId = item.reportedBy?._id || item.reportedBy;
     if (!ownerId) {
       showToast("Cannot start chat: unknown owner.", "error");
       return;
     }
-    
+
     setStartingChat(true);
     try {
       const res = await startConversation(ownerId, item._id);
@@ -148,8 +150,11 @@ export default function ItemDetailPage() {
         throw new Error(result.error || result.message || "Failed to update item status.");
       }
 
-      setItem(result.data || ((currentItem) => ({ ...currentItem, status })));
-      showToast(`Status updated to ${status.toLowerCase()}.`, "success");
+      setItem((currentItem) => ({
+        ...(result.data || { ...currentItem, status }),
+        isOwner: currentItem.isOwner,
+      }));
+      showToast(t("Status updated to {{status}}.", { status: t(status) }), "success");
     } catch (err) {
       showToast(err.message || "Failed to update item status.", "error");
     } finally {
@@ -160,45 +165,57 @@ export default function ItemDetailPage() {
   const handleMarkAsMatched = () => updateItemStatus("Matched");
   const handleMarkAsReturned = () => updateItemStatus("Returned");
 
-  // Fetch visually similar items using the stored imageEmbedding.
-  // We search the opposite type: a Lost item finds similar Found items, and vice versa.
-  const handleViewPossibleMatches = async () => {
-    setMatchesLoading(true);
-    try {
-      const oppositeType = item.type === "Lost" ? "Found" : "Lost";
-      const res = await apiFetch(
-        `/api/items/${item._id}/similar?type=${oppositeType}&limit=5`,
-        { headers: authHeaders() }
-      );
+  // Fetch visually similar items automatically for the current item.
+  useEffect(() => {
+    if (!item) return;
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
+    let cancelled = false;
+    const fetchMatches = async () => {
+      setMatchesLoading(true);
+      try {
+        const oppositeType = item.type === "Lost" ? "Found" : "Lost";
+        const res = await apiFetch(
+          `/api/items/${item._id}/similar?type=${oppositeType}&limit=5`,
+          { headers: authHeaders() }
+        );
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
         // 400 means no embedding stored — show friendly empty state, not an error toast
-        if (res.status === 400) {
-          setMatches([]);
-          setMatchesChecked(true);
-          return;
+          if (res.status === 400) {
+            if (!cancelled) setMatches([]);
+            return;
+          }
+          throw new Error(body.error || "Failed to load matches");
         }
-        throw new Error(body.error || "Failed to load matches");
-      }
 
-      const data = await res.json();
-      setMatches(data.data || []);
-    } catch (err) {
-      showToast(err.message || "Could not load possible matches.", "error");
-      setMatches([]);
-    } finally {
-      setMatchesLoading(false);
-      setMatchesChecked(true);
-    }
-  };
+        const data = await res.json();
+        if (!cancelled) setMatches(Array.isArray(data.data) ? data.data : []);
+      } catch (err) {
+        if (!cancelled) {
+          showToast(err.message || "Could not load possible matches.", "error");
+          setMatches([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setMatchesLoading(false);
+          setMatchesChecked(true);
+        }
+      }
+    };
+
+    fetchMatches();
+    return () => {
+      cancelled = true;
+    };
+  }, [item?._id, item?.type]);
 
   const handleMatchClick = (matchId) => {
     navigate(`/item/${matchId}`);
   };
 
-  if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>Loading...</div>;
-  if (error || !item) return <div style={{ padding: 40, color: "#f87171" }}>Item not found.</div>;
+  if (loading) return <div style={{ padding: 40, color: "var(--color-text-muted)" }}>{t("Loading...")}</div>;
+  if (error || !item) return <div style={{ padding: 40, color: "#f87171" }}>{t("Item not found.")}</div>;
 
   const userIsOwner = isOwner(item);
   const userIsAdmin = isAdmin();
@@ -218,21 +235,24 @@ export default function ItemDetailPage() {
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
       <main style={{ marginLeft: isCollapsed ? 70 : 220, transition: "margin-left 0.3s ease", flex: 1, padding: "40px" }}>
-        
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(returnTo)}
-          style={{
-            display: "flex", alignItems: "center", gap: 8, marginBottom: 32,
-            color: "var(--color-text-muted)", fontSize: 14, fontWeight: 600,
-            background: "none", border: "none", cursor: "pointer", transition: "color 0.15s",
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = "var(--color-text-primary)"}
-          onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-muted)"}
-        >
-          <ArrowLeft size={16} />
-          Back to {backLabel}
-        </button>
+
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center", marginBottom: 32 }}>
+          {/* Back Button */}
+          <button
+            onClick={() => navigate(returnTo)}
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              color: "var(--color-text-muted)", fontSize: 14, fontWeight: 600,
+              background: "none", border: "none", cursor: "pointer", transition: "color 0.15s",
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = "var(--color-text-primary)"}
+            onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-muted)"}
+          >
+            <ArrowLeft size={16} />
+            {t("Back to {{page}}", { page: t(backLabel) })}
+          </button>
+          <NotificationButton />
+        </div>
 
         {/* Two Column Layout */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 350px", gap: 32, maxWidth: 1100 }}>
@@ -275,15 +295,40 @@ export default function ItemDetailPage() {
                 </div>
 
                 {/* Title */}
-                <h1 style={{ fontSize: 32, fontWeight: 850, color: "var(--color-text-primary)", marginBottom: 20 }}>
-                  {item.title}
-                </h1>
-
+                <div className="mb-5 flex items-start justify-between gap-4">
+                  <h1 style={{ fontSize: 32, fontWeight: 850, color: "var(--color-text-primary)", marginBottom: 0, minWidth: 0, overflowWrap: "anywhere" }}>
+                    {item.title}
+                  </h1>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {canEdit && (
+                      <button
+                        aria-label={t("Edit")}
+                        title={t("Edit item")}
+                        onClick={() => navigate(
+                          item.type === "Lost"
+                            ? `/report-lost?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
+                            : `/report-found?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
+                        )}
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-[var(--color-text-secondary)] transition hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-brand)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)]"
+                      >
+                        <Pencil size={20} aria-hidden="true" />
+                      </button>
+                    )}
+                    {(userIsOwner || userIsAdmin) && (
+                      <button
+                        aria-label={t("Delete item")}
+                        title={t("Delete item")}
+                        onClick={() => setShowDeleteModal(true)}
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-[var(--color-text-secondary)] transition hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                      >
+                        <Trash2 size={20} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                </div>
                 {/* Description */}
                 <div style={{ marginBottom: 32 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)", textTransform: "uppercase", marginBottom: 8 }}>
-                    Description
-                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)", textTransform: "uppercase", marginBottom: 8 }}>{t("Description")}</div>
                   <p style={{ fontSize: 16, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
                     {item.description}
                   </p>
@@ -291,114 +336,143 @@ export default function ItemDetailPage() {
 
                 {/* Info Grid */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, borderTop: "1px solid var(--color-border)", paddingTop: 32, marginBottom: 48 }}>
-                  <InfoBlock label="Category" icon={<Tag size={16} />} value={item.category} />
-                  <InfoBlock label="Colour" icon={<Palette size={16} />} value={item.color} />
-                  <InfoBlock label="Location" icon={<MapPin size={16} />} value={item.location} />
-                  <InfoBlock label="Exact Location" icon={<MapPin size={16} />} value={item.exactLocation || "Not specified"} />
-                  <InfoBlock label="Date" icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString() : "N/A"} />
+                  <InfoBlock label={t("Category")} icon={<Tag size={16} />} value={t(item.category)} />
+                  <InfoBlock label={t("Colour")} icon={<Palette size={16} />} value={item.color} />
+                  <InfoBlock label={t("Location")} icon={<MapPin size={16} />} value={item.location} />
+                  <InfoBlock label={t("Exact Location")} icon={<MapPin size={16} />} value={item.exactLocation || t("Not specified")} />
+                  <InfoBlock label={t("Date")} icon={<Calendar size={16} />} value={item.date ? new Date(item.date).toLocaleDateString(locale) : t("N/A")} />
                 </div>
 
+                {userIsAdmin && (
+                  <div aria-label="Admin item actions" className="flex flex-col gap-3 border-t border-[var(--color-border)] pt-5">
+                    {["Approved", "Matched"].includes(item.status) && (
+                    <div aria-label="Status updates" className={`grid w-full gap-2 ${item.status === "Approved" ? "grid-cols-2" : "grid-cols-1"}`}>
+                    {item.status === "Approved" && (
+                      <button
+                        onClick={handleMarkAsMatched}
+                        disabled={Boolean(updatingStatus)}
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[var(--color-brand)] px-3 py-2 text-sm font-semibold text-[var(--color-brand-text)] transition hover:bg-[var(--color-brand-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {updatingStatus === "Matched" ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Handshake size={16} aria-hidden="true" />}
+                        {updatingStatus === "Matched" ? t("Updating...") : t("Mark as matched")}
+                      </button>
+                    )}
+                    {["Approved", "Matched"].includes(item.status) && (
+                      <button
+                        onClick={handleMarkAsReturned}
+                        disabled={Boolean(updatingStatus)}
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {updatingStatus === "Returned" ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <CheckCircle2 size={16} aria-hidden="true" />}
+                        {updatingStatus === "Returned" ? t("Updating...") : t("Mark as returned")}
+                      </button>
+                    )}
+                    </div>
+                    )}
+                    {!userIsOwner && (
+                      <div aria-label="Contact actions" className="grid w-full grid-cols-2 gap-2">
+                        <button
+                          onClick={handleContactOwner}
+                          disabled={sendingEmail}
+                          title="Contact owner by email"
+                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--color-brand)_20%,transparent)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-bg-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {sendingEmail ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Mail size={16} aria-hidden="true" />}
+                          {sendingEmail ? t("Sending...") : t("Contact owner")}
+                        </button>
+                        <button
+                          onClick={handleStartChat}
+                          disabled={startingChat}
+                          title={`Chat with ${item.user || "owner"}`}
+                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--color-brand)_20%,transparent)] bg-[var(--color-bg-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-bg-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {startingChat ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <MessageSquare size={16} aria-hidden="true" />}
+                          {startingChat ? "Starting..." : "Chat"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Recovery actions */}
+                {!userIsAdmin && userIsOwner && ["Approved", "Matched"].includes(item.status) && (
+                  <div className={userIsAdmin ? "mb-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-raised)] p-4" : "mb-6"}>
+                    {userIsAdmin && <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Update status</h3>}
+                    <div className={userIsAdmin ? "grid grid-cols-1 gap-3 xl:grid-cols-2" : "flex flex-col gap-3"}>
+                    {item.status === "Approved" && (
+                      <button
+                        onClick={handleMarkAsMatched}
+                        disabled={Boolean(updatingStatus)}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border-none bg-[var(--color-brand)] p-4 text-[15px] font-bold text-[var(--color-brand-text)] transition hover:bg-[var(--color-brand-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {updatingStatus === "Matched" ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : <Handshake size={18} aria-hidden="true" />}
+                        {updatingStatus === "Matched" ? t("Updating...") : t("Mark as matched")}
+                      </button>
+                    )}
+                    {["Approved", "Matched"].includes(item.status) && (
+                      <button
+                        onClick={handleMarkAsReturned}
+                        disabled={Boolean(updatingStatus)}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-raised)] p-4 text-[15px] font-bold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {updatingStatus === "Returned" ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : <CheckCircle2 size={18} aria-hidden="true" />}
+                        {updatingStatus === "Returned" ? t("Updating...") : t("Mark as returned")}
+                      </button>
+                    )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Contact Owner CTA */}
-                {!userIsOwner && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <button 
+                {!userIsAdmin && !userIsOwner && (
+                  <div className={userIsAdmin ? "border-t border-[var(--color-border)] pt-5" : ""}>
+                    {userIsAdmin && <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Contact reporter</h3>}
+                    <div className={userIsAdmin ? "grid grid-cols-1 gap-3 xl:grid-cols-2" : "flex flex-col gap-3"}>
+                    <button
                       onClick={handleContactOwner}
                       disabled={sendingEmail}
                       style={{
-                        width: "100%", padding: "16px", background: "var(--color-brand)",
-                        color: "var(--color-brand-text)", border: "none", borderRadius: 12,
-                        fontSize: 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer", 
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                        width: "100%", padding: userIsAdmin ? "12px" : "16px", background: userIsAdmin ? "var(--color-bg-surface)" : "var(--color-brand)",
+                        color: userIsAdmin ? "var(--color-text-primary)" : "var(--color-brand-text)", border: userIsAdmin ? "1px solid var(--color-border)" : "none", borderRadius: 12,
+                        fontSize: userIsAdmin ? 14 : 15, fontWeight: 700, cursor: sendingEmail ? "not-allowed" : "pointer",
                         transition: "background 0.15s", opacity: sendingEmail ? 0.7 : 1,
                       }}
-                      onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand-hover)")}
-                      onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = "var(--color-brand)")}
+                      onMouseEnter={e => !sendingEmail && (e.currentTarget.style.background = userIsAdmin ? "var(--color-bg-hover)" : "var(--color-brand-hover)")}
+                      onMouseLeave={e => !sendingEmail && (e.currentTarget.style.background = userIsAdmin ? "var(--color-bg-surface)" : "var(--color-brand)")}
                     >
-                      {sendingEmail ? "Sending..." : "Contact owner"}
+                      {userIsAdmin && <Mail size={18} aria-hidden="true" />}
+                      {sendingEmail ? t("Sending...") : t("Contact owner")}
                     </button>
-                    <button 
+                    <button
                       onClick={handleStartChat}
                       disabled={startingChat}
                       style={{
                         display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                        width: "100%", padding: "16px", background: "var(--color-bg-raised)",
+                        width: "100%", padding: userIsAdmin ? "12px" : "16px", background: userIsAdmin ? "var(--color-bg-surface)" : "var(--color-bg-raised)",
                         color: "var(--color-text-primary)", border: "1px solid var(--color-border)", borderRadius: 12,
-                        fontSize: 15, fontWeight: 700, cursor: startingChat ? "not-allowed" : "pointer", 
+                        fontSize: userIsAdmin ? 14 : 15, fontWeight: 700, cursor: startingChat ? "not-allowed" : "pointer",
                         transition: "background 0.15s", opacity: startingChat ? 0.7 : 1,
                       }}
                       onMouseEnter={e => !startingChat && (e.currentTarget.style.background = "var(--color-bg-hover)")}
-                      onMouseLeave={e => !startingChat && (e.currentTarget.style.background = "var(--color-bg-raised)")}
+                      onMouseLeave={e => !startingChat && (e.currentTarget.style.background = userIsAdmin ? "var(--color-bg-surface)" : "var(--color-bg-raised)")}
                     >
                       <MessageSquare size={18} />
                       {startingChat ? "Starting chat..." : `Chat with ${item.user || "owner"}`}
                     </button>
+                    </div>
                   </div>
                 )}
 
-                {canEdit && (
-                  <button
-                    onClick={() => setShowDeleteModal(true)}
-                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-none bg-red-600 p-4 text-[15px] font-bold text-white transition hover:bg-red-700"
-                  >
-                    <Trash2 size={18} />
-                    Delete item
-                  </button>
-                )}
+
               </div>
             </div>
-
-            {/* Actions Block for Owner/Admin */}
-            {canEdit && (userIsAdmin || ["Approved", "Matched", "Returned"].includes(item.status)) && (
-              <div className="mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 sm:p-6 transition-all duration-300">
-                <div className="mb-4 text-xl font-bold text-[var(--color-text-primary)]">
-                  Actions
-                </div>
-
-                <div className={`grid grid-cols-1 gap-3 ${userIsAdmin ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
-                  {canEdit && (
-                    <button
-                      onClick={() =>
-                        navigate(
-                          item.type === "Lost"
-                            ? `/report-lost?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
-                            : `/report-found?edit=${item._id}&returnTo=${encodeURIComponent(returnTo)}`
-                        )
-                      }
-                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)]"
-                    >
-                      Edit
-                    </button>
-                  )}
-
-
-                  {["Approved", "Returned"].includes(item.status) && (
-                    <button
-                      onClick={handleMarkAsMatched}
-                      disabled={Boolean(updatingStatus)}
-                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {updatingStatus === "Matched" ? "Updating..." : "Mark as matched"}
-                    </button>
-                  )}
-
-                  {["Approved", "Matched"].includes(item.status) && (
-                    <button
-                      onClick={handleMarkAsReturned}
-                      disabled={Boolean(updatingStatus)}
-                      className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {updatingStatus === "Returned" ? "Updating..." : "Mark as returned"}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
-
           {/* RIGHT COLUMN */}
           <aside style={{ position: "sticky", top: 40, alignSelf: "start", display: "flex", flexDirection: "column", gap: 20 }}>
             <div style={{ marginBottom: 20, background: "var(--color-bg-surface)", border: "1px solid var(--color-border)", borderRadius: 20, overflow: "hidden" }}>
               <div style={{ padding: "20px 20px 14px" }}>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "var(--color-text-primary)" }}>Reported location</h3>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "var(--color-text-primary)" }}>{t("Reported location")}</h3>
                 <p style={{ margin: "5px 0 0", fontSize: 13, color: "var(--color-text-secondary)" }}>
                   {item.reportLocation?.formattedAddress || item.location}
                 </p>
@@ -412,8 +486,7 @@ export default function ItemDetailPage() {
                   }}
                   style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, background: "var(--color-bg-surface)", border: "none", borderTop: "1px solid var(--color-border)", color: "var(--color-brand)", fontWeight: 700, cursor: "pointer" }}
                 >
-                  <ExternalLink size={16} /> View full map
-                </button>
+                  <ExternalLink size={16} />{t(" View full map")}</button>
               )}
             </div>
             <div style={{
@@ -424,9 +497,7 @@ export default function ItemDetailPage() {
               boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)",
               transition: "background 0.2s ease, border-color 0.2s ease",
             }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20, color: "var(--color-text-primary)" }}>
-                Posted By
-              </h3>
+              <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20, color: "var(--color-text-primary)" }}>{t("Posted By")}</h3>
 
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
                 <div style={{
@@ -439,57 +510,35 @@ export default function ItemDetailPage() {
 
                 <div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: "var(--color-text-primary)" }}>
-                    {item.user || "Anonymous User"}
+                    {item.user || t("Anonymous User")}
                   </div>
-                  <div style={{ fontSize: 14, color: "var(--color-text-secondary)" }}>
-                    Posted {item.date ? new Date(item.date).toLocaleDateString() : ""}
+                  <div style={{ fontSize: 14, color: "var(--color-text-secondary)" }}>{t("Posted ")}{item.date ? new Date(item.date).toLocaleDateString(locale) : ""}
                   </div>
                 </div>
               </div>
 
               {/* QR Button */}
-              <button 
-                onClick={() => setShowQRModal(true)}
-                style={{
-                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-                  gap: 10, padding: 14, background: "var(--color-bg-surface)",
-                  border: "1.5px solid var(--color-border)", borderRadius: 12,
-                  fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
-                  cursor: "pointer", transition: "background 0.2s",
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--color-bg-hover)"}
-                onMouseLeave={e => e.currentTarget.style.background = "var(--color-bg-surface)"}
-              >
-                <QrCode size={20} />
-                View QR Code
-              </button>
+              {item.status !== "Pending" && item.status !== "Rejected" && (
+                <button
+                  onClick={() => setShowQRModal(true)}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                    gap: 10, padding: 14, background: "var(--color-bg-surface)",
+                    border: "1.5px solid var(--color-border)", borderRadius: 12,
+                    fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
+                    cursor: "pointer", transition: "background 0.2s",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = "var(--color-bg-hover)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "var(--color-bg-surface)"}
+                >
+                  <QrCode size={20} />
+                  {t("View QR Code")}
+                </button>
+              )}
             </div>
 
-            {/* View Possible Matches Button */}
-            <button
-              onClick={handleViewPossibleMatches}
-              disabled={matchesLoading}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-                gap: 10, padding: 14, background: "var(--color-bg-surface)",
-                border: "1.5px solid var(--color-border)", borderRadius: 12,
-                fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)",
-                cursor: matchesLoading ? "not-allowed" : "pointer", transition: "background 0.2s",
-                opacity: matchesLoading ? 0.7 : 1,
-              }}
-              onMouseEnter={e => !matchesLoading && (e.currentTarget.style.background = "var(--color-bg-hover)")}
-              onMouseLeave={e => !matchesLoading && (e.currentTarget.style.background = "var(--color-bg-surface)")}
-            >
-              {matchesLoading ? (
-                <Loader2 size={18} className="spin" style={{ animation: "spin 1s linear infinite" }} />
-              ) : (
-                <Search size={18} />
-              )}
-              {matchesLoading ? "Searching..." : "View possible matches"}
-            </button>
-
             {/* Possible Matches Panel */}
-            {matchesChecked && (
+            {(matchesLoading || matchesChecked) && (
               <div style={{
                 background: "var(--color-bg-surface)",
                 border: "1px solid var(--color-border)",
@@ -497,21 +546,22 @@ export default function ItemDetailPage() {
                 padding: 24,
                 boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)",
               }}>
-                <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: "var(--color-text-primary)" }}>
-                  Possible Matches
-                </h3>
+                <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: "var(--color-text-primary)" }}>{t("Possible Matches")}</h3>
 
-                {matches.length === 0 ? (
+                {matchesLoading ? (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "24px 8px", color: "var(--color-text-muted)" }}>
+                    <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} />
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>{t("Searching...")}</span>
+                  </div>
+                ) : matches.length === 0 ? (
                   <div style={{
                     display: "flex", flexDirection: "column", alignItems: "center",
                     justifyContent: "center", gap: 10, padding: "24px 8px",
                     color: "var(--color-text-muted)", textAlign: "center",
                   }}>
                     <Search size={28} style={{ opacity: 0.4 }} />
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>No matches found</div>
-                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>
-                      We couldn't find any potential matches for this item yet. Check back later.
-                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>{t("No matches found")}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.5 }}>{t("We couldn't find any potential matches for this item yet. Check back later.")}</div>
                   </div>
                 ) : (
                   <div style={{ display: "grid", gap: 12 }}>
@@ -552,8 +602,8 @@ export default function ItemDetailPage() {
                           </div>
                           <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
                             {match.similarityScore
-                              ? `${Math.round(match.similarityScore * 100)}% match`
-                              : "Possible match"}
+                              ? `${Math.round(match.similarityScore * 100)}${t("% match")}`
+                              : t("Possible match")}
                           </div>
                         </div>
                       </button>
@@ -569,9 +619,9 @@ export default function ItemDetailPage() {
 
       <ConfirmModal
         isOpen={showDeleteModal}
-        title="Delete Item"
-        message="Are you sure you want to delete this item? This action cannot be undone."
-        confirmText="Delete"
+        title={t("Delete Item")}
+        message={t("Are you sure you want to delete this item? This action cannot be undone.")}
+        confirmText={t("Delete")}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteModal(false)}
       />
@@ -587,6 +637,7 @@ export default function ItemDetailPage() {
 
 // InfoBlock Component
 function InfoBlock({ label, icon, value }) {
+  const { t } = useLanguage();
   return (
     <div>
       <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-primary)", textTransform: "uppercase", marginBottom: 8 }}>
@@ -594,7 +645,7 @@ function InfoBlock({ label, icon, value }) {
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 15, fontWeight: 600, color: "var(--color-text-primary)" }}>
         <span style={{ color: "var(--color-text-muted)" }}>{icon}</span>
-        {value || "N/A"}
+        {value || t("N/A")}
       </div>
     </div>
   );

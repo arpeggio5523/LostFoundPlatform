@@ -69,7 +69,9 @@ export async function fetchConversations() {
     return { data: mockConversations };
   }
   const res = await apiFetch("/api/messages/conversations");
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Unable to load messaging. Please try again.");
+  return data;
 }
 
 export async function fetchMessages(conversationId) {
@@ -78,10 +80,23 @@ export async function fetchMessages(conversationId) {
     return { data: mockMessages[conversationId] || [] };
   }
   const res = await apiFetch(`/api/messages/conversations/${conversationId}/messages`);
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Unable to load messaging. Please try again.");
+  return data;
 }
 
-export async function sendMessage(conversationId, text) {
+export async function translateMessage(conversationId, messageId, targetLanguage) {
+  const res = await apiFetch(`/api/messages/conversations/${conversationId}/messages/${messageId}/translate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ targetLanguage }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to translate message.");
+  return data;
+}
+
+export async function sendMessage(conversationId, text, image = null) {
   if (USE_MOCKS) {
     await delay(150);
     const newMessage = {
@@ -89,12 +104,13 @@ export async function sendMessage(conversationId, text) {
       conversation: conversationId,
       sender: { _id: ME, fullName: "You" },
       text,
+      image,
       createdAt: new Date().toISOString(),
     };
     mockMessages[conversationId] = [...(mockMessages[conversationId] || []), newMessage];
     mockConversations = mockConversations.map((c) =>
       c._id === conversationId
-        ? { ...c, lastMessage: text, lastMessageAt: newMessage.createdAt }
+        ? { ...c, lastMessage: text || "Photo", lastMessageAt: newMessage.createdAt }
         : c
     );
     return { data: newMessage };
@@ -102,9 +118,11 @@ export async function sendMessage(conversationId, text) {
   const res = await apiFetch(`/api/messages/conversations/${conversationId}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, image }),
   });
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to send message");
+  return data;
 }
 
 export async function startConversation(recipientId, itemId) {
@@ -133,5 +151,7 @@ export async function startConversation(recipientId, itemId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ recipientId, itemId }),
   });
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Unable to load messaging. Please try again.");
+  return data;
 }

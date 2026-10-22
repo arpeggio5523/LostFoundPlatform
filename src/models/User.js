@@ -95,6 +95,14 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // Set by an admin when a user report is upheld; blocks login and API access.
+  isRemoved: {
+    type: Boolean,
+    default: false,
+  },
+  removedAt: {
+    type: Date,
+  },
 }, { timestamps: true });
 
 

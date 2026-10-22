@@ -83,4 +83,21 @@ describe('Login Component', () => {
     expect(passwordInput).toBeRequired();
   });
 
+  it('toggles password visibility when eye icon is clicked', () => {
+    renderLogin();
+    const passwordInput =
+      screen.getByPlaceholderText('••••••••');
+
+    expect(passwordInput).toHaveAttribute('type', 'password');
+    const toggleButton = screen.getByRole('button', {
+      name: /show password/i,
+    });
+
+    fireEvent.click(toggleButton);
+    expect(passwordInput).toHaveAttribute('type', 'text');
+
+    fireEvent.click(toggleButton);
+    expect(passwordInput).toHaveAttribute('type', 'password');
+  });
+
 });

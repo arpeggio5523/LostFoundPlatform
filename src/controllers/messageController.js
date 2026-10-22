@@ -1,9 +1,40 @@
+import { notifyMessageRecipients } from "../services/notificationService.js";
 import Conversation from "../models/Conversation.js";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 import { encrypt, decrypt } from "../utils/cryptoUtils.js";
 import { maskUserForViewer } from "../utils/privacy.js";
 import { sendNewMessageNotificationEmail } from "../utils/emailService.js";
+import { validateMessageImage } from "../utils/messageAttachments.js";
+import { MESSAGE_LANGUAGES } from "../config/languages.js";
+import { translateText } from "../services/laraTranslate.js";
+
+export const translateMessage = async (req, res) => {
+  const targetLanguage = req.body?.targetLanguage || "en";
+  if (!MESSAGE_LANGUAGES.some(({ code }) => code === targetLanguage)) {
+    return res.status(400).json({ message: "Please choose a supported language." });
+  }
+  try {
+    const conversation = await Conversation.findOne({
+      _id: req.params.conversationId,
+      participants: req.user.id,
+    });
+    if (!conversation) return res.status(404).json({ message: "Conversation not found" });
+    const message = await Message.findOne({ _id: req.params.messageId, conversation: conversation._id });
+    if (!message) return res.status(404).json({ message: "Message not found" });
+    const text = decrypt(message.text);
+    if (!text || text === "[Encrypted Message]") {
+      return res.status(400).json({ message: "This message cannot be translated." });
+    }
+    const translatedText = await translateText(text, targetLanguage);
+    return res.json({ translatedText, targetLanguage });
+  } catch (error) {
+    const status = error.status ?? error.statusCode;
+    return res.status(status === 429 ? 429 : status === 503 ? 503 : 502).json({
+      message: "Translation is temporarily unavailable. Please try again.",
+    });
+  }
+};
 
 const maskConversationForViewer = (conversation, viewerId) => ({
   ...conversation,
@@ -56,7 +87,7 @@ export const getConversationMessages = async (req, res) => {
 
     const decryptedMessages = messages.map((message) =>
       maskMessageForViewer(
-        { ...message, text: decrypt(message.text) },
+        { ...message, text: decrypt(message.text), image: message.image ? decrypt(message.image) : null },
         req.user.id
       )
     );
@@ -69,9 +100,14 @@ export const getConversationMessages = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text = "", image } = req.body;
 
-    if (!text || !text.trim()) {
+    if (typeof text !== "string") {
+      return res.status(400).json({ message: "Message text must be a string" });
+    }
+    const imageError = validateMessageImage(image);
+    if (imageError) return res.status(400).json({ message: imageError });
+    if (!text.trim() && !image) {
       return res.status(400).json({ message: "Message text is required" });
     }
 
@@ -90,9 +126,10 @@ export const sendMessage = async (req, res) => {
       conversation: conversation._id,
       sender: req.user.id,
       text: encryptedText,
+      image: image ? encrypt(image) : null,
     });
 
-    conversation.lastMessage = encryptedText;
+    conversation.lastMessage = text.trim() ? encryptedText : encrypt("Photo");
     conversation.lastMessageAt = new Date();
     await conversation.save();
 
@@ -102,8 +139,10 @@ export const sendMessage = async (req, res) => {
     );
     const populatedObj = populated.toObject();
     populatedObj.text = decrypt(populatedObj.text);
+    populatedObj.image = populatedObj.image ? decrypt(populatedObj.image) : null;
     
     const io = req.app.get("io");
+    await notifyMessageRecipients(io, conversation, populatedObj.sender);
 
     if (io) {
       conversation.participants.forEach((participantId) => {
@@ -133,7 +172,7 @@ export const sendMessage = async (req, res) => {
         toEmail: recipient.email,
         recipientName: recipient.fullName,
         senderName: sender?.fullName || "Someone",
-        messageText: text.trim(),
+        messageText: text.trim() || "Photo",
         itemTitle,
         conversationUrl,
       });

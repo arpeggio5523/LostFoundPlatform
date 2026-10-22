@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import React from 'react';
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,8 +9,10 @@ import { buildApiUrl, apiFetch } from "../services/apiClient";
 import { getCurrentUserId } from "../services/authState";
 import { useForceLightMode } from "../hooks/useForceLightMode";
 import { useToast } from "../context/ToastContext";
+import {Eye, EyeOff} from "lucide-react";
 
 function SignupPage(){
+  const { t } = useLanguage();
     const navigate = useNavigate();
     const { showToast } = useToast();
 
@@ -21,6 +24,8 @@ function SignupPage(){
     const [occupation, setOccupation] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     async function handleSignup(event){
         event.preventDefault(); // prevent refresh
@@ -55,7 +60,7 @@ function SignupPage(){
             email,
             phoneNumber,
             occupation,
-            password, 
+            password,
             confirmPassword
         }); //for testing
 
@@ -68,7 +73,7 @@ function SignupPage(){
             occupation,
             password,
         };
-        
+
         try {
             const response = await apiFetch("/api/auth/signup", {
                 method: "POST",
@@ -85,7 +90,7 @@ function SignupPage(){
                 );
                 navigate(`/verify-email?email=${encodeURIComponent(email.trim())}`);
             } else {
-                showToast("Signup failed: " + result.message, "error");
+                showToast(t("Signup failed: {{message}}", { message: t(result.message || "Could not connect to the server.") }), "error");
             }
         } catch (err) {
             console.error("Connection error:", err);
@@ -99,13 +104,11 @@ function SignupPage(){
             <div className = "mx-auto flex min-h-[80vh] max-w-lg items-center justify-center px-4 pt-12 pb-10">
                 <div className="grid w-full overflow-hidden rounded-3xl bg-[var(--color-bg-surface)] dark:shadow-black/40 shadow-xl border border-[var(--color-border)]">
                         <div className = "p-8 md:p-10">
-                            <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]"> Create An Account </h2>
-                            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-                                Join the university lost and found community
-                            </p>
+                            <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">{t(" Create An Account ")}</h2>
+                            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{t("Join the university lost and found community")}</p>
                             <form onSubmit={handleSignup} className = "mt-8 space-y-3">
                             <AuthInput
-                                label = "Full Name *"
+                                label = {t("Full Name *")}
                                 type = "text"
                                 placeholder="John Doe"
                                 value = {fullName}
@@ -113,7 +116,7 @@ function SignupPage(){
                                 required
                             />
                             <AuthInput
-                                label = "Email *"
+                                label = {t("Email *")}
                                 type = "email"
                                 placeholder="your.email@university.edu"
                                 value = {email}
@@ -121,47 +124,64 @@ function SignupPage(){
                                 required
                             />
                             <AuthInput
-                                label = "Phone Number (Optional)"
+                                label = {t("Phone Number (Optional)")}
                                 type = "tel"
                                 placeholder="+ 1 234 567 8900"
                                 value = {phoneNumber}
                                 onChange = {(event) => setPhoneNumber(event.target.value)}
                             />
                             <AuthInput
-                                label = "Occupation (Optional)"
+                                label = {t("Occupation (Optional)")}
                                 type = "text"
-                                placeholder="eg. Student, Faculty, Staff"
+                                placeholder={t("eg. Student, Faculty, Staff")}
                                 value = {occupation}
                                 onChange = {(event) => setOccupation(event.target.value)}
                             />
-                            <AuthInput
-                                label = "Password *"
-                                type = "password"
+                            <div className="relative">
+                                <AuthInput
+                                label={t("Password *")}
+                                type = {showPassword ? "text" : "password"}
                                 placeholder={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
                                 value = {password}
                                 onChange = {(event) => setPassword(event.target.value)}
                                 required
                                 minLength = {8}
-                            />
-                            <AuthInput
-                                label = "Confirm Password *"
-                                type = "password"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(prev => !prev)}
+                                    className="absolute right-4 top-10 text-gray-400 hover:text-gray-700"
+                                    aria-label={showPassword ? t("Hide password") : t("Show password")}
+                                >
+                                    {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                                </button>
+                            </div>
+                            <div className="relative">
+                                <AuthInput
+                                label={t("Confirm Password *")}
+                                type = {showConfirmPassword ? "text" : "password"}
                                 placeholder={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
                                 value = {confirmPassword}
                                 onChange = {(event) => setConfirmPassword(event.target.value)}
                                 required
                                 minLength = {8}
-                            />
-                            <AuthButton type = "submit">Create Account</AuthButton>
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(prev => !prev)}
+                                    className="absolute right-4 top-10 text-gray-400 hover:text-gray-700"
+                                    aria-label={showConfirmPassword ? t("Hide password") : t("Show password")}
+                                >
+                                    {showConfirmPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                                </button>
+                            </div>
+                            <AuthButton type = "submit">{t("Create Account")}</AuthButton>
                             </form>
-                            <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">
-                                Already have an account?{" "}
+                            <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">{t("Already have an account?")}{" "}
                                 <span
                                     onClick={() => navigate("/login")}
                                     className = "font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
-                                >
-                                    Sign In
-                                </span>
+                                >{t("Sign In")}</span>
                             </p>
                         </div>
                     </div>

@@ -18,7 +18,7 @@ export const requireAuth = async (req, res, next) => {
     const payload = verifyAccessToken(accessToken);
     const user = await User.findById(payload.sub);
 
-    if (!user) {
+    if (!user || user.isRemoved) {
       return res.status(401).json({
         message: "Unauthorized.",
       });
@@ -49,7 +49,7 @@ export const optionalAuth = async (req, res, next) => {
     const payload = verifyAccessToken(accessToken);
     const user = await User.findById(payload.sub);
 
-    if (!user) {
+    if (!user || user.isRemoved) {
       return res.status(401).json({
         message: "Unauthorized.",
       });

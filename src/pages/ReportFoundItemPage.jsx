@@ -6,6 +6,7 @@ import { getAuthUser, isAdmin } from "../services/authState";
 import { useToast } from "../context/ToastContext";
 import LocationTagField from "../components/Locationtagfield";
 import NotificationButton from "../components/NotificationButton";
+import { useLanguage } from "../context/LanguageContext";
 
 const CATEGORIES = [
   "Electronics",
@@ -62,6 +63,7 @@ export default function ReportFoundItemPage() {
     : "/found-items";
   const fileInputRef = useRef(null);
   const formContainerRef = useRef(null);
+  const submitLock = useRef(false);
 
   const [form, setForm] = useState({
     title: "", description: "", category: "",
@@ -174,14 +176,16 @@ export default function ReportFoundItemPage() {
   }
 
   async function handleSubmit() {
-    if (isSubmitting) return;
+    if (submitLock.current) return;
 
+    submitLock.current = true;
     setIsSubmitting(true);
     setSubmitError("");
 
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      submitLock.current = false;
       setIsSubmitting(false);
 
       const fieldOrder = [
@@ -315,6 +319,7 @@ export default function ReportFoundItemPage() {
     } catch (error) {
       setSubmitError(error.message || "Failed to submit report");
     } finally {
+      submitLock.current = false;
       setIsSubmitting(false);
     }
   }
@@ -610,9 +615,14 @@ export default function ReportFoundItemPage() {
           </button> */}
           <button
             onClick={handleSubmit}
+            disabled={isSubmitting}
             className="flex-1 py-3 bg-[var(--color-brand)] text-[var(--color-brand-text)] border-none rounded-xl text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity"
           >
-            {editId ? t("Save Changes") : t("Submit Report")}
+            {isSubmitting
+              ? t("Submitting...")
+              : editId
+                ? t("Save Changes")
+                : t("Submit Report")}
           </button>
           <button
             onClick={() => navigate(-1)}

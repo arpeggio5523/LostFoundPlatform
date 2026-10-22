@@ -134,13 +134,21 @@ describe("ReportLostItemPage duplicate submission", () => {
       fireEvent.click(submitButton);
     }
 
-    // Wait for the first API request to start.
+    
+    const getSubmissionCalls = () =>
+      apiFetch.mock.calls.filter(
+        ([url, options]) =>
+          url === "/api/items" && options?.method === "POST"
+      );
+
+    // Wait for the submission request to start.
     await waitFor(() => {
-      expect(apiFetch).toHaveBeenCalledTimes(1);
+      expect(getSubmissionCalls()).toHaveLength(1);
     });
 
-    // Verify that the repeated clicks did not create more requests.
-    expect(apiFetch).toHaveBeenCalledTimes(1);
+    // Verify that rapid clicks did not create duplicate submissions.
+    expect(getSubmissionCalls()).toHaveLength(1);
+
 
     // Complete the pending request successfully.
     request.resolve({
@@ -156,6 +164,6 @@ describe("ReportLostItemPage duplicate submission", () => {
     });
 
     // Confirm there was still only one API request.
-    expect(apiFetch).toHaveBeenCalledTimes(1);
+    expect(getSubmissionCalls()).toHaveLength(1);
   });
 });

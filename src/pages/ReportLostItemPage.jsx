@@ -63,6 +63,7 @@ export default function ReportLostItemPage() {
     : "/lost-items";
   const fileInputRef = useRef(null);
   const formContainerRef = useRef(null);
+  const submitLock = useRef(false);
 
   const [form, setForm] = useState({
     title: "", description: "", category: "",
@@ -175,8 +176,9 @@ export default function ReportLostItemPage() {
   }
 
   async function handleSubmit() {
-    if (isSubmitting) return;
+    if (submitLock.current) return;
 
+    submitLock.current = true;
     setIsSubmitting(true);
     setSubmitError("");
 
@@ -184,6 +186,7 @@ export default function ReportLostItemPage() {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      submitLock.current = false;
       setIsSubmitting(false);
 
       const fieldOrder = [
@@ -317,6 +320,7 @@ export default function ReportLostItemPage() {
     } catch (error) {
       setSubmitError(error.message || "Failed to submit report");
     } finally {
+      submitLock.current = false;
       setIsSubmitting(false);
     }
   }
@@ -603,10 +607,16 @@ export default function ReportLostItemPage() {
         <div className="flex gap-3 mt-7">
           <button
             onClick={handleSubmit}
+            disabled={isSubmitting}
             className="flex-1 py-3 bg-[var(--color-brand)] text-[var(--color-brand-text)] border-none rounded-xl text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity"
           >
-            {editId ? t("Save Changes") : t("Submit Report")}
+            {isSubmitting
+              ? t("Submitting...")
+              : editId
+                ? t("Save Changes")
+                : t("Submit Report")}
           </button>
+          
           <button
             onClick={() => navigate(-1)}
             className="px-6 py-3 bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-xl text-sm font-semibold cursor-pointer hover:bg-[var(--color-bg-raised)] transition-colors"

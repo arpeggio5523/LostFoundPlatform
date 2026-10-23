@@ -74,28 +74,28 @@
 ---
 
 ## Table of Contents
-**1.0 Introduction**  
-**2.0 Software Requirements**  
-2.1 Development environment  
-2.2 Frontend requirements  
-2.3 Backend requirements  
-2.4 Database requirements  
-2.5 Supporting tools  
-2.6 Environment configuration  
-**3.0 Hardware Requirements**  
-**4.0 Instructions on Project Setup and Execution**  
-4.1 Initial Project Setup  
-4.2 Development Environment Setup  
-4.3 User Setup  
-4.4 Testing  
-4.4.1 Unit & Integration Testing (Vitest)  
-4.4.2 End-to-End Testing (Playwright)  
-4.5 Deployment  
-**5.0 Versioning Strategy**  
-**6.0 Pull Request Strategy**  
-**7.0 Additional Notes & Common Issues**  
-7.1 Common Setup Issues  
-7.2 Recommendations for future developers 
+**[1.0 Introduction](#10-introduction)**  
+**[2.0 Software Requirements](#20-software-requirements)**  
+&emsp;[2.1 Development environment](#21-development-environment)  
+&emsp;[2.2 Frontend requirements](#22-frontend-requirements)  
+&emsp;[2.3 Backend requirements](#23-backend-requirements)  
+&emsp;[2.4 Database requirements](#24-database-requirements)  
+&emsp;[2.5 Supporting tools](#25-supporting-tools)  
+&emsp;[2.6 Environment configuration](#26-environment-configuration)  
+**[3.0 Hardware Requirements](#30-hardware-requirements)**  
+**[4.0 Instructions on Project Setup and Execution](#40-instructions-on-project-setup-and-execution)**  
+&emsp;[4.1 Initial Project Setup](#41-initial-project-setup)  
+&emsp;[4.2 Development Environment Setup](#42-development-environment-setup)  
+&emsp;[4.3 User Setup](#43-user-setup)  
+&emsp;[4.4 Testing](#44-testing)  
+&emsp;&emsp;[4.4.1 Unit & Integration Testing (Vitest)](#441-unit--integration-testing-vitest)  
+&emsp;&emsp;[4.4.2 End-to-End Testing (Playwright)](#442-end-to-end-testing-playwright)  
+&emsp;[4.5 Deployment](#45-deployment)  
+**[5.0 Versioning Strategy](#5-versioning-strategy)**  
+**[6.0 Pull Request Strategy](#6-pull-request-strategy)**  
+**[7.0 Additional Notes & Common Issues](#70-additional-notes--common-issues)**  
+&emsp;[7.1 Common Setup Issues](#71-common-setup-issues)  
+&emsp;[7.2 Recommendations for future developers](#72-recommendations-for-future-developers) 
 
 ---
 
@@ -391,7 +391,7 @@ tests/
 
 ---
 
-### 4.6 Deployment
+### 4.5 Deployment
 
 The current project uses Render as deployment. Developers can choose to deploy it on Docker using the below command to build docker image and container.
 

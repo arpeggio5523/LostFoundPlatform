@@ -450,7 +450,7 @@ Contributors must follow these steps when submitting changes:
 Create a separate branch from the appropriate base branch for each new feature or bug fix. Follow the project's branch naming conventions, such as `main/Subteam1/Subteam1Member1`.  
 
 **2. Implement and Test Changes**  
-Make the neccessary changes and run relevant unit, integration or end-to-end tests to verify that the implementation works as expected.  
+Make the necessary changes and run relevant unit, integration or end-to-end tests to verify that the implementation works as expected.  
 
 **3. Commit and Push Changes**  
 Commit changes using clear and descriptive commit messages, following the project's commit conventions (e.g., `feat:`, `fix:`, `docs:`, and `test:`). Push the branch to GitLab.  

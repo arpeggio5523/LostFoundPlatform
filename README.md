@@ -351,11 +351,13 @@ npm run test:coverage
 **Test Structure:**
 ```text
 tests/
-├── unit/                   # Component, hook, controller, model, utility tests
+├── unit/                   # Component, hook, controller, model, pages, services, utility tests
 │   ├── components/
 │   ├── controllers/
 │   ├── hooks/
 │   ├── models/
+│   ├── pages/
+│   ├── services/
 │   └── utils/
 ├── integration/            # API route tests
 │   └── routes/
